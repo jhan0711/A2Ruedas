@@ -9,6 +9,7 @@ import { LoginPage } from '../pages/auth/LoginPage';
 import { DashboardPage } from '../pages/admin/DashboardPage';
 import { DesignSystemPage } from '../pages/admin/DesignSystemPage';
 import { CustomersPage } from '../pages/admin/CustomersPage';
+import { BicyclesPage } from '../pages/admin/BicyclesPage';
 import { ModulePlaceholder } from '../pages/admin/ModulePlaceholder';
 
 export const router = createBrowserRouter([
@@ -51,13 +52,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'bicicletas',
-            element: (
-              <ModulePlaceholder
-                title="Fichas Técnicas de Bicicletas"
-                phase="Fase 7"
-                description="Registro de bicicletas, seriales, marca, modelo y fotografías de estado."
-              />
-            ),
+            element: <BicyclesPage />,
           },
           {
             path: 'ordenes',

@@ -9,7 +9,21 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
-## [0.6.0] - 2026-09-20
+## [0.7.0] - 2026-09-20
+
+### Agregado
+- **Fase 7 — Módulo de Bicicletas**:
+  - Implementación de la vista completa `BicyclesPage` en `/admin/bicicletas`.
+  - Directorio y tabla de bicicletas con filtros reactivos por tipo (MTB, Ruta, Urbana, Gravel, BMX, Eléctrica, Infantil) y buscador multicriterio por marca, modelo, serial de marco o cliente propietario.
+  - Soporte completo para relación 1 a Muchos ($1:N$), permitiendo que un mismo cliente registre múltiples bicicletas.
+  - Modal de registro y edición técnica de bicicletas (marca, modelo, tipo, color, talla de cuadro, tamaño de rin, serial de fábrica, año, componentes y observaciones de ingreso).
+  - Asignación automática de códigos QR únicos con formato `BIKE-XXXXXX` y enlace a timeline público.
+  - Dossier / Ficha técnica de bicicleta con especificaciones completas, cliente propietario con enlace contextualizado a WhatsApp, código QR y órdenes de trabajo asociadas.
+  - Galería interactiva de fotografías de inspección física y evidencia de daños previos clasificada por categorías (*general*, *daño*, *transmisión*, *frenos*, *cuadro*) con subida instantánea.
+  - Modal de confirmación para eliminación con `ConfirmModal` (Regla 44).
+  - Suite de pruebas automatizadas en `tests/bicycles.test.mjs` con 10 aserciones ejecutadas exitosamente.
+
+---
 
 ### Agregado
 - **Fase 6 — Módulo de Clientes**:

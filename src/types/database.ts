@@ -26,6 +26,7 @@ export interface Bicycle {
   bike_type: string;
   color: string;
   frame_size?: string | null;
+  wheel_size?: string | null;
   serial_number?: string | null;
   year?: number | null;
   key_components?: string | null;
@@ -33,9 +34,19 @@ export interface Bicycle {
   created_at: string;
   updated_at: string;
   customer?: Customer;
+  photos?: BicyclePhoto[];
 }
 
-export type BicycleInsert = Omit<Bicycle, 'id' | 'created_at' | 'updated_at' | 'customer'>;
+export interface BicyclePhoto {
+  id: string;
+  bicycle_id: string;
+  photo_url: string;
+  photo_type: 'general' | 'danio' | 'transmision' | 'frenos' | 'cuadro';
+  caption?: string | null;
+  created_at: string;
+}
+
+export type BicycleInsert = Omit<Bicycle, 'id' | 'created_at' | 'updated_at' | 'customer' | 'photos'>;
 export type BicycleUpdate = Partial<BicycleInsert>;
 
 // 3. Códigos QR

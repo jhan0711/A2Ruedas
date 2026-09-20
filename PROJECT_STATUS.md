@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 6 — Módulo de Clientes
+Fase actual: FASE 7 — Módulo de Bicicletas
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -12,9 +12,9 @@ Estado: COMPLETADA
 - [x] FASE 4 — Autenticación y Protección de Rutas (Supabase Auth, ProtectedRoute)
 - [x] FASE 5 — Supabase y Base de Datos (Modelos, Migraciones, RLS, Capa de Servicios)
 - [x] FASE 6 — Módulo de Clientes (CRUD, búsqueda y vinculación)
+- [x] FASE 7 — Módulo de Bicicletas (Registro, serial, fotos de inspección, QR)
 
 ## Fases pendientes:
-- [ ] FASE 7 — Módulo de Bicicletas (Registro, serial, fotografías)
 - [ ] FASE 8 — Módulo de Inventario (Productos, stock, movimientos, alertas)
 - [ ] FASE 9 — Módulo de Órdenes de Trabajo (OT-000001, estados, repuestos)
 - [ ] FASE 10 — Recepción de Bicicleta + Firma Digital Táctil
@@ -68,28 +68,39 @@ Estado: COMPLETADA
   * Ficha y perfil de cliente detallado mostrando bicicletas registradas e historial de órdenes de trabajo asociadas.
   * Eliminación de cliente con modal de confirmación `ConfirmModal` (Regla 44).
   * Suite de pruebas automatizadas en `tests/customers.test.mjs`.
+- **Módulo de Bicicletas (Fase 7)**:
+  * Directorio visual de bicicletas con tabla B2B, marcas, modelos, tipo y color.
+  * Soporte completo para relación 1:N (un cliente con múltiples bicicletas).
+  * Asignación automática de códigos QR únicos (`BIKE-XXXXXX`) con enlace público.
+  * Identificación técnica detallada: Serial de fábrica, talla de marco, tamaño de rin, componentes clave y daños previos.
+  * Galería de fotografías de inspección física con clasificación por tipo (*general*, *daño*, *transmisión*, *frenos*, *cuadro*) y subida reactiva.
+  * Consolidación de órdenes de trabajo asociadas a cada bicicleta.
+  * Eliminación con modal de confirmación `ConfirmModal` (Regla 44).
+  * Suite de pruebas automatizadas en `tests/bicycles.test.mjs`.
 
 ## Funcionalidades pendientes:
-- Módulo de registro de Bicicletas y fotografías de ingreso (Fase 7).
 - Módulo de Inventario y Kardex (Fase 8).
+- Módulo de Órdenes de Trabajo (Fase 9).
 
 ## Errores conocidos:
 - Ninguno. Compilación limpia y pruebas ejecutadas exitosamente al 100%.
 
 ## Pruebas ejecutadas:
 - Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (0 errores).
-- Validación de campos obligatorios de cliente (Rechazo datos inválidos y aceptación válidos): PASS.
-- Sanitización y generación de Deep Link de WhatsApp internacional/nacional: PASS.
-- Búsqueda reactiva multicriterio (Nombre, Teléfono, Documento): PASS.
-- Vinculación relacional cliente con bicicletas vinculadas y órdenes de trabajo: PASS.
+- Validación de campos obligatorios de bicicleta: PASS.
+- Relación 1:N cliente multi-bicicletas: PASS.
+- Formato y unicidad de códigos QR `BIKE-XXXXXX`: PASS.
+- Búsqueda reactiva por marca, modelo y serial: PASS.
+- Tipificación de fotografías de inspección de taller: PASS.
+- Generación de WhatsApp directo contextualizado con la bicicleta: PASS.
 
 ## Pruebas pendientes:
-- Pruebas E2E de interfaz de usuario de Bicicletas (Fase 7).
+- Pruebas E2E de inventario y Kardex (Fase 8).
 
 ## Decisiones técnicas:
-- **Sanitización de WhatsApp**: Normalización de números telefónicos para garantizar compatibilidad con el esquema `https://wa.me/57...` tanto para números ingresados con prefijo internacional como locales.
-- **Resiliencia Operativa**: Los servicios implementan persistencia híbrida para que la aplicación mantenga su operatividad técnica en caso de fallos momentáneos de conectividad.
+- **Respaldo de Evidencia Fotográfica**: Las fotos de ingreso protegen al taller ante discrepancias con clientes, registrando el estado estético y mecánico inicial.
+- **Identidad QR Desacoplada**: El código QR se genera y asocia a la bicicleta de forma única e inmutable, permitiendo reimpresión de etiquetas sin alterar el registro.
 
 ## Próximo paso:
-Iniciar **FASE 7 — MÓDULO DE BICICLETAS**: Construcción del registro de bicicletas, marcas, modelos, números de serie únicos, tipos de bicicleta, vinculación a clientes y captura/galería de fotografías de estado de ingreso.
+Iniciar **FASE 8 — MÓDULO DE INVENTARIO**: Catálogo de productos, control de stock, alertas de stock mínimo, registro de movimientos Kardex (entradas, salidas y ajustes) con prueba matemática de balance.
 
