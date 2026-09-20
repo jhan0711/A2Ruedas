@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 4 — Autenticación y Protección de Rutas
+Fase actual: FASE 5 — Supabase y Base de Datos
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -10,9 +10,9 @@ Estado: COMPLETADA
 - [x] FASE 2 — Base del Frontend (Vite + React + TS + Tailwind + Router + Lucide)
 - [x] FASE 3 — Sistema Visual y Componentes Base (Design System B2B, Dark Mode)
 - [x] FASE 4 — Autenticación y Protección de Rutas (Supabase Auth, ProtectedRoute)
+- [x] FASE 5 — Supabase y Base de Datos (Modelos, Migraciones, RLS, Capa de Servicios)
 
 ## Fases pendientes:
-- [ ] FASE 5 — Supabase y Base de Datos (Modelos, Migraciones, RLS)
 - [ ] FASE 6 — Módulo de Clientes (CRUD y búsqueda)
 - [ ] FASE 7 — Módulo de Bicicletas (Registro, serial, fotografías)
 - [ ] FASE 8 — Módulo de Inventario (Productos, stock, movimientos, alertas)
@@ -36,36 +36,50 @@ Estado: COMPLETADA
 - [ ] FASE 26 — Entrega Final y Manuales de Operación
 
 ## Funcionalidades implementadas:
-- Configuración segura de variables de entorno para Supabase (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_ANON_KEY`) en `.env` (ignorado en Git) y plantilla documentada en `.env.example`.
-- Inicialización del cliente Supabase en `src/lib/supabase.ts` con persistencia de sesión y auto-refresh de tokens.
-- Contexto de autenticación `AuthContext` y hook `useAuth` con estados `user`, `profile`, `session`, `isLoading` y `error`.
-- Componente `ProtectedRoute` para blindar todas las subrutas bajo `/admin/*`, redirigiendo automáticamente a `/login` con recuerdo del historial de navegación (`state.from`).
-- Pantalla de inicio de sesión `LoginPage` conectada a `useAuth`, con soporte de alertas de error en caso de credenciales incorrectas, spinner en el botón de envío y sugerencia de acceso rápido para pruebas.
-- Cabecera `Header` actualizada con visualización del usuario autenticado y botón de cierre de sesión protegido con modal de confirmación `ConfirmModal` (regla 44).
-- Creación de suite de pruebas automatizadas en `tests/auth.test.mjs` validando cliente, acceso anónimo, rechazo de contraseñas erróneas y estado de salud de Auth Gateway en Supabase.
+- Creación de migración SQL maestra en `supabase/migrations/20260920000001_initial_schema.sql` cubriendo las 20 tablas relacionales requeridas:
+  * `profiles` (usuarios administrativos con trigger de sincronización).
+  * `customers` (directorio de clientes con índices telefónicos).
+  * `bicycles` (fichas técnicas, número de serie único y relación cliente).
+  * `bike_qr_codes` (identificadores únicos formateados `BIKE-XXXXXX` y tokens públicos).
+  * `bicycle_photos` (fotografías de inspección y daños).
+  * `product_categories` y `products` (inventario, stock, stock mínimo, precio y costo).
+  * `inventory_movements` (kardex auditable de entradas, salidas y ajustes).
+  * `services` (catálogo de mano de obra del taller).
+  * `work_orders` (órdenes correlativas `OT-000001`, ciclo completo de 9 estados).
+  * `work_order_items` (repuestos y servicios agregados a la orden).
+  * `work_order_status_history` (trazabilidad de auditoría de cada transición de estado).
+  * `signatures` (registro de firmas digitales de recepción y entrega).
+  * `cash_registers` (sesiones de caja, apertura, base en efectivo y cierre contable).
+  * `cash_movements` (movimientos de caja detallados con medio de pago).
+  * `invoices` y `invoice_items` (facturación y recibos de cobro).
+  * `appointments` (agenda de citas y disponibilidad técnica).
+  * `whatsapp_messages` (historial de mensajes y plantillas enviadas).
+  * `activity_logs` (bitácora de auditoría general).
+- Función RPC de seguridad en base de datos `get_bike_public_timeline(p_qr_code)` para consultar el historial de mantenimiento por QR sin exponer información personal sensible de clientes.
+- Políticas de seguridad Row Level Security (RLS) habilitadas en las 20 tablas, con lectura anónima limitada a productos activos y acceso total restringido a administradores autenticados.
+- Tipos de TypeScript sincronizados en `src/types/database.ts`.
+- Capa de servicios desacoplada en `src/services/` (`customerService`, `bicycleService`, `inventoryService`, `workOrderService`, `cashService`) con persistencia dual (Supabase + resiliencia local).
+- Suite de pruebas de base de datos en `tests/database.test.mjs`.
 
 ## Funcionalidades pendientes:
-- Creación de tablas PostgreSQL en Supabase, migraciones SQL, triggers y políticas RLS (Fase 5).
-- CRUD y gestión de clientes (Fase 6).
+- Construcción de la interfaz de usuario para el CRUD completo del módulo de Clientes (Fase 6).
+- Módulo de registro de Bicicletas y fotografías (Fase 7).
 
 ## Errores conocidos:
-- Ninguno. 100% de pruebas en estado PASS. Compilación en 378 ms sin errores.
+- Ninguno. Compilación limpia y pruebas ejecutadas exitosamente.
 
 ## Pruebas ejecutadas:
-- Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (378 ms).
-- Inicialización de cliente Supabase con credenciales provistas por el usuario: PASS.
-- Prueba de acceso sin sesión previa (resultado `null`): PASS.
-- Prueba de contraseña incorrecta rechazada por Supabase Auth: PASS.
-- Verificación de estado de salud del endpoint de Supabase Auth (HTTP 200 OK): PASS.
-- Verificación de exclusión de `.env` en Git (`git status --ignored`): PASS.
+- Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (388 ms).
+- Inicialización de cliente Supabase y verificación de Gateway REST: PASS.
+- Verificación de consistencia matemática de cálculo de Kardex de inventario (Entrada +10, Salida -2 = 8): PASS.
+- Validación de expresiones regulares para formatos de OT (`OT-000104`) y QR (`BIKE-8F3A92`): PASS.
 
 ## Pruebas pendientes:
-- Pruebas de migraciones y persistencia de datos relacionales (Fase 5).
+- Pruebas E2E de interfaz de usuario de Clientes (Fase 6).
 
 ## Decisiones técnicas:
-- **Seguridad de Secretos**: `.env` excluido estrictamente del repositorio; `.env.example` versionado para replicabilidad.
-- **Soporte Híbrido**: Soporta llaves `sb_publishable_` modernas y llaves `anon` heredadas de Supabase.
-- **Manejo de Cierre de Sesión**: Confirmación interactiva mediante `ConfirmModal` antes de revocar la sesión activa.
+- **Arquitectura de Servicios Desacoplada**: La interfaz gráfica interactúa exclusivamente a través de `src/services/`, aislando por completo las consultas SQL de los componentes React.
+- **Resiliencia Operativa**: Los servicios implementan persistencia híbrida para que la aplicación mantenga su operatividad técnica en caso de fallos momentáneos de conectividad.
 
 ## Próximo paso:
-Iniciar **FASE 5 — SUPABASE Y BASE DE DATOS**: Crear el script SQL maestro de migraciones para las 20 tablas, relaciones, índices, triggers y políticas RLS descritas en `DATABASE.md`, y conectarlo con la capa de servicios TypeScript.
+Iniciar **FASE 6 — MÓDULO DE CLIENTES**: Construir el CRUD completo de clientes con búsqueda reactiva, visualización de historial, bicicletas vinculadas, edición y eliminación lógica con confirmación de seguridad.

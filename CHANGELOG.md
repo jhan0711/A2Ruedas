@@ -9,6 +9,19 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
+## [0.5.0] - 2026-09-20
+
+### Agregado
+- **Fase 5 — Supabase y Base de Datos**:
+  - Script SQL de migración inicial `supabase/migrations/20260920000001_initial_schema.sql` con 20 tablas relacionales, llaves foráneas con borrado controlado, restricciones e índices.
+  - Función RPC `get_bike_public_timeline(p_qr_code)` para consulta segura del historial de la bicicleta por QR sin exponer datos personales (PII) del cliente.
+  - Activación de Row Level Security (RLS) en todas las tablas con reglas públicas para productos/categorías/servicios y reglas privadas para administración.
+  - Tipos e interfaces de TypeScript en `src/types/database.ts` para todas las entidades y operaciones de inserción/actualización.
+  - Capa de servicios modular y desacoplada en `src/services/` (`customerService`, `bicycleService`, `inventoryService`, `workOrderService`, `cashService`).
+  - Script de validación de base de datos en `tests/database.test.mjs`.
+
+---
+
 ## [0.4.0] - 2026-09-20
 
 ### Agregado
