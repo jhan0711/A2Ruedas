@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+}
+
+/* Tipografía monoespaciada técnica para códigos, seriales y moneda */
+.font-mono-numeric {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-feature-settings: "tnum" on, "zero" on;
+}
+
+/* Estilos de impresión térmica de 58 mm (384 px a 203 DPI) */
+@media print {
+  @page {
+    size: 58mm auto;
+    margin: 0;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .printable-receipt {
+    width: 48mm !important;
+    max-width: 48mm !important;
+    margin: 0 auto !important;
+    padding: 2mm 0 !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+    font-family: ui-monospace, Menlo, Monaco, Consolas, monospace !important;
+    color: #000000 !important;
+  }
+}

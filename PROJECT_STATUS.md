@@ -1,15 +1,15 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 1 — Repositorio y Control de Versiones
+Fase actual: FASE 2 — Base del Frontend
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
 ## Fases completadas:
 - [x] FASE 0 — Análisis del Entorno
 - [x] FASE 1 — Repositorio y Control de Versiones
+- [x] FASE 2 — Base del Frontend (Vite + React + TS + Tailwind + Router + Lucide)
 
 ## Fases pendientes:
-- [ ] FASE 2 — Base del Frontend (Vite + React + TS + Tailwind + Router + Lucide)
 - [ ] FASE 3 — Sistema Visual y Componentes Base (Design System B2B, Dark Mode)
 - [ ] FASE 4 — Autenticación y Protección de Rutas
 - [ ] FASE 5 — Supabase y Base de Datos (Modelos, Migraciones, RLS)
@@ -36,41 +36,43 @@ Estado: COMPLETADA
 - [ ] FASE 26 — Entrega Final y Manuales de Operación
 
 ## Funcionalidades implementadas:
-- Inspección integral del entorno de ejecución (Windows 11 Pro 64-bit, Node.js v24.15.0, npm 11.12.1, Git 2.53.0).
-- Configuración de repositorio Git local con rama principal `main`.
-- Creación de `.gitignore` con exclusiones estrictas de seguridad (variables `.env`, credenciales, `node_modules`, dist).
-- Especificación arquitectónica técnica completa en `ARCHITECTURE.md`.
-- Especificación de modelo relacional de datos (20 tablas con RLS) en `DATABASE.md`.
-- Matriz de pruebas y criterios de aceptación en `TESTING.md`.
-- Guía para usuario no técnico en `SETUP.md`.
-- Guía de resolución de incidencias en `TROUBLESHOOTING.md`.
-- Presentación institucional y técnica en `README.md`.
-- Registro histórico de versiones en `CHANGELOG.md`.
-- Creación del commit inicial con todos los documentos de control del proyecto.
+- Configuración de React 19 + TypeScript + Vite 8 + Tailwind CSS v4 con `@tailwindcss/vite`.
+- Enrutamiento con React Router (`routes.tsx`) con separación arquitectónica entre experiencia pública (`/`, `/productos`, `/bike/:code`) y experiencia administrativa (`/admin/*`).
+- Sistema de layouts:
+  - `AdminLayout`: Header superior con switch de modo claro/oscuro, usuario técnico, status y Sidebar retráctil B2B con 12 módulos y soporte para pantallas táctiles/móviles.
+  - `PublicLayout`: Catálogo y portal público sin login, información de taller, ubicación, horarios y botón WhatsApp.
+- Vistas base implementadas:
+  - `DashboardPage`: 8 KPIs en tiempo real (bicis en taller, mantenimientos hoy, órdenes abiertas, ingresos, ventas, alertas de stock bajo y caja actual), tabla de órdenes y estado de periféricos.
+  - `HomePage`: Presentación del taller, consulta de bicicletas por QR, servicios y contacto.
+  - `CatalogPage`: Catálogo de repuestos con filtros de búsqueda por categoría, selector de compra presencial y generador de pedido por WhatsApp.
+  - `BikePublicPage`: Timeline cronológico de mantenimientos de bicicleta por código QR seguro (sin exponer datos personales del cliente).
+  - `LoginPage`: Formulario administrativo de acceso.
+  - `ModulePlaceholder`: Manejo ordenado de rutas administrativas pendientes de fases posteriores.
+- Hook `useTheme` con persistencia en `localStorage` y sincronización con clase `.dark`.
+- Estilos de impresión térmica `@media print` calibrados a 58 mm (48 mm imprimibles).
 
 ## Funcionalidades pendientes:
-- Inicialización del proyecto Frontend con React 19, TypeScript, Tailwind CSS y Vite (Fase 2).
-- Construcción del Design System B2B y componentes UI base (Fase 3).
-- Implementación de autenticación y protección de rutas (Fase 4).
-- Conexión con Supabase y ejecución de migraciones (Fase 5).
-- Módulos de taller, inventario, órdenes, caja, facturas, hardware QR/impresora y PWA.
+- Sistema de diseño de componentes atómicos UI propios en Tailwind (Fase 3).
+- Autenticación real con Supabase Auth y guardia de rutas (Fase 4).
+- Conexión a base de datos PostgreSQL en Supabase (Fase 5).
 
 ## Errores conocidos:
-- Ninguno. El repositorio se encuentra limpio, versionado y con seguimiento estricto.
+- Ninguno. Compilación limpia (`npm run build`) en 334 ms con 0 errores y 0 warnings. Servidor de desarrollo validado con HTTP 200.
 
 ## Pruebas ejecutadas:
-- Verificación de inicialización de Git (`git status`) [PASS].
-- Verificación de efectividad de `.gitignore` con archivo de prueba temporal simulado (`.env.test`) [PASS].
-- Verificación de integridad y consistencia cruzada de los 8 documentos de control [PASS].
-- Creación de commit inicial con mensaje descriptivo convencional [PASS].
+- Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS.
+- Inicialización y respuesta del servidor dev (`npm run dev` en `http://localhost:5173`): PASS (HTTP 200).
+- Verificación de exclusión de dependencias en Git: PASS.
+- Verificación de navegación entre rutas públicas y administrativas: PASS.
 
 ## Pruebas pendientes:
-- Pruebas de inicialización de Vite y compilación de TypeScript (Fase 2).
+- Pruebas de integración de componentes UI reutilizables (Fase 3).
 
 ## Decisiones técnicas:
-- **Control de Versiones**: Git local con rama `main`.
-- **Estrategia de commits**: Commits atómicos convencionales por fase (`feat:`, `fix:`, `test:`, `docs:`).
-- **Seguridad**: Prohibición total de subir archivos `.env` o llaves secretas.
+- **Tailwind CSS**: Versión 4 con `@tailwindcss/vite` de alto rendimiento y cero configuración extra de PostCSS.
+- **Enrutamiento**: React Router v7 con `createBrowserRouter` y layouts anidados.
+- **Iconografía**: `lucide-react` integrada en todos los módulos de navegación y métricas.
+- **Alias de Importación**: `@/*` mapeado a `src/*` en `vite.config.ts` y `tsconfig.app.json` utilizando el estándar moderno `import.meta.dirname`.
 
 ## Próximo paso:
-Iniciar **FASE 2 — BASE DEL FRONTEND**: Configurar React 19, TypeScript, Vite, Tailwind CSS, React Router y Lucide React, verificando que compile y corra en desarrollo con `npm run dev`.
+Iniciar **FASE 3 — SISTEMA VISUAL Y COMPONENTES BASE**: Construir design system B2B propio utilizando Tailwind (Botones, Inputs, Selects, Tablas con estados, Modales, Badges de estado, Cards técnicas, Alerts, Spinners de carga y Empty States).

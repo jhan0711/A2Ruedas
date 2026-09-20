@@ -9,12 +9,26 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
+## [0.2.0] - 2026-09-20
+
+### Agregado
+- **Fase 2 — Base del Frontend**:
+  - Configuración completa de Vite 8 + React 19 + TypeScript + Tailwind CSS v4.
+  - Configuración de React Router con arquitectura dividida: portal público (`/`, `/productos`, `/bike/:code`) y taller administrativo (`/admin/*`).
+  - Layout administrativo `AdminLayout` con `Header` (switch claro/oscuro, usuario, status) y `Sidebar` retráctil con 12 módulos.
+  - Layout público `PublicLayout` con información del taller, ubicación, horarios y contacto de WhatsApp.
+  - Vistas base: `DashboardPage` con 8 KPIs en tiempo real y tabla de órdenes; `HomePage` institucional; `CatalogPage` con filtros y cotizador de WhatsApp; `BikePublicPage` con timeline de mantenimientos por QR; `LoginPage` para administración.
+  - Hook `useTheme` con persistencia en `localStorage` y toggle de clase `.dark`.
+  - Calibración CSS `@media print` para tickets térmicos de 58 mm.
+
+---
+
 ## [0.1.0] - 2026-09-20
 
 ### Agregado
 - **Fase 0 — Análisis del Entorno**:
   - Inspección del sistema anfitrión (Windows 11 Pro 64-bit).
-  - Verificación de herramientas de compilación y ejecución: Node.js (v24.15.0), npm (11.12.1) y Git (2.53.0.windows.1).
+  - Verificación de herramientas: Node.js (v24.15.0), npm (11.12.1) y Git (2.53.0.windows.1).
   - Verificación del proyecto existente en Supabase (`https://bmwrsekgpfculdtzvcfx.supabase.co`).
   - Creación de documentación de arranque: `PROJECT_STATUS.md`, `SETUP.md` y `ARCHITECTURE.md`.
 - **Fase 1 — Repositorio y Documentación de Control**:
