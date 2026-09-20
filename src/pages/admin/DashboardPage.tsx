@@ -13,6 +13,20 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import {
+  Button,
+  Badge,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '../../components/ui';
 
 export const DashboardPage: React.FC = () => {
   return (
@@ -29,19 +43,15 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            to="/admin/ordenes/nueva"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-xs transition-colors"
-          >
-            <PlusCircle className="w-3.5 h-3.5" />
-            <span>Ingresar Bicicleta (OT)</span>
+          <Link to="/admin/ordenes/nueva">
+            <Button size="sm" leftIcon={<PlusCircle className="w-3.5 h-3.5" />}>
+              Ingresar Bicicleta (OT)
+            </Button>
           </Link>
-          <Link
-            to="/admin/qr"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium transition-colors"
-          >
-            <QrCode className="w-3.5 h-3.5" />
-            <span>Escanear QR</span>
+          <Link to="/admin/qr">
+            <Button variant="secondary" size="sm" leftIcon={<QrCode className="w-3.5 h-3.5" />}>
+              Escanear QR
+            </Button>
           </Link>
         </div>
       </div>
@@ -49,7 +59,7 @@ export const DashboardPage: React.FC = () => {
       {/* Grid de 8 Indicadores Clave (KPIs) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
         {/* KPI 1: Bicicletas en taller */}
-        <div className="p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
+        <Card className="p-3.5">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-medium">Bicis en Taller</span>
             <Bike className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -58,10 +68,10 @@ export const DashboardPage: React.FC = () => {
             <span className="text-2xl font-bold font-mono text-slate-900 dark:text-white">8</span>
             <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">3 en reparación</span>
           </div>
-        </div>
+        </Card>
 
         {/* KPI 2: Mantenimientos Hoy */}
-        <div className="p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
+        <Card className="p-3.5">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-medium">Mantenimientos Hoy</span>
             <Calendar className="w-4 h-4 text-amber-500" />
@@ -70,10 +80,10 @@ export const DashboardPage: React.FC = () => {
             <span className="text-2xl font-bold font-mono text-slate-900 dark:text-white">5</span>
             <span className="text-[10px] text-slate-500 dark:text-slate-400">2 completados</span>
           </div>
-        </div>
+        </Card>
 
         {/* KPI 3: Órdenes Abiertas */}
-        <div className="p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
+        <Card className="p-3.5">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-medium">Órdenes Abiertas</span>
             <Wrench className="w-4 h-4 text-indigo-500" />
@@ -82,10 +92,10 @@ export const DashboardPage: React.FC = () => {
             <span className="text-2xl font-bold font-mono text-slate-900 dark:text-white">6</span>
             <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">1 por presupuesto</span>
           </div>
-        </div>
+        </Card>
 
         {/* KPI 4: Trabajos Próximos */}
-        <div className="p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
+        <Card className="p-3.5">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-medium">Trabajos Próximos</span>
             <Clock className="w-4 h-4 text-blue-500" />
@@ -94,10 +104,10 @@ export const DashboardPage: React.FC = () => {
             <span className="text-2xl font-bold font-mono text-slate-900 dark:text-white">3</span>
             <span className="text-[10px] text-slate-500 dark:text-slate-400">Agendados mañana</span>
           </div>
-        </div>
+        </Card>
 
         {/* KPI 5: Ingresos del Día */}
-        <div className="p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
+        <Card className="p-3.5">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-medium">Ingresos Servicios</span>
             <TrendingUp className="w-4 h-4 text-emerald-500" />
@@ -106,10 +116,10 @@ export const DashboardPage: React.FC = () => {
             <span className="text-xs font-mono text-slate-400">$</span>
             <span className="text-2xl font-bold font-mono text-slate-900 dark:text-white">280.000</span>
           </div>
-        </div>
+        </Card>
 
         {/* KPI 6: Ventas de Productos */}
-        <div className="p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
+        <Card className="p-3.5">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-medium">Ventas Mostrador</span>
             <TrendingUp className="w-4 h-4 text-blue-500" />
@@ -118,7 +128,7 @@ export const DashboardPage: React.FC = () => {
             <span className="text-xs font-mono text-slate-400">$</span>
             <span className="text-2xl font-bold font-mono text-slate-900 dark:text-white">145.000</span>
           </div>
-        </div>
+        </Card>
 
         {/* KPI 7: Stock Bajo */}
         <div className="p-3.5 rounded-lg border border-amber-200 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20 shadow-xs">
@@ -147,123 +157,126 @@ export const DashboardPage: React.FC = () => {
 
       {/* Sección principal: Órdenes activas y alertas de taller */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Tabla de Órdenes de Trabajo en Curso (2 columnas) */}
-        <div className="lg:col-span-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Wrench className="w-4 h-4 text-blue-600" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
-                Órdenes de Trabajo en Curso
-              </h2>
-            </div>
-            <Link
-              to="/admin/ordenes"
-              className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
-            >
-              <span>Ver todas</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 uppercase font-mono text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="px-4 py-2.5">OT #</th>
-                  <th className="px-4 py-2.5">Cliente</th>
-                  <th className="px-4 py-2.5">Bicicleta</th>
-                  <th className="px-4 py-2.5">Estado</th>
-                  <th className="px-4 py-2.5 text-right">Total Est.</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                <tr className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                  <td className="px-4 py-3 font-mono font-bold text-blue-600 dark:text-blue-400">OT-000104</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">Carlos Mendoza</td>
-                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">Trek Marlin 7 (Rojo)</td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                      EN_REPARACION
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono font-semibold text-slate-900 dark:text-slate-100">
+        {/* Tabla de Órdenes de Trabajo en Curso */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Wrench className="w-4 h-4 text-blue-600" />
+                <CardTitle>Órdenes de Trabajo en Curso</CardTitle>
+              </div>
+              <Link
+                to="/admin/ordenes"
+                className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+              >
+                <span>Ver todas</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </CardHeader>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>OT #</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Bicicleta</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead className="text-right">Total Est.</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell isMono className="font-bold text-blue-600 dark:text-blue-400">
+                    OT-000104
+                  </TableCell>
+                  <TableCell className="font-medium text-slate-900 dark:text-slate-100">
+                    Carlos Mendoza
+                  </TableCell>
+                  <TableCell>Trek Marlin 7 (Rojo)</TableCell>
+                  <TableCell>
+                    <Badge status="EN_REPARACION" withDot isMono />
+                  </TableCell>
+                  <TableCell isMono className="text-right font-semibold">
                     $120.000
-                  </td>
-                </tr>
-
-                <tr className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                  <td className="px-4 py-3 font-mono font-bold text-blue-600 dark:text-blue-400">OT-000103</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">Laura Gómez</td>
-                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">Specialized Allez (Negro)</td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                      DIAGNOSTICO
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono font-semibold text-slate-900 dark:text-slate-100">
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell isMono className="font-bold text-blue-600 dark:text-blue-400">
+                    OT-000103
+                  </TableCell>
+                  <TableCell className="font-medium text-slate-900 dark:text-slate-100">
+                    Laura Gómez
+                  </TableCell>
+                  <TableCell>Specialized Allez (Negro)</TableCell>
+                  <TableCell>
+                    <Badge status="DIAGNOSTICO" withDot isMono />
+                  </TableCell>
+                  <TableCell isMono className="text-right font-semibold">
                     $65.000
-                  </td>
-                </tr>
-
-                <tr className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                  <td className="px-4 py-3 font-mono font-bold text-blue-600 dark:text-blue-400">OT-000102</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">Andrés Pardo</td>
-                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">Giant Talon 2 (Azul)</td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                      LISTA
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono font-semibold text-slate-900 dark:text-slate-100">
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell isMono className="font-bold text-blue-600 dark:text-blue-400">
+                    OT-000102
+                  </TableCell>
+                  <TableCell className="font-medium text-slate-900 dark:text-slate-100">
+                    Andrés Pardo
+                  </TableCell>
+                  <TableCell>Giant Talon 2 (Azul)</TableCell>
+                  <TableCell>
+                    <Badge status="LISTA" withDot isMono />
+                  </TableCell>
+                  <TableCell isMono className="text-right font-semibold">
                     $180.000
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </Card>
         </div>
 
-        {/* Panel lateral: Alertas de Stock y Actividad Reciente */}
+        {/* Panel lateral: Alertas de Stock y Periféricos */}
         <div className="space-y-4">
-          {/* Card Alerta de Stock Bajo */}
-          <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs p-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+                <AlertTriangle className="w-3.5 h-3.5" />
                 Repuestos por Agotarse
-              </span>
+              </CardTitle>
               <Link to="/admin/inventario" className="text-[11px] text-blue-600 hover:underline">
                 Ajustar
               </Link>
-            </div>
-            <div className="mt-3 space-y-2.5 text-xs">
+            </CardHeader>
+            <CardContent className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="font-medium text-slate-800 dark:text-slate-200 block">Cadena Shimano 9V</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200 block">
+                    Cadena Shimano 9V
+                  </span>
                   <span className="font-mono text-[10px] text-slate-400">SKU: REP-CAD-09</span>
                 </div>
-                <span className="font-mono text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-1.5 py-0.5 rounded">
+                <Badge variant="danger" isMono>
                   1 un.
-                </span>
+                </Badge>
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="font-medium text-slate-800 dark:text-slate-200 block">Pastillas Shimano B05S</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200 block">
+                    Pastillas Shimano B05S
+                  </span>
                   <span className="font-mono text-[10px] text-slate-400">SKU: FRE-PAS-B05</span>
                 </div>
-                <span className="font-mono text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded">
+                <Badge variant="warning" isMono>
                   2 par
-                </span>
+                </Badge>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* Card de Estado del Sistema */}
-          <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white block mb-2">
-              Dispositivos Conectados
-            </span>
-            <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
+          <Card variant="muted">
+            <CardHeader>
+              <CardTitle>Dispositivos de Taller</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-slate-600 dark:text-slate-400">
               <div className="flex items-center justify-between">
                 <span>Impresión 58 mm</span>
                 <span className="inline-flex items-center gap-1 font-mono text-[10px] text-blue-600 dark:text-blue-400">
@@ -282,8 +295,8 @@ export const DashboardPage: React.FC = () => {
                   <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Calibrado
                 </span>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

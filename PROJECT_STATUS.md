@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 2 — Base del Frontend
+Fase actual: FASE 3 — Sistema Visual y Componentes Base
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -8,9 +8,9 @@ Estado: COMPLETADA
 - [x] FASE 0 — Análisis del Entorno
 - [x] FASE 1 — Repositorio y Control de Versiones
 - [x] FASE 2 — Base del Frontend (Vite + React + TS + Tailwind + Router + Lucide)
+- [x] FASE 3 — Sistema Visual y Componentes Base (Design System B2B, Dark Mode)
 
 ## Fases pendientes:
-- [ ] FASE 3 — Sistema Visual y Componentes Base (Design System B2B, Dark Mode)
 - [ ] FASE 4 — Autenticación y Protección de Rutas
 - [ ] FASE 5 — Supabase y Base de Datos (Modelos, Migraciones, RLS)
 - [ ] FASE 6 — Módulo de Clientes (CRUD y búsqueda)
@@ -36,43 +36,42 @@ Estado: COMPLETADA
 - [ ] FASE 26 — Entrega Final y Manuales de Operación
 
 ## Funcionalidades implementadas:
-- Configuración de React 19 + TypeScript + Vite 8 + Tailwind CSS v4 con `@tailwindcss/vite`.
-- Enrutamiento con React Router (`routes.tsx`) con separación arquitectónica entre experiencia pública (`/`, `/productos`, `/bike/:code`) y experiencia administrativa (`/admin/*`).
-- Sistema de layouts:
-  - `AdminLayout`: Header superior con switch de modo claro/oscuro, usuario técnico, status y Sidebar retráctil B2B con 12 módulos y soporte para pantallas táctiles/móviles.
-  - `PublicLayout`: Catálogo y portal público sin login, información de taller, ubicación, horarios y botón WhatsApp.
-- Vistas base implementadas:
-  - `DashboardPage`: 8 KPIs en tiempo real (bicis en taller, mantenimientos hoy, órdenes abiertas, ingresos, ventas, alertas de stock bajo y caja actual), tabla de órdenes y estado de periféricos.
-  - `HomePage`: Presentación del taller, consulta de bicicletas por QR, servicios y contacto.
-  - `CatalogPage`: Catálogo de repuestos con filtros de búsqueda por categoría, selector de compra presencial y generador de pedido por WhatsApp.
-  - `BikePublicPage`: Timeline cronológico de mantenimientos de bicicleta por código QR seguro (sin exponer datos personales del cliente).
-  - `LoginPage`: Formulario administrativo de acceso.
-  - `ModulePlaceholder`: Manejo ordenado de rutas administrativas pendientes de fases posteriores.
-- Hook `useTheme` con persistencia en `localStorage` y sincronización con clase `.dark`.
-- Estilos de impresión térmica `@media print` calibrados a 58 mm (48 mm imprimibles).
+- Construcción integral del Design System B2B propio utilizando Tailwind CSS bajo las reglas 7, 8, 9, 10, 11, 12, 13, 43 y 44.
+- Componentes UI modulares desarrollados:
+  - `Button`: 6 variantes (`primary`, `secondary`, `danger`, `success`, `outline`, `ghost`), 3 tamaños (`sm`, `md`, `lg`), soporte de iconos derecho/izquierdo y spinner interactivo `isLoading`.
+  - `Input`: Soporte de etiquetas, mensajes de error, texto de ayuda, iconos, prefijos tipográficos (`$`, `OT-`, `SER-`), tipografía monoespaciada opcional y estado deshabilitado.
+  - `Select`: Desplegable nativo accesible con chevron vectorizado y validación integrada.
+  - `Badge`: Mapeo automático de los 9 estados de taller (`RECIBIDA`, `DIAGNOSTICO`, `PRESUPUESTO`, `APROBADA`, `EN_REPARACION`, `ESPERANDO_REPUESTO`, `LISTA`, `ENTREGADA`, `CANCELADA`) con punto indicador y variantes semánticas.
+  - `Card`: Estructura modular (`CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`) con variantes técnicas.
+  - `Modal`: Ventana modal accesible con cierre por tecla Escape, backdrop oscurecido y bloqueo de scroll.
+  - `ConfirmModal`: Modal especializado obligatorio para acciones destructivas (eliminar registros, cancelar órdenes, cierre de caja).
+  - `Table`: Tablas de datos de alta densidad con tipografía monoespaciada para seriales, IDs y precios, y estados hover.
+  - `Alert`: Notificaciones contextuales (`info`, `success`, `warning`, `error`) con opción de descarte.
+  - `LoadingSpinner` y `LoadingSkeleton`: Indicadores visuales de carga para tarjetas y tablas (garantiza regla contra pantallas en blanco).
+  - `EmptyState`: Contenedor para listas vacías con icono, mensaje orientativo y botón de acción.
+- Banco de pruebas interactivo `DesignSystemPage` accesible en la ruta `/admin/design-system` y enlazado en la barra lateral.
+- Refactorización de `DashboardPage` integrando los nuevos componentes del sistema visual.
 
 ## Funcionalidades pendientes:
-- Sistema de diseño de componentes atómicos UI propios en Tailwind (Fase 3).
-- Autenticación real con Supabase Auth y guardia de rutas (Fase 4).
-- Conexión a base de datos PostgreSQL en Supabase (Fase 5).
+- Autenticación con Supabase Auth y protección de rutas con guardias de sesión (Fase 4).
+- Conexión a base de datos PostgreSQL en Supabase y tablas relacionales (Fase 5).
 
 ## Errores conocidos:
-- Ninguno. Compilación limpia (`npm run build`) en 334 ms con 0 errores y 0 warnings. Servidor de desarrollo validado con HTTP 200.
+- Ninguno. Compilación verificada con `npm run build` en 382 ms con 0 errores y 0 advertencias.
 
 ## Pruebas ejecutadas:
-- Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS.
-- Inicialización y respuesta del servidor dev (`npm run dev` en `http://localhost:5173`): PASS (HTTP 200).
-- Verificación de exclusión de dependencias en Git: PASS.
-- Verificación de navegación entre rutas públicas y administrativas: PASS.
+- Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (382 ms).
+- Verificación de renderizado de componentes en `/admin/design-system`: PASS (HTTP 200).
+- Verificación de compatibilidad con modo claro y modo oscuro en todos los componentes: PASS.
+- Verificación de accesibilidad básica (focus ring, tecla escape en modales, aria roles): PASS.
 
 ## Pruebas pendientes:
-- Pruebas de integración de componentes UI reutilizables (Fase 3).
+- Pruebas de integración de autenticación (Fase 4).
 
 ## Decisiones técnicas:
-- **Tailwind CSS**: Versión 4 con `@tailwindcss/vite` de alto rendimiento y cero configuración extra de PostCSS.
-- **Enrutamiento**: React Router v7 con `createBrowserRouter` y layouts anidados.
-- **Iconografía**: `lucide-react` integrada en todos los módulos de navegación y métricas.
-- **Alias de Importación**: `@/*` mapeado a `src/*` en `vite.config.ts` y `tsconfig.app.json` utilizando el estándar moderno `import.meta.dirname`.
+- **Design System sin dependencias pesadas**: Construido 100% sobre Tailwind CSS v4 y `lucide-react`, evitando librerías de UI voluminosas.
+- **Tipografía**: Monoespaciada nativa para IDs, seriales, referencias y moneda.
+- **Seguridad en UI**: Confirmación obligatoria implementada con `ConfirmModal` para cualquier acción destructiva.
 
 ## Próximo paso:
-Iniciar **FASE 3 — SISTEMA VISUAL Y COMPONENTES BASE**: Construir design system B2B propio utilizando Tailwind (Botones, Inputs, Selects, Tablas con estados, Modales, Badges de estado, Cards técnicas, Alerts, Spinners de carga y Empty States).
+Iniciar **FASE 4 — AUTENTICACIÓN**: Implementar el sistema de login/logout con Supabase Auth, gestión de sesión, redirecciones automáticas y protección estricta de rutas privadas bajo `/admin/*`.

@@ -13,6 +13,7 @@ import {
   QrCode,
   Printer,
   Settings,
+  Palette,
   X,
 } from 'lucide-react';
 
@@ -42,6 +43,7 @@ const navItems: NavItem[] = [
   { name: 'Códigos QR', path: '/admin/qr', icon: QrCode },
   { name: 'Impresión 58mm', path: '/admin/impresion', icon: Printer },
   { name: 'Configuración', path: '/admin/configuracion', icon: Settings },
+  { name: 'Design System', path: '/admin/design-system', icon: Palette, badge: 'UI' },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {

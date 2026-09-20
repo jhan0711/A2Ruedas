@@ -6,6 +6,7 @@ import { CatalogPage } from '../pages/public/CatalogPage';
 import { BikePublicPage } from '../pages/public/BikePublicPage';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { DashboardPage } from '../pages/admin/DashboardPage';
+import { DesignSystemPage } from '../pages/admin/DesignSystemPage';
 import { ModulePlaceholder } from '../pages/admin/ModulePlaceholder';
 
 export const router = createBrowserRouter([
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       { index: true, element: <DashboardPage /> },
+      { path: 'design-system', element: <DesignSystemPage /> },
       {
         path: 'agenda',
         element: (
