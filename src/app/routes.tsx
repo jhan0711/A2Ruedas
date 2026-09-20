@@ -8,6 +8,7 @@ import { BikePublicPage } from '../pages/public/BikePublicPage';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { DashboardPage } from '../pages/admin/DashboardPage';
 import { DesignSystemPage } from '../pages/admin/DesignSystemPage';
+import { CustomersPage } from '../pages/admin/CustomersPage';
 import { ModulePlaceholder } from '../pages/admin/ModulePlaceholder';
 
 export const router = createBrowserRouter([
@@ -100,13 +101,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'clientes',
-            element: (
-              <ModulePlaceholder
-                title="Directorio de Clientes"
-                phase="Fase 6"
-                description="Base de datos de clientes, teléfonos, WhatsApp y bicicletas vinculadas."
-              />
-            ),
+            element: <CustomersPage />,
           },
           {
             path: 'caja',

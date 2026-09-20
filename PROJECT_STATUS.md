@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 5 — Supabase y Base de Datos
+Fase actual: FASE 6 — Módulo de Clientes
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -11,9 +11,9 @@ Estado: COMPLETADA
 - [x] FASE 3 — Sistema Visual y Componentes Base (Design System B2B, Dark Mode)
 - [x] FASE 4 — Autenticación y Protección de Rutas (Supabase Auth, ProtectedRoute)
 - [x] FASE 5 — Supabase y Base de Datos (Modelos, Migraciones, RLS, Capa de Servicios)
+- [x] FASE 6 — Módulo de Clientes (CRUD, búsqueda y vinculación)
 
 ## Fases pendientes:
-- [ ] FASE 6 — Módulo de Clientes (CRUD y búsqueda)
 - [ ] FASE 7 — Módulo de Bicicletas (Registro, serial, fotografías)
 - [ ] FASE 8 — Módulo de Inventario (Productos, stock, movimientos, alertas)
 - [ ] FASE 9 — Módulo de Órdenes de Trabajo (OT-000001, estados, repuestos)
@@ -60,26 +60,36 @@ Estado: COMPLETADA
 - Tipos de TypeScript sincronizados en `src/types/database.ts`.
 - Capa de servicios desacoplada en `src/services/` (`customerService`, `bicycleService`, `inventoryService`, `workOrderService`, `cashService`) con persistencia dual (Supabase + resiliencia local).
 - Suite de pruebas de base de datos en `tests/database.test.mjs`.
+- **Módulo de Clientes (Fase 6)**:
+  * Directorio visual con tabla B2B, avatares monocromáticos y badges.
+  * Búsqueda reactiva instantánea por coincidencia de nombre, teléfono y cédula/documento.
+  * Modal de creación y edición con validación de campos obligatorios.
+  * Generación automática de enlace directo a WhatsApp (`https://wa.me/57...`) con mensaje de apertura prellenado.
+  * Ficha y perfil de cliente detallado mostrando bicicletas registradas e historial de órdenes de trabajo asociadas.
+  * Eliminación de cliente con modal de confirmación `ConfirmModal` (Regla 44).
+  * Suite de pruebas automatizadas en `tests/customers.test.mjs`.
 
 ## Funcionalidades pendientes:
-- Construcción de la interfaz de usuario para el CRUD completo del módulo de Clientes (Fase 6).
-- Módulo de registro de Bicicletas y fotografías (Fase 7).
+- Módulo de registro de Bicicletas y fotografías de ingreso (Fase 7).
+- Módulo de Inventario y Kardex (Fase 8).
 
 ## Errores conocidos:
-- Ninguno. Compilación limpia y pruebas ejecutadas exitosamente.
+- Ninguno. Compilación limpia y pruebas ejecutadas exitosamente al 100%.
 
 ## Pruebas ejecutadas:
-- Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (388 ms).
-- Inicialización de cliente Supabase y verificación de Gateway REST: PASS.
-- Verificación de consistencia matemática de cálculo de Kardex de inventario (Entrada +10, Salida -2 = 8): PASS.
-- Validación de expresiones regulares para formatos de OT (`OT-000104`) y QR (`BIKE-8F3A92`): PASS.
+- Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (0 errores).
+- Validación de campos obligatorios de cliente (Rechazo datos inválidos y aceptación válidos): PASS.
+- Sanitización y generación de Deep Link de WhatsApp internacional/nacional: PASS.
+- Búsqueda reactiva multicriterio (Nombre, Teléfono, Documento): PASS.
+- Vinculación relacional cliente con bicicletas vinculadas y órdenes de trabajo: PASS.
 
 ## Pruebas pendientes:
-- Pruebas E2E de interfaz de usuario de Clientes (Fase 6).
+- Pruebas E2E de interfaz de usuario de Bicicletas (Fase 7).
 
 ## Decisiones técnicas:
-- **Arquitectura de Servicios Desacoplada**: La interfaz gráfica interactúa exclusivamente a través de `src/services/`, aislando por completo las consultas SQL de los componentes React.
+- **Sanitización de WhatsApp**: Normalización de números telefónicos para garantizar compatibilidad con el esquema `https://wa.me/57...` tanto para números ingresados con prefijo internacional como locales.
 - **Resiliencia Operativa**: Los servicios implementan persistencia híbrida para que la aplicación mantenga su operatividad técnica en caso de fallos momentáneos de conectividad.
 
 ## Próximo paso:
-Iniciar **FASE 6 — MÓDULO DE CLIENTES**: Construir el CRUD completo de clientes con búsqueda reactiva, visualización de historial, bicicletas vinculadas, edición y eliminación lógica con confirmación de seguridad.
+Iniciar **FASE 7 — MÓDULO DE BICICLETAS**: Construcción del registro de bicicletas, marcas, modelos, números de serie únicos, tipos de bicicleta, vinculación a clientes y captura/galería de fotografías de estado de ingreso.
+

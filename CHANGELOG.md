@@ -9,7 +9,20 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
-## [0.5.0] - 2026-09-20
+## [0.6.0] - 2026-09-20
+
+### Agregado
+- **Fase 6 — Módulo de Clientes**:
+  - Implementación de la vista completa `CustomersPage` en `/admin/clientes`.
+  - Directorio visual de clientes con tabla de alta densidad de información, avatares monocromáticos basados en iniciales y conteo en tiempo real.
+  - Buscador reactivo multicriterio (búsqueda instantánea por nombre, teléfono y documento).
+  - Modal de registro y edición de clientes con validación estricta de campos obligatorios.
+  - Generación automática de enlace directo a WhatsApp (`https://wa.me/57...`) con número sanitizado y mensaje de cortesía prellenado.
+  - Modal lateral/drawer de ficha técnica del cliente con visualización de datos de contacto, bicicletas vinculadas y listado de órdenes de trabajo asociadas.
+  - Diálogo de confirmación de eliminación con `ConfirmModal` (Regla 44 de seguridad).
+  - Suite de pruebas automatizadas en `tests/customers.test.mjs` con 9 aserciones de validación, búsqueda y relaciones.
+
+---
 
 ### Agregado
 - **Fase 5 — Supabase y Base de Datos**:
