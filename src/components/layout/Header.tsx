@@ -1,7 +1,9 @@
-import React from 'react';
-import { Menu, Sun, Moon, ExternalLink, ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { Menu, Sun, Moon, ExternalLink, ShieldCheck, LogOut } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
-import { Link } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import { Link, useNavigate } from 'react-router-dom';
+import { ConfirmModal } from '../ui';
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
@@ -9,6 +11,24 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const { theme, toggleTheme } = useTheme();
+  const { profile, user, logout } = useAuth();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const navigate = useNavigate();
+
+  const handleConfirmLogout = async () => {
+    setShowLogoutConfirm(false);
+    await logout();
+    navigate('/login', { replace: true });
+  };
+
+  const displayName = profile?.fullName || user?.email?.split('@')[0] || 'Admin Taller';
+  const displayEmail = user?.email || 'admin@a2ruedas.com';
+  const initials = displayName
+    .split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   return (
     <header className="h-14 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 flex items-center justify-between sticky top-0 z-30 transition-colors">
@@ -62,20 +82,43 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
           )}
         </button>
 
-        {/* Indicador de Usuario Administrador */}
+        {/* Indicador de Usuario y Cierre de Sesión */}
         <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-          <div className="w-7 h-7 rounded-md bg-blue-600 flex items-center justify-center text-white font-mono text-xs font-bold shadow-sm">
-            AD
+          <div className="w-7 h-7 rounded-md bg-blue-600 flex items-center justify-center text-white font-mono text-xs font-bold shadow-xs">
+            {initials || 'AD'}
           </div>
           <div className="hidden lg:flex flex-col text-left">
             <span className="text-xs font-medium leading-none text-slate-900 dark:text-slate-100 flex items-center gap-1">
-              Admin Taller
+              {displayName}
               <ShieldCheck className="w-3 h-3 text-blue-500" />
             </span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">admin@a2ruedas.com</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate max-w-[120px]">
+              {displayEmail}
+            </span>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setShowLogoutConfirm(true)}
+            className="p-1.5 rounded-md text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors ml-1"
+            title="Cerrar Sesión del Taller"
+            aria-label="Cerrar sesión"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
+
+      {/* Confirmación obligatoria de cierre de sesión (Regla 44) */}
+      <ConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleConfirmLogout}
+        title="¿Deseas cerrar tu sesión?"
+        message="Saldrás del panel administrativo de A2Ruedas. Para volver a gestionar órdenes y caja deberás ingresar tus credenciales nuevamente."
+        confirmText="Cerrar Sesión"
+        variant="warning"
+      />
     </header>
   );
 };

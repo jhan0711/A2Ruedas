@@ -9,23 +9,29 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
+## [0.4.0] - 2026-09-20
+
+### Agregado
+- **Fase 4 — Autenticación y Protección de Rutas**:
+  - Instalación y configuración de `@supabase/supabase-js`.
+  - Configuración de variables de entorno `.env` (ignorado en Git) y plantilla `.env.example`.
+  - Inicialización del cliente Supabase en `src/lib/supabase.ts`.
+  - Contexto de autenticación `AuthContext` y hook `useAuth` con manejo de sesión, login, logout y auto-refresh de tokens.
+  - Guardia de seguridad `ProtectedRoute` para blindar todas las rutas bajo `/admin/*`.
+  - Vista `LoginPage` conectada a `useAuth` con alertas de error y validación.
+  - Botón de cierre de sesión en `Header` con modal de confirmación `ConfirmModal` (regla 44).
+  - Script de pruebas automatizadas en `tests/auth.test.mjs` validando integración con el proyecto de Supabase.
+
+---
+
 ## [0.3.0] - 2026-09-20
 
 ### Agregado
 - **Fase 3 — Sistema Visual y Componentes Base**:
   - Implementación completa del Design System B2B propio utilizando Tailwind CSS v4.
-  - Componente `Button` con 6 variantes semánticas, 3 tamaños, soporte de iconos y estado de carga (`isLoading`).
-  - Componente `Input` con soporte para prefijos (`$`, `OT-`, etc.), iconos, modo monoespaciado y validación de errores.
-  - Componente `Select` con chevron vectorizado y accesibilidad nativa.
-  - Componente `Badge` con mapeo automático de los 9 estados de ciclo de taller (`RECIBIDA`, `DIAGNOSTICO`, `PRESUPUESTO`, `APROBADA`, `EN_REPARACION`, `ESPERANDO_REPUESTO`, `LISTA`, `ENTREGADA`, `CANCELADA`).
-  - Componente `Card` modular (`CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`).
-  - Componentes `Modal` y `ConfirmModal` para confirmación obligatoria de acciones destructivas (regla 44).
-  - Componente `Table` de alta densidad con tipografía monoespaciada para seriales y valores numéricos.
-  - Componente `Alert` con 4 estados (`info`, `success`, `warning`, `error`) y botón de descarte.
-  - Componentes `LoadingSpinner` y `LoadingSkeleton` para prevenir pantallas en blanco.
-  - Componente `EmptyState` para estados sin datos o sin registros.
-  - Página interactiva de demostración y pruebas `DesignSystemPage` en `/admin/design-system`.
-  - Refactorización de `DashboardPage` integrando los nuevos componentes UI.
+  - Componentes UI: `Button`, `Input`, `Select`, `Badge`, `Card`, `Modal`, `ConfirmModal`, `Table`, `Alert`, `LoadingSpinner`, `LoadingSkeleton`, `EmptyState`.
+  - Página de pruebas `DesignSystemPage` en `/admin/design-system`.
+  - Refactorización de `DashboardPage` con los nuevos componentes.
 
 ---
 
@@ -33,7 +39,7 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ### Agregado
 - **Fase 2 — Base del Frontend**:
-  - Configuración completa de Vite 8 + React 19 + TypeScript + Tailwind CSS v4.
+  - Configuración de Vite 8 + React 19 + TypeScript + Tailwind CSS v4.
   - Configuración de React Router con arquitectura dividida: portal público y taller administrativo.
   - Layouts `AdminLayout` y `PublicLayout`.
   - Vistas base: `DashboardPage`, `HomePage`, `CatalogPage`, `BikePublicPage`, `LoginPage` y `ModulePlaceholder`.

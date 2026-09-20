@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 3 — Sistema Visual y Componentes Base
+Fase actual: FASE 4 — Autenticación y Protección de Rutas
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -9,9 +9,9 @@ Estado: COMPLETADA
 - [x] FASE 1 — Repositorio y Control de Versiones
 - [x] FASE 2 — Base del Frontend (Vite + React + TS + Tailwind + Router + Lucide)
 - [x] FASE 3 — Sistema Visual y Componentes Base (Design System B2B, Dark Mode)
+- [x] FASE 4 — Autenticación y Protección de Rutas (Supabase Auth, ProtectedRoute)
 
 ## Fases pendientes:
-- [ ] FASE 4 — Autenticación y Protección de Rutas
 - [ ] FASE 5 — Supabase y Base de Datos (Modelos, Migraciones, RLS)
 - [ ] FASE 6 — Módulo de Clientes (CRUD y búsqueda)
 - [ ] FASE 7 — Módulo de Bicicletas (Registro, serial, fotografías)
@@ -36,42 +36,36 @@ Estado: COMPLETADA
 - [ ] FASE 26 — Entrega Final y Manuales de Operación
 
 ## Funcionalidades implementadas:
-- Construcción integral del Design System B2B propio utilizando Tailwind CSS bajo las reglas 7, 8, 9, 10, 11, 12, 13, 43 y 44.
-- Componentes UI modulares desarrollados:
-  - `Button`: 6 variantes (`primary`, `secondary`, `danger`, `success`, `outline`, `ghost`), 3 tamaños (`sm`, `md`, `lg`), soporte de iconos derecho/izquierdo y spinner interactivo `isLoading`.
-  - `Input`: Soporte de etiquetas, mensajes de error, texto de ayuda, iconos, prefijos tipográficos (`$`, `OT-`, `SER-`), tipografía monoespaciada opcional y estado deshabilitado.
-  - `Select`: Desplegable nativo accesible con chevron vectorizado y validación integrada.
-  - `Badge`: Mapeo automático de los 9 estados de taller (`RECIBIDA`, `DIAGNOSTICO`, `PRESUPUESTO`, `APROBADA`, `EN_REPARACION`, `ESPERANDO_REPUESTO`, `LISTA`, `ENTREGADA`, `CANCELADA`) con punto indicador y variantes semánticas.
-  - `Card`: Estructura modular (`CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`) con variantes técnicas.
-  - `Modal`: Ventana modal accesible con cierre por tecla Escape, backdrop oscurecido y bloqueo de scroll.
-  - `ConfirmModal`: Modal especializado obligatorio para acciones destructivas (eliminar registros, cancelar órdenes, cierre de caja).
-  - `Table`: Tablas de datos de alta densidad con tipografía monoespaciada para seriales, IDs y precios, y estados hover.
-  - `Alert`: Notificaciones contextuales (`info`, `success`, `warning`, `error`) con opción de descarte.
-  - `LoadingSpinner` y `LoadingSkeleton`: Indicadores visuales de carga para tarjetas y tablas (garantiza regla contra pantallas en blanco).
-  - `EmptyState`: Contenedor para listas vacías con icono, mensaje orientativo y botón de acción.
-- Banco de pruebas interactivo `DesignSystemPage` accesible en la ruta `/admin/design-system` y enlazado en la barra lateral.
-- Refactorización de `DashboardPage` integrando los nuevos componentes del sistema visual.
+- Configuración segura de variables de entorno para Supabase (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_ANON_KEY`) en `.env` (ignorado en Git) y plantilla documentada en `.env.example`.
+- Inicialización del cliente Supabase en `src/lib/supabase.ts` con persistencia de sesión y auto-refresh de tokens.
+- Contexto de autenticación `AuthContext` y hook `useAuth` con estados `user`, `profile`, `session`, `isLoading` y `error`.
+- Componente `ProtectedRoute` para blindar todas las subrutas bajo `/admin/*`, redirigiendo automáticamente a `/login` con recuerdo del historial de navegación (`state.from`).
+- Pantalla de inicio de sesión `LoginPage` conectada a `useAuth`, con soporte de alertas de error en caso de credenciales incorrectas, spinner en el botón de envío y sugerencia de acceso rápido para pruebas.
+- Cabecera `Header` actualizada con visualización del usuario autenticado y botón de cierre de sesión protegido con modal de confirmación `ConfirmModal` (regla 44).
+- Creación de suite de pruebas automatizadas en `tests/auth.test.mjs` validando cliente, acceso anónimo, rechazo de contraseñas erróneas y estado de salud de Auth Gateway en Supabase.
 
 ## Funcionalidades pendientes:
-- Autenticación con Supabase Auth y protección de rutas con guardias de sesión (Fase 4).
-- Conexión a base de datos PostgreSQL en Supabase y tablas relacionales (Fase 5).
+- Creación de tablas PostgreSQL en Supabase, migraciones SQL, triggers y políticas RLS (Fase 5).
+- CRUD y gestión de clientes (Fase 6).
 
 ## Errores conocidos:
-- Ninguno. Compilación verificada con `npm run build` en 382 ms con 0 errores y 0 advertencias.
+- Ninguno. 100% de pruebas en estado PASS. Compilación en 378 ms sin errores.
 
 ## Pruebas ejecutadas:
-- Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (382 ms).
-- Verificación de renderizado de componentes en `/admin/design-system`: PASS (HTTP 200).
-- Verificación de compatibilidad con modo claro y modo oscuro en todos los componentes: PASS.
-- Verificación de accesibilidad básica (focus ring, tecla escape en modales, aria roles): PASS.
+- Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (378 ms).
+- Inicialización de cliente Supabase con credenciales provistas por el usuario: PASS.
+- Prueba de acceso sin sesión previa (resultado `null`): PASS.
+- Prueba de contraseña incorrecta rechazada por Supabase Auth: PASS.
+- Verificación de estado de salud del endpoint de Supabase Auth (HTTP 200 OK): PASS.
+- Verificación de exclusión de `.env` en Git (`git status --ignored`): PASS.
 
 ## Pruebas pendientes:
-- Pruebas de integración de autenticación (Fase 4).
+- Pruebas de migraciones y persistencia de datos relacionales (Fase 5).
 
 ## Decisiones técnicas:
-- **Design System sin dependencias pesadas**: Construido 100% sobre Tailwind CSS v4 y `lucide-react`, evitando librerías de UI voluminosas.
-- **Tipografía**: Monoespaciada nativa para IDs, seriales, referencias y moneda.
-- **Seguridad en UI**: Confirmación obligatoria implementada con `ConfirmModal` para cualquier acción destructiva.
+- **Seguridad de Secretos**: `.env` excluido estrictamente del repositorio; `.env.example` versionado para replicabilidad.
+- **Soporte Híbrido**: Soporta llaves `sb_publishable_` modernas y llaves `anon` heredadas de Supabase.
+- **Manejo de Cierre de Sesión**: Confirmación interactiva mediante `ConfirmModal` antes de revocar la sesión activa.
 
 ## Próximo paso:
-Iniciar **FASE 4 — AUTENTICACIÓN**: Implementar el sistema de login/logout con Supabase Auth, gestión de sesión, redirecciones automáticas y protección estricta de rutas privadas bajo `/admin/*`.
+Iniciar **FASE 5 — SUPABASE Y BASE DE DATOS**: Crear el script SQL maestro de migraciones para las 20 tablas, relaciones, índices, triggers y políticas RLS descritas en `DATABASE.md`, y conectarlo con la capa de servicios TypeScript.
