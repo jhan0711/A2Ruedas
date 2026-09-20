@@ -134,6 +134,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   unit TEXT NOT NULL DEFAULT 'unidad',
   location TEXT,
   image_url TEXT,
+  images TEXT[] DEFAULT '{}',
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

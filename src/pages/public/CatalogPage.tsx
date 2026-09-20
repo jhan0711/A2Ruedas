@@ -1,5 +1,16 @@
-import React, { useState } from 'react';
-import { Search, Tag, CheckCircle, MessageCircle, ShoppingBag, Eye, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  Search,
+  Tag,
+  CheckCircle,
+  MessageCircle,
+  ShoppingBag,
+  Eye,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Layers,
+} from 'lucide-react';
 import { Badge, Button } from '../../components/ui';
 
 interface PublicProduct {
@@ -12,6 +23,7 @@ interface PublicProduct {
   price: number;
   available: boolean;
   imageUrl: string;
+  images: string[];
 }
 
 const sampleProducts: PublicProduct[] = [
@@ -24,7 +36,12 @@ const sampleProducts: PublicProduct[] = [
     description: 'Cadena de 9 velocidades súper estrecha con pasadores reforzados para MTB y ruta.',
     price: 85000,
     available: true,
-    imageUrl: 'https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?auto=format&fit=crop&w=700&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=800&q=80',
+    ],
   },
   {
     id: 'p2',
@@ -35,7 +52,11 @@ const sampleProducts: PublicProduct[] = [
     description: 'Compuesto de resina que ofrece frenado progresivo y silencioso para mordazas MT200/M315.',
     price: 45000,
     available: true,
-    imageUrl: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=700&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&w=800&q=80',
+    ],
   },
   {
     id: 'p3',
@@ -46,7 +67,11 @@ const sampleProducts: PublicProduct[] = [
     description: 'Neumático de alto rendimiento para carretera con tecnología BlackChili Compound.',
     price: 290000,
     available: true,
-    imageUrl: 'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=700&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=800&q=80',
+    ],
   },
   {
     id: 'p4',
@@ -57,7 +82,11 @@ const sampleProducts: PublicProduct[] = [
     description: 'Película sintética de teflón que minimiza la fricción y repele el polvo y la arena.',
     price: 38000,
     available: true,
-    imageUrl: 'https://images.unsplash.com/photo-1618762044398-ec1e7e048bbd?auto=format&fit=crop&w=700&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1618762044398-ec1e7e048bbd?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1618762044398-ec1e7e048bbd?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?auto=format&fit=crop&w=800&q=80',
+    ],
   },
   {
     id: 'p5',
@@ -68,7 +97,11 @@ const sampleProducts: PublicProduct[] = [
     description: 'Cuerpo compacto con diseño abierto para evacuación óptima de lodo. Incluye calas SM-SH51.',
     price: 185000,
     available: false,
-    imageUrl: 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=700&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=800&q=80',
+    ],
   },
   {
     id: 'p6',
@@ -79,7 +112,12 @@ const sampleProducts: PublicProduct[] = [
     description: 'Ventilación activa con canales internos de flujo de aire y ajuste micro-métrico trasero.',
     price: 240000,
     available: true,
-    imageUrl: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=700&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=800&q=80',
+    ],
   },
 ];
 
@@ -87,9 +125,44 @@ export const CatalogPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
   const [cart, setCart] = useState<{ [id: string]: number }>({});
+  
+  // Estado para la galería modal
   const [previewProduct, setPreviewProduct] = useState<PublicProduct | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const categories = ['Todas', 'Transmisión', 'Frenos', 'Llantas y Neumáticos', 'Mantenimiento y Grasa', 'Pedales y Calas', 'Accesorios'];
+  const categories = [
+    'Todas',
+    'Transmisión',
+    'Frenos',
+    'Llantas y Neumáticos',
+    'Mantenimiento y Grasa',
+    'Pedales y Calas',
+    'Accesorios',
+  ];
+
+  // Atajos de teclado para la galería (flechas izquierda/derecha y escape)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!previewProduct) return;
+      if (e.key === 'ArrowRight') {
+        setCurrentImageIndex((prev) => (prev + 1) % previewProduct.images.length);
+      } else if (e.key === 'ArrowLeft') {
+        setCurrentImageIndex((prev) =>
+          prev === 0 ? previewProduct.images.length - 1 : prev - 1,
+        );
+      } else if (e.key === 'Escape') {
+        setPreviewProduct(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [previewProduct]);
+
+  const openPreview = (product: PublicProduct) => {
+    setPreviewProduct(product);
+    setCurrentImageIndex(0);
+  };
 
   const filteredProducts = sampleProducts.filter((product) => {
     const matchesSearch =
@@ -141,7 +214,7 @@ export const CatalogPage: React.FC = () => {
             Catálogo de Repuestos y Accesorios
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Fotografías reales y disponibilidad en el taller. Compras y retiros se realizan presencialmente.
+            Múltiples fotografías en alta definición por producto. Compras y retiros se realizan presencialmente en taller.
           </p>
         </div>
 
@@ -182,10 +255,12 @@ export const CatalogPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Grid de Productos con Imágenes */}
+      {/* Grid de Productos con soporte de múltiples imágenes */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {filteredProducts.map((product) => {
           const isSelected = !!cart[product.id];
+          const hasMultiplePhotos = product.images && product.images.length > 1;
+
           return (
             <div
               key={product.id}
@@ -196,19 +271,18 @@ export const CatalogPage: React.FC = () => {
               }`}
             >
               {/* Contenedor de Fotografía */}
-              <div className="relative w-full h-48 bg-slate-100 dark:bg-slate-800 overflow-hidden cursor-pointer" onClick={() => setPreviewProduct(product)}>
+              <div
+                className="relative w-full h-48 bg-slate-100 dark:bg-slate-800 overflow-hidden cursor-pointer"
+                onClick={() => openPreview(product)}
+              >
                 <img
                   src={product.imageUrl}
                   alt={product.name}
                   loading="lazy"
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    // Fallback visual si falla la carga externa
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
                 />
-                
-                {/* Overlay con SKU y Disponibilidad */}
+
+                {/* Overlay superior: Marca y Disponibilidad */}
                 <div className="absolute top-2 left-2 right-2 flex items-center justify-between gap-2 pointer-events-none">
                   <span className="px-2 py-0.5 rounded text-[10px] uppercase font-mono font-bold tracking-wider bg-slate-900/80 text-white backdrop-blur-xs">
                     {product.brand}
@@ -218,11 +292,18 @@ export const CatalogPage: React.FC = () => {
                   </Badge>
                 </div>
 
-                {/* Botón para ver imagen ampliada */}
-                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="p-1.5 rounded-md bg-slate-900/80 text-white backdrop-blur-xs flex items-center gap-1 text-[10px] font-medium shadow-xs">
+                {/* Badge inferior: Indicador de varias fotos y botón Ver */}
+                <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+                  {hasMultiplePhotos ? (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-900/80 text-white backdrop-blur-xs flex items-center gap-1">
+                      <Layers className="w-3 h-3 text-blue-400" />
+                      <span>{product.images.length} fotos</span>
+                    </span>
+                  ) : <span />}
+
+                  <span className="p-1.5 rounded-md bg-slate-900/80 text-white backdrop-blur-xs flex items-center gap-1 text-[10px] font-medium shadow-xs opacity-0 group-hover:opacity-100 transition-opacity">
                     <Eye className="w-3.5 h-3.5" />
-                    <span>Ver</span>
+                    <span>Ver Galería</span>
                   </span>
                 </div>
               </div>
@@ -257,7 +338,11 @@ export const CatalogPage: React.FC = () => {
                       size="sm"
                       variant={isSelected ? 'primary' : 'outline'}
                       onClick={() => toggleSelect(product.id)}
-                      leftIcon={<CheckCircle className={`w-3.5 h-3.5 ${isSelected ? 'text-white' : 'text-slate-400'}`} />}
+                      leftIcon={
+                        <CheckCircle
+                          className={`w-3.5 h-3.5 ${isSelected ? 'text-white' : 'text-slate-400'}`}
+                        />
+                      }
                     >
                       {isSelected ? 'Seleccionado' : 'Añadir'}
                     </Button>
@@ -269,26 +354,87 @@ export const CatalogPage: React.FC = () => {
         })}
       </div>
 
-      {/* Modal de Vista Previa de Imagen Ampliada */}
+      {/* Modal de Galería Interactiva de Múltiples Fotos */}
       {previewProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="relative w-full max-w-lg rounded-xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-xl rounded-xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col max-h-[90vh]">
+            {/* Botón cerrar */}
             <button
               type="button"
               onClick={() => setPreviewProduct(null)}
-              className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-slate-900/70 text-white hover:bg-slate-900 transition-colors"
-              aria-label="Cerrar vista"
+              className="absolute top-3 right-3 z-20 p-1.5 rounded-full bg-slate-900/70 text-white hover:bg-slate-900 transition-colors"
+              aria-label="Cerrar galería"
             >
               <X className="w-4 h-4" />
             </button>
-            <div className="h-72 w-full bg-slate-100 dark:bg-slate-800">
+
+            {/* Visor principal de la foto activa */}
+            <div className="relative h-80 w-full bg-slate-950 flex items-center justify-center overflow-hidden">
               <img
-                src={previewProduct.imageUrl}
-                alt={previewProduct.name}
-                className="w-full h-full object-cover object-center"
+                src={previewProduct.images[currentImageIndex] || previewProduct.imageUrl}
+                alt={`${previewProduct.name} - Foto ${currentImageIndex + 1}`}
+                className="w-full h-full object-contain"
               />
+
+              {/* Flechas de navegación si hay varias fotos */}
+              {previewProduct.images.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentImageIndex((prev) =>
+                        prev === 0 ? previewProduct.images.length - 1 : prev - 1,
+                      );
+                    }}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-slate-900/70 text-white hover:bg-slate-900 transition-colors"
+                    aria-label="Foto anterior"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentImageIndex((prev) => (prev + 1) % previewProduct.images.length);
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-slate-900/70 text-white hover:bg-slate-900 transition-colors"
+                    aria-label="Siguiente foto"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+
+                  {/* Contador de fotos */}
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-slate-900/80 text-white text-[11px] font-mono backdrop-blur-xs">
+                    Foto {currentImageIndex + 1} de {previewProduct.images.length}
+                  </div>
+                </>
+              )}
             </div>
-            <div className="p-5 space-y-3">
+
+            {/* Tira de Miniaturas (Thumbnail Strip) */}
+            {previewProduct.images.length > 1 && (
+              <div className="p-3 bg-slate-100 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2 overflow-x-auto">
+                {previewProduct.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setCurrentImageIndex(idx)}
+                    className={`h-14 w-20 rounded-md overflow-hidden shrink-0 border-2 transition-all ${
+                      currentImageIndex === idx
+                        ? 'border-blue-600 scale-105 shadow-xs'
+                        : 'border-transparent opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Detalle del producto */}
+            <div className="p-5 space-y-3 overflow-y-auto">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-xs text-blue-600 dark:text-blue-400 font-bold">
                   {previewProduct.brand} • {previewProduct.sku}
@@ -297,16 +443,23 @@ export const CatalogPage: React.FC = () => {
                   {previewProduct.available ? 'En Stock' : 'Agotado'}
                 </Badge>
               </div>
+
               <h2 className="text-base font-bold text-slate-900 dark:text-white">
                 {previewProduct.name}
               </h2>
+
               <p className="text-xs text-slate-600 dark:text-slate-300">
                 {previewProduct.description}
               </p>
+
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <span className="font-mono text-lg font-bold text-slate-900 dark:text-white">
-                  ${previewProduct.price.toLocaleString('es-CO')}
-                </span>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-mono">PRECIO TALLER</span>
+                  <span className="font-mono text-lg font-bold text-slate-900 dark:text-white">
+                    ${previewProduct.price.toLocaleString('es-CO')}
+                  </span>
+                </div>
+
                 {previewProduct.available && (
                   <Button
                     size="sm"
