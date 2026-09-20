@@ -81,6 +81,83 @@ export const HomePage: React.FC = () => {
         </form>
       </section>
 
+      {/* Repuestos Destacados con Imágenes */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+              Repuestos y Accesorios Disponibles
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Componentes originales en stock físico para instalación inmediata en taller
+            </p>
+          </div>
+          <Link to="/productos" className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 font-medium">
+            <span>Ver todo el catálogo</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Link to="/productos" className="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+            <div className="h-36 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+              <img
+                src="https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?auto=format&fit=crop&w=500&q=80"
+                alt="Cadena Shimano 9V"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="p-3">
+              <span className="text-[10px] font-mono text-slate-400 uppercase">Shimano • Transmisión</span>
+              <h3 className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                Cadena Shimano 9V Deore
+              </h3>
+              <span className="font-mono text-xs font-bold text-slate-900 dark:text-white mt-1 block">
+                $85.000
+              </span>
+            </div>
+          </Link>
+
+          <Link to="/productos" className="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+            <div className="h-36 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+              <img
+                src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=500&q=80"
+                alt="Pastillas Shimano B05S"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="p-3">
+              <span className="text-[10px] font-mono text-slate-400 uppercase">Shimano • Frenos</span>
+              <h3 className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                Pastillas de Freno B05S
+              </h3>
+              <span className="font-mono text-xs font-bold text-slate-900 dark:text-white mt-1 block">
+                $45.000
+              </span>
+            </div>
+          </Link>
+
+          <Link to="/productos" className="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+            <div className="h-36 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+              <img
+                src="https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=500&q=80"
+                alt="Coraza Continental Grand Prix"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="p-3">
+              <span className="text-[10px] font-mono text-slate-400 uppercase">Continental • Llantas</span>
+              <h3 className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                Coraza Grand Prix 5000
+              </h3>
+              <span className="font-mono text-xs font-bold text-slate-900 dark:text-white mt-1 block">
+                $290.000
+              </span>
+            </div>
+          </Link>
+        </div>
+      </section>
+
       {/* Servicios Principales */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
         <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2">
