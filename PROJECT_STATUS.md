@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 23 — Pulido de UX/UI Final y Accesibilidad
+Fase actual: FASE 24 — Optimización de Performance (Bundle, Renders, Caching)
 Estado: COMPLETADA
 Última actualización: 2026-09-21
 
@@ -29,9 +29,9 @@ Estado: COMPLETADA
 - [x] FASE 21 — QA Completo (Unitarias, Integración, E2E, Responsive)
 - [x] FASE 22 — Prueba Completa de Negocio Extremo a Extremo
 - [x] FASE 23 — Pulido de UX/UI Final y Accesibilidad
+- [x] FASE 24 — Optimización de Performance (Bundle, Renders, Caching)
 
 ## Fases pendientes:
-- [ ] FASE 24 — Optimización de Performance (Bundle, Renders, Caching)
 - [ ] FASE 25 — Preparación para Despliegue en Producción
 - [ ] FASE 26 — Entrega Final y Manuales de Operación
 
@@ -307,9 +307,20 @@ Estado: COMPLETADA
   * Suite de pruebas automatizadas en `tests/uxA11yPolish.test.mjs` (10/10 checks PASS): PASS.
   * Consolidación en Runner Maestro (`npm test`): 21 suites ejecutadas, 229 verificaciones unitarias/E2E (100.0% PASS) en 2.87 segundos.
   * Compilación de producción (`npm run build`): Exit code 0 sin errores.
+- **Optimización de Performance (Bundle, Renders, Caching) (Fase 24)**: PASS (100%).
+  * División de código (*Code-Splitting*) con `React.lazy` e importaciones dinámicas en todas las rutas públicas y administrativas de `src/app/routes.tsx`: PASS.
+  * Estrategia de troceado granular de librerías vendor (`vendor-react`, `vendor-supabase`, `vendor-qr`, `vendor-icons`, `vendor-misc`) en `vite.config.ts`: PASS.
+  * Eliminación total de la advertencia de Vite sobre chunks > 500 kB (el fragmento más grande se redujo a 331 kB): PASS.
+  * Reducción superior al 85% en el punto de entrada JavaScript inicial (`index-*.js` pasó de 1.41 MB a solo 118 kB minificado / 31 kB gzipped): PASS.
+  * Aislamiento de librerías pesadas de escaneo QR (`qrcode`, `jsqr` en `vendor-qr`), descargadas únicamente cuando el usuario accede a escáner o impresión térmica: PASS.
+  * Transición de rutas sin saltos de diseño (*CLS*) mediante contenedor `<Suspense>` y componente esqueleto accesible `PageLoadingFallback`: PASS.
+  * Generación y modularización de 32 fragmentos `.js` independientes en `dist/assets/`: PASS.
+  * Suite de pruebas automatizadas en `tests/performanceOptimization.test.mjs` (10/10 checks PASS): PASS.
+  * Consolidación en Runner Maestro (`npm test`): 22 suites ejecutadas, 239 verificaciones unitarias/E2E (100.0% PASS) en 3.22 segundos.
+  * Compilación de producción (`npm run build`): Exit code 0 sin errores ni advertencias de tamaño.
 
 ## Pruebas pendientes:
-- Pruebas para Optimización de Performance (Bundle, Renders, Caching) (Fase 24).
+- Pruebas para Preparación para Despliegue en Producción (Fase 25).
 
 ## Decisiones técnicas:
 - **Sanitización de Datos Comerciales Sensibles (`sanitizePublicProduct`)**: Para evitar fugas de información estratégica y proteger los márgenes del taller, el servicio público filtra rigurosamente el precio de costo (`cost_price`), el stock mínimo (`min_stock`), la ubicación física en el taller (`location`) y notas privadas antes de servir cualquier dato a la vista pública.
@@ -320,9 +331,10 @@ Estado: COMPLETADA
 - **Inmutabilidad Financiera por Disparador en PostgreSQL (`tr_cash_movement_immutability`)**: Para prevenir fraudes o alteraciones retroactivas de arqueos en el taller, una vez que una sesión de caja es cerrada (`closed_at IS NOT NULL`), el motor de base de datos rechaza de forma inmutable cualquier inserción, actualización o eliminación de movimientos asociados a dicha caja.
 - **Blindaje Estricto de Roles y Aislamiento de Perfiles (RLS)**: Se restringió la política de `profiles` de forma que los técnicos mecánicos solo pueden actualizar sus propios datos personales de contacto, imposibilitando la auto-promoción no autorizada a rol administrador.
 - **Protección contra Open Redirects (`isSafeInternalRedirect`)**: En el proceso de inicio de sesión (`/login`), se valida que la ruta de retorno sea estrictamente un path interno de la aplicación (comenzando por `/` simple y descartando `//` o caracteres de escape de host), evitando que atacantes redirijan a los usuarios a sitios de phishing externos tras autenticarse.
-- **Runner Maestro de QA Multiplataforma (`tests/qaRunner.mjs`)**: Orquestador centralizado de pruebas que descubre dinámicamente las 21 suites de prueba, mide tiempos en milisegundos, extrae aserciones individuales y presenta un tablero de métricas formateado con colores ANSI en terminal, integrable nativamente con `npm test` en cualquier entorno (Windows, Linux, CI/CD).
+- **Runner Maestro de QA Multiplataforma (`tests/qaRunner.mjs`)**: Orquestador centralizado de pruebas que descubre dinámicamente las 22 suites de prueba, mide tiempos en milisegundos, extrae aserciones individuales y presenta un tablero de métricas formateado con colores ANSI en terminal, integrable nativamente con `npm test` en cualquier entorno (Windows, Linux, CI/CD).
 - **Recorrido Interactivo de Procesos del Negocio (`BusinessFlowTourModal`)**: Módulo guiado paso a paso en el Dashboard principal que permite a dueños y mecánicos consultar en cualquier momento la secuencia operativa exacta de las 5 jornadas del taller, con accesos directos a cada módulo, consejos prácticos para evitar pérdidas de inventario o descuadres de caja y diseño modal accesible.
 - **Accesibilidad Universal y Pautas WCAG 2.1 Nivel AA**: Incorporación de enlaces de omisión (`SkipToContent`) para usuarios de teclado, atributos `aria-invalid` y `aria-describedby` en formularios para lectores de pantalla, indicadores de foco de alto contraste `:focus-visible`, anulación de animaciones disruptivas vía `@media (prefers-reduced-motion: reduce)`, prevención de salto acumulativo de diseño (CLS) mediante componentes esqueleto (`Skeleton`) y notificaciones flotantes con regiones vivas `aria-live`.
+- **Code-Splitting y Troceado Granular en Rollup/Vite**: Al reemplazar importaciones estáticas monolíticas por `React.lazy` con troceado por categorías de librerías (`vendor-react`, `vendor-supabase`, `vendor-qr`, `vendor-icons`), el tamaño del archivo inicial se redujo de 1.41 MB a 118 kB minificado (31 kB gzipped). Las dependencias pesadas como `jsqr` solo se descargan cuando el usuario visita el módulo de lectura QR, garantizando una carga instantánea de la tienda pública y del panel del taller.
 
 ## Próximo paso:
-Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 24 — OPTIMIZACIÓN DE PERFORMANCE (BUNDLE, RENDERS, CACHING)**.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 25 — PREPARACIÓN PARA DESPLIEGUE EN PRODUCCIÓN**.

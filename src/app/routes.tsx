@@ -1,26 +1,72 @@
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { PublicLayout } from '../components/layout/PublicLayout';
 import { AdminLayout } from '../components/layout/AdminLayout';
 import { ProtectedRoute } from '../components/layout/ProtectedRoute';
-import { HomePage } from '../pages/public/HomePage';
-import { CatalogPage } from '../pages/public/CatalogPage';
-import { BikePublicPage } from '../pages/public/BikePublicPage';
-import { LoginPage } from '../pages/auth/LoginPage';
-import { DashboardPage } from '../pages/admin/DashboardPage';
-import { DesignSystemPage } from '../pages/admin/DesignSystemPage';
-import { CustomersPage } from '../pages/admin/CustomersPage';
-import { BicyclesPage } from '../pages/admin/BicyclesPage';
-import { InventoryPage } from '../pages/admin/InventoryPage';
-import { ProductsAdminPage } from '../pages/admin/ProductsAdminPage';
-import { WorkOrdersPage } from '../pages/admin/WorkOrdersPage';
-import { ReceptionPage } from '../pages/admin/ReceptionPage';
-import { AppointmentsPage } from '../pages/admin/AppointmentsPage';
-import { QRCodesPage } from '../pages/admin/QRCodesPage';
-import { WhatsAppPage } from '../pages/admin/WhatsAppPage';
-import { CashPage } from '../pages/admin/CashPage';
-import { InvoicesPage } from '../pages/admin/InvoicesPage';
-import { ThermalPrintPage } from '../pages/admin/ThermalPrintPage';
-import { ModulePlaceholder } from '../pages/admin/ModulePlaceholder';
+import { PageLoadingFallback } from '../components/ui/PageLoadingFallback';
+
+// Carga perezosa (Code-Splitting) de páginas públicas
+const HomePage = lazy(() =>
+  import('../pages/public/HomePage').then((m) => ({ default: m.HomePage }))
+);
+const CatalogPage = lazy(() =>
+  import('../pages/public/CatalogPage').then((m) => ({ default: m.CatalogPage }))
+);
+const BikePublicPage = lazy(() =>
+  import('../pages/public/BikePublicPage').then((m) => ({ default: m.BikePublicPage }))
+);
+
+// Autenticación administrativa
+const LoginPage = lazy(() =>
+  import('../pages/auth/LoginPage').then((m) => ({ default: m.LoginPage }))
+);
+
+// Módulos administrativos (descargados bajo demanda)
+const DashboardPage = lazy(() =>
+  import('../pages/admin/DashboardPage').then((m) => ({ default: m.DashboardPage }))
+);
+const DesignSystemPage = lazy(() =>
+  import('../pages/admin/DesignSystemPage').then((m) => ({ default: m.DesignSystemPage }))
+);
+const CustomersPage = lazy(() =>
+  import('../pages/admin/CustomersPage').then((m) => ({ default: m.CustomersPage }))
+);
+const BicyclesPage = lazy(() =>
+  import('../pages/admin/BicyclesPage').then((m) => ({ default: m.BicyclesPage }))
+);
+const InventoryPage = lazy(() =>
+  import('../pages/admin/InventoryPage').then((m) => ({ default: m.InventoryPage }))
+);
+const ProductsAdminPage = lazy(() =>
+  import('../pages/admin/ProductsAdminPage').then((m) => ({ default: m.ProductsAdminPage }))
+);
+const WorkOrdersPage = lazy(() =>
+  import('../pages/admin/WorkOrdersPage').then((m) => ({ default: m.WorkOrdersPage }))
+);
+const ReceptionPage = lazy(() =>
+  import('../pages/admin/ReceptionPage').then((m) => ({ default: m.ReceptionPage }))
+);
+const AppointmentsPage = lazy(() =>
+  import('../pages/admin/AppointmentsPage').then((m) => ({ default: m.AppointmentsPage }))
+);
+const QRCodesPage = lazy(() =>
+  import('../pages/admin/QRCodesPage').then((m) => ({ default: m.QRCodesPage }))
+);
+const WhatsAppPage = lazy(() =>
+  import('../pages/admin/WhatsAppPage').then((m) => ({ default: m.WhatsAppPage }))
+);
+const CashPage = lazy(() =>
+  import('../pages/admin/CashPage').then((m) => ({ default: m.CashPage }))
+);
+const InvoicesPage = lazy(() =>
+  import('../pages/admin/InvoicesPage').then((m) => ({ default: m.InvoicesPage }))
+);
+const ThermalPrintPage = lazy(() =>
+  import('../pages/admin/ThermalPrintPage').then((m) => ({ default: m.ThermalPrintPage }))
+);
+const ModulePlaceholder = lazy(() =>
+  import('../pages/admin/ModulePlaceholder').then((m) => ({ default: m.ModulePlaceholder }))
+);
 
 export const router = createBrowserRouter([
   // Experiencia Pública (Clientes del taller, sin login)
@@ -37,7 +83,11 @@ export const router = createBrowserRouter([
   // Autenticación administrativa
   {
     path: '/login',
-    element: <LoginPage />,
+    element: (
+      <Suspense fallback={<PageLoadingFallback message="Cargando acceso al taller..." />}>
+        <LoginPage />
+      </Suspense>
+    ),
   },
 
   // Experiencia Administrativa Protegida (Taller, técnicos y administración)

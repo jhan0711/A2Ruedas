@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Bike, Sun, Moon, MapPin, Clock, MessageCircle, Download } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { usePWA } from '../../context/PWAContext';
-import { SkipToContent } from '../ui';
+import { SkipToContent, PageLoadingFallback } from '../ui';
 
 export const PublicLayout: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -119,7 +119,9 @@ export const PublicLayout: React.FC = () => {
 
       {/* Contenido público */}
       <main id="public-content" tabIndex={-1} className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 lg:p-8 outline-none focus:outline-none">
-        <Outlet />
+        <Suspense fallback={<PageLoadingFallback message="Cargando catálogo del taller..." />}>
+          <Outlet />
+        </Suspense>
       </main>
 
       {/* Footer público */}

@@ -12,3 +12,4 @@ export * from './EmptyState';
 export * from './Skeleton';
 export * from './SkipToContent';
 export * from './ToastContainer';
+export * from './PageLoadingFallback';

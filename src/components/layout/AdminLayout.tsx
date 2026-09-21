@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
-import { SkipToContent } from '../ui';
+import { SkipToContent, PageLoadingFallback } from '../ui';
 
 export const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -17,7 +17,9 @@ export const AdminLayout: React.FC = () => {
         
         <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 outline-none focus:outline-none">
           <div className="max-w-7xl mx-auto space-y-6">
-            <Outlet />
+            <Suspense fallback={<PageLoadingFallback message="Cargando módulo administrativo..." />}>
+              <Outlet />
+            </Suspense>
           </div>
         </main>
       </div>
