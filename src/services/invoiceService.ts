@@ -209,7 +209,20 @@ export const invoiceService = {
       const customers = await customerService.getCustomers();
 
       invoices = local.map((inv) => {
-        const cust = customers.find((c) => c.id === inv.customer_id) || inv.customer;
+        let cust = inv.customer_id
+          ? customers.find((c) => c.id === inv.customer_id) || inv.customer
+          : inv.customer;
+        if (!cust) {
+          cust = {
+            id: 'consumidor-final',
+            full_name: 'Consumidor Final',
+            document_id: '222222222222',
+            phone: '',
+            email: '',
+            created_at: inv.created_at,
+            updated_at: inv.created_at,
+          };
+        }
         const items = allItems.filter((it) => it.invoice_id === inv.id);
         return {
           ...inv,
@@ -229,7 +242,7 @@ export const invoiceService = {
 
       const term = filters.searchTerm.toLowerCase().trim();
       const matchNum = inv.invoice_number.toLowerCase().includes(term);
-      const matchCust = inv.customer?.full_name.toLowerCase().includes(term) || false;
+      const matchCust = (inv.customer?.full_name || 'Consumidor Final').toLowerCase().includes(term);
       const matchDoc = inv.customer?.document_id?.toLowerCase().includes(term) || false;
       const matchOT = inv.work_order_id?.toLowerCase().includes(term) || false;
       const matchNotes = inv.notes?.toLowerCase().includes(term) || false;
@@ -268,7 +281,7 @@ export const invoiceService = {
     const newInvoice: Invoice = {
       id: invoiceId,
       invoice_number: invoiceNumber,
-      customer_id: payload.customer_id,
+      customer_id: payload.customer_id || null,
       work_order_id: payload.work_order_id || null,
       subtotal: payload.subtotal,
       discount: payload.discount || 0,
@@ -367,8 +380,19 @@ export const invoiceService = {
     }
 
     // Hidratar cliente para retornar objeto completo
-    const cust = (await customerService.getCustomers()).find((c) => c.id === newInvoice.customer_id);
-    newInvoice.customer = cust;
+    let cust = null;
+    if (newInvoice.customer_id) {
+      cust = (await customerService.getCustomers()).find((c) => c.id === newInvoice.customer_id);
+    }
+    newInvoice.customer = cust || {
+      id: 'consumidor-final',
+      full_name: 'Consumidor Final',
+      document_id: '222222222222',
+      phone: '',
+      email: '',
+      created_at: newInvoice.created_at,
+      updated_at: newInvoice.created_at,
+    };
     newInvoice.items = newItems;
 
     return newInvoice;

@@ -7,6 +7,7 @@ import {
   DollarSign,
   TrendingUp,
   Clock,
+  Printer,
   Share2,
   Eye,
   RotateCcw,
@@ -17,6 +18,7 @@ import {
 import { Invoice } from '../../types/database';
 import { invoiceService } from '../../services/invoiceService';
 import { whatsappService } from '../../services/whatsappService';
+import { printInvoiceDocument } from '../../utils/printUtils';
 import {
   Button,
   Card,
@@ -92,7 +94,7 @@ export const InvoicesPage: React.FC = () => {
     if (!cleanPhone) {
       setAlertMessage({
         type: 'warning',
-        text: `El cliente ${invoice.customer?.full_name || ''} no tiene un número celular registrado.`,
+        text: `La factura fue emitida para ${invoice.customer?.full_name || 'Consumidor Final'} sin número celular registrado para WhatsApp.`,
       });
       return;
     }
@@ -388,6 +390,16 @@ export const InvoicesPage: React.FC = () => {
                       {/* Acciones */}
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => printInvoiceDocument(inv, '58mm')}
+                            className="text-purple-600 hover:text-purple-700 dark:text-purple-400"
+                            title="Imprimir tirilla térmica (58 mm)"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                          </Button>
+
                           <Button
                             size="sm"
                             variant="ghost"

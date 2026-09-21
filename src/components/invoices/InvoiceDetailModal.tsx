@@ -9,6 +9,7 @@ import {
 import { Invoice } from '../../types/database';
 import { invoiceService } from '../../services/invoiceService';
 import { whatsappService } from '../../services/whatsappService';
+import { printInvoiceDocument } from '../../utils/printUtils';
 import { Button, Modal } from '../ui';
 
 interface InvoiceDetailModalProps {
@@ -42,7 +43,7 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
     const phone = invoice.customer?.phone || '';
     const cleanPhone = whatsappService.formatWhatsAppPhone(phone);
     if (!cleanPhone) {
-      alert('El cliente no tiene un número celular registrado.');
+      alert(`Esta factura fue registrada para ${invoice.customer?.full_name || 'Consumidor Final'} sin un número celular registrado para WhatsApp.`);
       return;
     }
 
@@ -62,115 +63,12 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
 
   // Impresión de Tirilla Térmica 58 mm
   const handlePrintThermal = () => {
-    const printContent = document.getElementById('invoice-thermal-ticket');
-    if (!printContent) return;
-
-    const printWindow = window.open('', '_blank', 'width=320,height=600');
-    if (!printWindow) {
-      window.print();
-      return;
-    }
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Factura ${invoice.invoice_number}</title>
-          <meta charset="utf-8" />
-          <style>
-            @page {
-              size: 58mm auto;
-              margin: 0;
-            }
-            body {
-              margin: 0;
-              padding: 4mm;
-              font-family: 'Courier New', Courier, monospace;
-              font-size: 11px;
-              color: #000;
-              background: #fff;
-              width: 50mm;
-              line-height: 1.25;
-            }
-            .text-center { text-align: center; }
-            .text-right { text-align: right; }
-            .font-bold { font-weight: bold; }
-            .divider {
-              border-top: 1px dashed #000;
-              margin: 6px 0;
-            }
-            .double-divider {
-              border-top: 2px solid #000;
-              margin: 6px 0;
-            }
-            .row {
-              display: flex;
-              justify-content: space-between;
-              margin: 2px 0;
-            }
-          </style>
-        </head>
-        <body>
-          ${printContent.innerHTML}
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(function() { window.close(); }, 500);
-            };
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+    printInvoiceDocument(invoice, '58mm');
   };
 
   // Impresión Comercial Tamaño Carta / A4
   const handlePrintCommercial = () => {
-    const printContent = document.getElementById('invoice-commercial-sheet');
-    if (!printContent) return;
-
-    const printWindow = window.open('', '_blank', 'width=800,height=900');
-    if (!printWindow) {
-      window.print();
-      return;
-    }
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Factura ${invoice.invoice_number} - A2Ruedas</title>
-          <meta charset="utf-8" />
-          <style>
-            @page {
-              size: letter portrait;
-              margin: 15mm;
-            }
-            body {
-              margin: 0;
-              font-family: system-ui, -apple-system, sans-serif;
-              font-size: 12px;
-              color: #0f172a;
-              background: #fff;
-              line-height: 1.4;
-            }
-          </style>
-          <script src="https://cdn.tailwindcss.com"></script>
-        </head>
-        <body class="p-8">
-          ${printContent.innerHTML}
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-                window.close();
-              }, 600);
-            };
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+    printInvoiceDocument(invoice, 'letter');
   };
 
   // Anular Factura

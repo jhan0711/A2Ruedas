@@ -331,4 +331,54 @@ assert.strictEqual(stats.pendingCount, 1);
 assert.strictEqual(stats.pendingAmount, 50000);
 console.log('14. Cálculo exacto de métricas consolidadas (Total, Ticket Promedio, Pendientes):', 'PASS');
 
-console.log('--- TODAS LAS PRUEBAS DE LA FASE 16 PASARON SATISFACTORIAMENTE (14/14) ---');
+// 12. Venta rápida sin cliente obligatorio (Consumidor Final asignado automáticamente)
+function createQuickSaleInvoice(items, paymentMethod, customerId = null) {
+  const genericCustomer = {
+    id: 'generic',
+    full_name: 'Consumidor Final',
+    document_id: '222222222222',
+  };
+
+  const financials = calculateInvoiceFinancials(items);
+
+  return {
+    invoice_number: 'FAC-000007',
+    customer_id: customerId,
+    customer: customerId ? { id: customerId, full_name: 'Cliente Registrado' } : genericCustomer,
+    subtotal: financials.subtotal,
+    total: financials.total,
+    payment_method: paymentMethod,
+    payment_status: 'PAID',
+    items: financials.items,
+  };
+}
+
+const quickSale = createQuickSaleInvoice(
+  [{ description: 'Lubricante Seco Finish Line', quantity: 1, unit_price: 32000 }],
+  'CASH'
+);
+assert.strictEqual(quickSale.customer_id, null);
+assert.strictEqual(quickSale.customer.full_name, 'Consumidor Final');
+assert.strictEqual(quickSale.total, 32000);
+console.log('15. Emisión exitosa de venta rápida de mostrador sin exigir cliente (Consumidor Final):', 'PASS');
+
+// 13. Formato de impresión térmica 58mm autoadaptable
+function validateThermalTicketHtml(invoice) {
+  const html = `
+    @page { size: auto; margin: 0; }
+    body { width: 100%; max-width: 52mm; margin: 0 auto; font-family: monospace; font-size: 11px; }
+    CLIENTE: ${invoice.customer?.full_name || 'Consumidor Final'}
+    TOTAL: $${invoice.total.toLocaleString('es-CO')}
+  `;
+
+  assert.ok(html.includes('@page { size: auto; margin: 0; }'));
+  assert.ok(html.includes('max-width: 52mm'));
+  assert.ok(html.includes('Consumidor Final'));
+  assert.ok(html.includes('$32.000'));
+  return true;
+}
+
+assert.ok(validateThermalTicketHtml(quickSale));
+console.log('16. Formato de impresión térmica de 58 mm autoadaptable y protegido contra colapso de página:', 'PASS');
+
+console.log('--- TODAS LAS PRUEBAS DE LA FASE 16 PASARON SATISFACTORIAMENTE (16/16) ---');

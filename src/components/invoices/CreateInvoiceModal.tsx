@@ -52,7 +52,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
 
   // Datos de factura
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
-  const [isGenericCustomer, setIsGenericCustomer] = useState(false);
   const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<CashPaymentMethod>('CASH');
   const [paymentStatus] = useState<InvoicePaymentStatus>('PAID');
@@ -87,8 +86,9 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
         if (prefilledWorkOrder) {
           setSourceMode('work_order');
           applyWorkOrder(prefilledWorkOrder);
-        } else if (custList.length > 0) {
-          setSelectedCustomerId(custList[0].id);
+        } else {
+          // Venta rápida: no obligar cliente, predeterminar Consumidor Final
+          setSelectedCustomerId('');
         }
       } catch (err) {
         console.error('Error al cargar datos para facturar:', err);
@@ -101,8 +101,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   // Aplicar datos de una orden de trabajo seleccionada
   const applyWorkOrder = (order: WorkOrder) => {
     setSelectedWorkOrderId(order.order_number);
-    setSelectedCustomerId(order.customer_id);
-    setIsGenericCustomer(false);
+    setSelectedCustomerId(order.customer_id || '');
 
     const items: InvoiceLineItem[] =
       order.items && order.items.length > 0
@@ -199,18 +198,10 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       return;
     }
 
-    if (!selectedCustomerId && !isGenericCustomer) {
-      setErrorMessage('Por favor selecciona un cliente para la factura o marca Consumidor Final.');
-      return;
-    }
-
     setIsSubmitting(true);
     setErrorMessage(null);
     try {
-      // Si es consumidor final y no hay customer_id, asegurar un ID
-      const customerIdToUse = isGenericCustomer
-        ? customers.find((c) => c.full_name.includes('Consumidor'))?.id || customers[0]?.id || 'generic'
-        : selectedCustomerId;
+      const customerIdToUse = selectedCustomerId.trim() ? selectedCustomerId.trim() : null;
 
       const itemsPayload: InvoiceItemInsert[] = lineItems.map((it) => ({
         description: it.description.trim(),
@@ -343,34 +334,28 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             </div>
           ) : (
             <div className="space-y-1">
-              <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                Cliente Receptor *
-              </label>
-              <div className="flex items-center gap-2">
-                <select
-                  disabled={isGenericCustomer}
-                  value={selectedCustomerId}
-                  onChange={(e) => setSelectedCustomerId(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white disabled:opacity-50"
-                >
-                  <option value="">-- Seleccionar cliente --</option>
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.full_name} ({c.document_id ? `CC: ${c.document_id}` : c.phone})
-                    </option>
-                  ))}
-                </select>
-
-                <label className="flex items-center gap-1 text-[11px] whitespace-nowrap cursor-pointer text-slate-600">
-                  <input
-                    type="checkbox"
-                    checked={isGenericCustomer}
-                    onChange={(e) => setIsGenericCustomer(e.target.checked)}
-                    className="rounded text-blue-600"
-                  />
-                  <span>Consumidor Final</span>
+              <div className="flex items-center justify-between">
+                <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[11px]">
+                  Cliente (Opcional)
                 </label>
+                <span className="text-[10px] text-slate-500 italic">Venta rápida: dejar en blanco</span>
               </div>
+              <select
+                value={selectedCustomerId}
+                onChange={(e) => setSelectedCustomerId(e.target.value)}
+                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white"
+              >
+                <option value="">👤 Consumidor Final / Venta Rápida (Sin registrar datos)</option>
+                {customers.length > 0 && (
+                  <optgroup label="Clientes Registrados en el Taller">
+                    {customers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.full_name} {c.document_id ? `(CC: ${c.document_id})` : c.phone ? `(${c.phone})` : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
             </div>
           )}
 

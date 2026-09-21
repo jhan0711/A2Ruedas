@@ -258,7 +258,7 @@ export type InvoicePaymentStatus = 'PAID' | 'PENDING' | 'CANCELLED';
 export interface Invoice {
   id: string;
   invoice_number: string;
-  customer_id: string;
+  customer_id?: string | null;
   work_order_id?: string | null;
   subtotal: number;
   discount: number;
@@ -271,14 +271,14 @@ export interface Invoice {
   created_at: string;
   notes?: string | null;
   cancel_reason?: string | null;
-  customer?: Customer;
+  customer?: Customer | null;
   work_order?: WorkOrder | null;
   items?: InvoiceItem[];
 }
 
 export interface InvoiceInsert {
   invoice_number?: string;
-  customer_id: string;
+  customer_id?: string | null;
   work_order_id?: string | null;
   subtotal: number;
   discount?: number;

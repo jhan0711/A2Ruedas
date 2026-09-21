@@ -1,4 +1,4 @@
-import { WorkOrder, Signature } from '../types/database';
+import { WorkOrder, Signature, Invoice } from '../types/database';
 
 /**
  * Genera el documento HTML completo y estilizado para Factura / Orden de Trabajo (Carta / A4)
@@ -754,3 +754,549 @@ export function printWorkOrderDocument(
     }
   }, 250);
 }
+
+/**
+ * Genera el documento HTML completo y estilizado para Tirilla Térmica POS (58 mm) de Factura
+ */
+export function generateInvoiceThermalTicketHtml(invoice: Invoice): string {
+  const customerName = invoice.customer?.full_name || 'Consumidor Final (Venta Rápida)';
+  const customerDoc = invoice.customer?.document_id || '';
+  const items = invoice.items || [];
+  const dateFormatted = new Date(invoice.created_at).toLocaleString('es-CO', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
+
+  const methodLabels: Record<string, string> = {
+    CASH: 'EFECTIVO',
+    TRANSFER: 'TRANSFERENCIA (NEQUI/BANCO)',
+    CARD: 'TARJETA / DATÁFONO',
+    OTHER: 'OTRO MEDIO',
+  };
+  const paymentMethodLabel = methodLabels[invoice.payment_method] || invoice.payment_method;
+
+  const itemsHtml =
+    items.length === 0
+      ? `<div style="text-align: center; color: #666; font-style: italic;">Sin ítems registrados</div>`
+      : items
+          .map(
+            (it) => `
+        <div style="margin-bottom: 4px;">
+          <div style="font-weight: bold; word-break: break-word; font-size: 10.5px;">${it.description}</div>
+          <div style="display: flex; justify-content: space-between; font-size: 9.5px; color: #222;">
+            <span>${it.quantity} x $${it.unit_price.toLocaleString('es-CO')}</span>
+            <span style="font-weight: bold;">$${it.total_price.toLocaleString('es-CO')}</span>
+          </div>
+        </div>
+      `
+          )
+          .join('');
+
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>Factura ${invoice.invoice_number}</title>
+      <style>
+        @page {
+          size: auto;
+          margin: 0;
+        }
+        * {
+          box-sizing: border-box;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        html, body {
+          margin: 0;
+          padding: 0;
+          background: #ffffff;
+        }
+        body {
+          padding: 3mm 2mm;
+          width: 100%;
+          max-width: 52mm;
+          margin: 0 auto;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
+          font-size: 11px;
+          line-height: 1.25;
+          color: #000000;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .bold { font-weight: bold; }
+        .divider {
+          border-top: 1px dashed #000000;
+          margin: 5px 0;
+        }
+        .double-divider {
+          border-top: 2px solid #000000;
+          margin: 5px 0;
+        }
+        .flex-between {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 2px;
+          width: 100%;
+        }
+        .cancelled-box {
+          border: 2px dashed #dc2626;
+          color: #dc2626;
+          font-weight: bold;
+          text-align: center;
+          padding: 4px;
+          margin: 6px 0;
+          font-size: 11px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="text-center">
+        <div style="font-size: 13px; font-weight: 900; letter-spacing: 0.5px;">A2RUEDAS TALLER</div>
+        <div style="font-size: 9.5px;">TALLER ESPECIALIZADO DE BICIS</div>
+        <div style="font-size: 8.5px;">NIT: 901.452.879-1</div>
+        <div style="font-size: 8.5px;">PBX: (+57) 310 456 7890</div>
+        <div style="font-size: 8.5px;">Calle 123 # 45-67, Bogotá</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="text-center bold" style="font-size: 11px;">COMPROBANTE DE PAGO</div>
+      <div class="text-center bold" style="font-size: 13px;">${invoice.invoice_number}</div>
+
+      <div class="divider"></div>
+
+      <div style="font-size: 9.5px;">
+        <div class="flex-between">
+          <span>FECHA:</span>
+          <span>${dateFormatted}</span>
+        </div>
+        <div class="flex-between">
+          <span>CLIENTE:</span>
+          <span class="bold" style="text-align: right; max-width: 32mm;">${customerName}</span>
+        </div>
+        ${
+          customerDoc
+            ? `
+        <div class="flex-between">
+          <span>C.C./NIT:</span>
+          <span>${customerDoc}</span>
+        </div>`
+            : ''
+        }
+        ${
+          invoice.work_order_id
+            ? `
+        <div class="flex-between bold">
+          <span>ORDEN OT:</span>
+          <span>${invoice.work_order_id}</span>
+        </div>`
+            : ''
+        }
+        <div class="flex-between">
+          <span>MEDIO PAGO:</span>
+          <span class="bold">${paymentMethodLabel}</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="text-center bold" style="font-size: 9.5px; margin-bottom: 4px;">-- DETALLE DE COBRO --</div>
+      ${itemsHtml}
+
+      <div class="double-divider"></div>
+
+      <div style="font-size: 10px;">
+        <div class="flex-between">
+          <span>SUBTOTAL:</span>
+          <span>$${invoice.subtotal.toLocaleString('es-CO')}</span>
+        </div>
+        ${
+          invoice.discount > 0
+            ? `
+        <div class="flex-between bold" style="color: #b91c1c;">
+          <span>DESCUENTO:</span>
+          <span>-$${invoice.discount.toLocaleString('es-CO')}</span>
+        </div>`
+            : ''
+        }
+        ${
+          invoice.tax > 0
+            ? `
+        <div class="flex-between">
+          <span>IVA (${invoice.tax_rate || 19}%):</span>
+          <span>$${invoice.tax.toLocaleString('es-CO')}</span>
+        </div>`
+            : ''
+        }
+        <div class="double-divider"></div>
+        <div class="flex-between bold" style="font-size: 12px;">
+          <span>TOTAL PAGADO:</span>
+          <span>$${invoice.total.toLocaleString('es-CO')} COP</span>
+        </div>
+      </div>
+
+      ${
+        invoice.notes
+          ? `
+      <div class="divider"></div>
+      <div style="font-size: 9px; font-style: italic;">
+        <strong>Nota:</strong> ${invoice.notes}
+      </div>`
+          : ''
+      }
+
+      ${
+        invoice.payment_status === 'CANCELLED'
+          ? `
+      <div class="cancelled-box">
+        *** FACTURA ANULADA ***
+        ${invoice.cancel_reason ? `<div style="font-size: 8.5px; font-weight: normal; margin-top: 2px;">Motivo: ${invoice.cancel_reason}</div>` : ''}
+      </div>`
+          : ''
+      }
+
+      <div class="divider"></div>
+
+      <div class="text-center" style="font-size: 8.5px; margin-top: 6px;">
+        <div>¡Gracias por confiar en A2Ruedas! 🚲</div>
+        <div style="margin-top: 2px; color: #555;">Servicio Técnico y Repuestos</div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Genera el documento HTML comercial tamaño Carta / A4 para Factura
+ */
+export function generateInvoiceCommercialHtml(invoice: Invoice): string {
+  const customerName = invoice.customer?.full_name || 'Consumidor Final (Venta Rápida)';
+  const customerDoc = invoice.customer?.document_id || '';
+  const customerPhone = invoice.customer?.phone || 'No registrado';
+  const items = invoice.items || [];
+  const dateFormatted = new Date(invoice.created_at).toLocaleString('es-CO', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+
+  const methodLabels: Record<string, string> = {
+    CASH: 'Efectivo en Caja',
+    TRANSFER: 'Transferencia Digital (Nequi / Daviplata / Banco)',
+    CARD: 'Tarjeta Débito / Crédito (Datáfono)',
+    OTHER: 'Otro Medio de Pago',
+  };
+  const paymentMethodLabel = methodLabels[invoice.payment_method] || invoice.payment_method;
+
+  const itemsRows =
+    items.length === 0
+      ? `<tr><td colspan="6" style="text-align: center; color: #64748b; padding: 12px; font-style: italic;">Sin ítems registrados en este comprobante</td></tr>`
+      : items
+          .map(
+            (it, idx) => `
+        <tr>
+          <td style="text-align: center; color: #64748b;">${idx + 1}</td>
+          <td>
+            <div style="font-weight: 700; color: #0f172a;">${it.description}</div>
+          </td>
+          <td style="text-align: center;">
+            <span style="font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; background: ${
+              it.item_type === 'service' ? '#dbeafe; color: #1e40af;' : '#f1f5f9; color: #334155;'
+            }">
+              ${it.item_type === 'service' ? 'Servicio' : it.item_type === 'part' ? 'Repuesto' : 'Producto'}
+            </span>
+          </td>
+          <td style="text-align: center; font-weight: 700;">${it.quantity}</td>
+          <td style="text-align: right; font-family: monospace;">$${it.unit_price.toLocaleString('es-CO')}</td>
+          <td style="text-align: right; font-family: monospace; font-weight: 700;">$${it.total_price.toLocaleString('es-CO')}</td>
+        </tr>
+      `
+          )
+          .join('');
+
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>Factura ${invoice.invoice_number} - A2Ruedas</title>
+      <style>
+        @page {
+          size: letter portrait;
+          margin: 12mm 15mm;
+        }
+        * {
+          box-sizing: border-box;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          color: #0f172a;
+          background: #ffffff;
+          margin: 0;
+          padding: 0;
+          font-size: 12px;
+          line-height: 1.4;
+        }
+        .invoice-container {
+          width: 100%;
+          max-width: 800px;
+          margin: 0 auto;
+        }
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          padding-bottom: 14px;
+          border-bottom: 2px solid #0f172a;
+        }
+        .brand-title {
+          font-size: 22px;
+          font-weight: 900;
+          letter-spacing: 1px;
+          color: #0f172a;
+          margin: 0 0 2px 0;
+        }
+        .brand-subtitle {
+          font-size: 12px;
+          font-weight: 700;
+          color: #2563eb;
+          margin: 0 0 4px 0;
+        }
+        .brand-info {
+          font-size: 11px;
+          color: #475569;
+          margin: 0;
+          line-height: 1.4;
+        }
+        .doc-box {
+          border: 1.5px solid #0f172a;
+          border-radius: 6px;
+          padding: 10px 14px;
+          background-color: #f8fafc;
+          text-align: right;
+        }
+        .doc-type {
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 1.5px;
+          color: #64748b;
+          margin-bottom: 2px;
+        }
+        .doc-number {
+          font-size: 18px;
+          font-weight: 900;
+          font-family: ui-monospace, monospace;
+          color: #0f172a;
+        }
+        .client-card {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 6px;
+          padding: 12px 14px;
+          margin-top: 14px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 14px;
+          font-size: 11px;
+        }
+        th {
+          background: #0f172a;
+          color: white;
+          text-align: left;
+          padding: 8px 10px;
+          font-weight: 700;
+          font-size: 10px;
+          text-transform: uppercase;
+        }
+        td {
+          padding: 8px 10px;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        .totals-box {
+          float: right;
+          width: 280px;
+          margin-top: 14px;
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+          padding: 10px 14px;
+          background: #f8fafc;
+        }
+        .total-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 3px 0;
+          font-size: 11px;
+        }
+        .total-final {
+          border-top: 2px solid #0f172a;
+          margin-top: 6px;
+          padding-top: 6px;
+          font-size: 14px;
+          font-weight: 900;
+          color: #0f172a;
+        }
+        .clear { clear: both; }
+        .footer-note {
+          margin-top: 24px;
+          padding-top: 12px;
+          border-top: 1px dashed #cbd5e1;
+          font-size: 10px;
+          color: #64748b;
+          text-align: center;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="invoice-container">
+        <div class="header">
+          <div>
+            <div class="brand-title">A2RUEDAS TALLER</div>
+            <div class="brand-subtitle">SERVICIO TÉCNICO ESPECIALIZADO DE BICICLETAS</div>
+            <div class="brand-info">NIT: 901.452.879-1 • Régimen Simplificado / No Responsable de IVA</div>
+            <div class="brand-info">PBX: (+57) 310 456 7890 • Calle 123 # 45-67, Bogotá, Colombia</div>
+          </div>
+          <div class="doc-box">
+            <div class="doc-type">FACTURA DE VENTA / COMPROBANTE</div>
+            <div class="doc-number">${invoice.invoice_number}</div>
+            <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Fecha: ${dateFormatted}</div>
+          </div>
+        </div>
+
+        <!-- Cliente y Medio de Pago -->
+        <div class="client-card">
+          <div style="display: flex; justify-content: space-between;">
+            <div>
+              <div style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">CLIENTE / ADQUIRIENTE:</div>
+              <div style="font-size: 13px; font-weight: bold; color: #0f172a;">${customerName}</div>
+              <div style="font-size: 11px; color: #475569;">${customerDoc ? `C.C. / NIT: ${customerDoc}` : 'Consumidor Final'} • Tel: ${customerPhone}</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">CONDICIÓN COMERCIAL:</div>
+              <div style="font-size: 12px; font-weight: bold; color: ${
+                invoice.payment_status === 'PAID' ? '#059669' : invoice.payment_status === 'PENDING' ? '#d97706' : '#dc2626'
+              };">
+                ESTADO: ${invoice.payment_status === 'PAID' ? 'PAGADA' : invoice.payment_status === 'PENDING' ? 'PENDIENTE' : 'ANULADA'}
+              </div>
+              <div style="font-size: 11px; color: #475569;">Medio: ${paymentMethodLabel} ${
+                invoice.work_order_id ? `• OT: ${invoice.work_order_id}` : ''
+              }</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla de Ítems -->
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 30px; text-align: center;">#</th>
+              <th>Descripción del Repuesto o Servicio</th>
+              <th style="width: 85px; text-align: center;">Tipo</th>
+              <th style="width: 50px; text-align: center;">Cant.</th>
+              <th style="width: 100px; text-align: right;">V. Unitario</th>
+              <th style="width: 110px; text-align: right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsRows}
+          </tbody>
+        </table>
+
+        <!-- Totales -->
+        <div class="totals-box">
+          <div class="total-row">
+            <span>Subtotal:</span>
+            <span style="font-family: monospace;">$${invoice.subtotal.toLocaleString('es-CO')}</span>
+          </div>
+          ${
+            invoice.discount > 0
+              ? `
+          <div class="total-row" style="color: #dc2626; font-weight: 600;">
+            <span>Descuento Comercial:</span>
+            <span style="font-family: monospace;">-$${invoice.discount.toLocaleString('es-CO')}</span>
+          </div>`
+              : ''
+          }
+          ${
+            invoice.tax > 0
+              ? `
+          <div class="total-row">
+            <span>IVA (${invoice.tax_rate || 19}%):</span>
+            <span style="font-family: monospace;">$${invoice.tax.toLocaleString('es-CO')}</span>
+          </div>`
+              : ''
+          }
+          <div class="total-row total-final">
+            <span>TOTAL:</span>
+            <span style="font-family: monospace;">$${invoice.total.toLocaleString('es-CO')} COP</span>
+          </div>
+        </div>
+        <div class="clear"></div>
+
+        ${
+          invoice.notes
+            ? `
+        <div style="margin-top: 14px; padding: 10px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; font-size: 11px;">
+          <strong>Observaciones:</strong> ${invoice.notes}
+        </div>`
+            : ''
+        }
+
+        <div class="footer-note">
+          Comprobante interno y soporte de liquidación comercial de taller de bicicletas.<br>
+          Garantía en ajustes mecánicos: 30 días calendario. ¡Gracias por pedalear con A2Ruedas!
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Imprime una factura comercial o tirilla térmica de forma universal y segura mediante iframe invisible
+ */
+export function printInvoiceDocument(invoice: Invoice, format: '58mm' | 'letter'): void {
+  const htmlContent =
+    format === '58mm'
+      ? generateInvoiceThermalTicketHtml(invoice)
+      : generateInvoiceCommercialHtml(invoice);
+
+  let iframe = document.getElementById('a2ruedas-invoice-print-frame') as HTMLIFrameElement;
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = 'a2ruedas-invoice-print-frame';
+    iframe.style.position = 'fixed';
+    iframe.style.top = '-9999px';
+    iframe.style.left = '-9999px';
+    iframe.style.width = '0px';
+    iframe.style.height = '0px';
+    iframe.style.border = 'none';
+    document.body.appendChild(iframe);
+  }
+
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!iframeDoc) {
+    window.print();
+    return;
+  }
+
+  iframeDoc.open();
+  iframeDoc.write(htmlContent);
+  iframeDoc.close();
+
+  setTimeout(() => {
+    try {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    } catch (e) {
+      console.warn('Fallback a window.print() para factura:', e);
+      window.print();
+    }
+  }, 250);
+}
+
