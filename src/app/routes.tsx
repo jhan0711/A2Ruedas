@@ -18,6 +18,7 @@ import { AppointmentsPage } from '../pages/admin/AppointmentsPage';
 import { QRCodesPage } from '../pages/admin/QRCodesPage';
 import { WhatsAppPage } from '../pages/admin/WhatsAppPage';
 import { CashPage } from '../pages/admin/CashPage';
+import { InvoicesPage } from '../pages/admin/InvoicesPage';
 import { ModulePlaceholder } from '../pages/admin/ModulePlaceholder';
 
 export const router = createBrowserRouter([
@@ -82,13 +83,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'facturas',
-            element: (
-              <ModulePlaceholder
-                title="Facturación y Recibos"
-                phase="Fase 16"
-                description="Emisión de comprobantes internos y detalle de cobros a clientes."
-              />
-            ),
+            element: <InvoicesPage />,
           },
           {
             path: 'qr',

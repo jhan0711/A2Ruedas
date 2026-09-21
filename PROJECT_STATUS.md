@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 15 — Módulo de Flujo de Caja (Apertura, ingresos, egresos, anticipos, medios de pago y arqueo de cierre)
+Fase actual: FASE 16 — Facturación y Recibos Internos (Emisión de comprobantes internos, numeración correlativa FAC-000001, detalle de repuestos/mano de obra, medios de pago e impresión)
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -21,9 +21,9 @@ Estado: COMPLETADA
 - [x] FASE 13 — Módulo de Códigos QR (Generación, descarga, escaneo por cámara)
 - [x] FASE 14 — Módulo de Comunicación por WhatsApp (Deep links dinámicos, plantillas automáticas y bitácora)
 - [x] FASE 15 — Módulo de Flujo de Caja (Apertura, ingresos, egresos, anticipos, medios de pago y arqueo de cierre)
+- [x] FASE 16 — Facturación y Recibos Internos (Emisión de comprobantes, numeración FAC-000001, sincronización de caja y tirilla 58mm)
 
 ## Fases pendientes:
-- [ ] FASE 16 — Facturación y Recibos Internos
 - [ ] FASE 17 — Impresión Térmica de 58 mm (Órdenes y Facturas)
 - [ ] FASE 18 — Catálogo Público de Productos (/productos, sin login)
 - [ ] FASE 19 — Configuración PWA (Manifest, Service Worker, Instalación, Offline)
@@ -199,13 +199,25 @@ Estado: COMPLETADA
 - Cierre formal de caja y consolidación en histórico: PASS.
 - Regresión completa de las 15 fases del proyecto (12 suites de prueba): PASS (100%).
 
+- Módulo de Facturación y Recibos Internos (14 pruebas automatizadas): PASS (100%).
+  * Formato correlativo estricto FAC-000001 con relleno a 6 dígitos: PASS.
+  * Secuencia correlativa ininterrumpida y protección de integridad: PASS.
+  * Desglose financiero de ítems, descuentos comerciales y régimen tributario (IVA): PASS.
+  * Conversión fidedigna e importación directa desde Órdenes de Trabajo (OT): PASS.
+  * Sincronización automática de ingresos cobrados en la Caja activa: PASS.
+  * Anulación controlada de facturas con motivo obligatorio registrado: PASS.
+  * Compartir comprobante por WhatsApp con formato nacional Colombia: PASS.
+  * Métricas y KPIs consolidados de facturación: PASS.
+- Regresión completa de las 16 fases del proyecto (13 suites de prueba): PASS (100%).
+
 ## Pruebas pendientes:
-- Pruebas de integración para el Módulo de Facturación y Recibos Internos (Fase 16).
+- Pruebas de integración y maquetación especializada para Impresión Térmica de 58 mm (Fase 17).
 
 ## Decisiones técnicas:
-- **Segregación Estricta de Dinero Digital vs. Efectivo Físico**: En los talleres mecánicos de bicicletas en Colombia, los clientes pagan frecuentemente con Nequi, Daviplata o transferencias bancarias directas. El sistema diferencia con precisión matemática qué dinero ingresó a la cuenta bancaria y qué dinero físico está realmente en la gaveta del mostrador. De este modo, el arqueo de efectivo físico no se contamina con pagos digitales.
-- **Calculadora Táctil de Billetes Colombianos**: Para evitar que el cajero deba usar una calculadora externa o cometa errores manuales al sumar billetes de $100.000, $50.000, $20.000, etc., el modal de cierre incluye campos directos por denominación nacional, calculando el total exacto en tiempo real.
-- **Tirilla Térmica de 58 mm Especializada para Caja**: Se reutilizó la especificación `@page { size: 58mm auto; margin: 0; }` desarrollada en las fases anteriores para permitir al cajero imprimir el comprobante de cierre diario en la impresora térmica de recibos del mostrador, archivándolo junto al dinero del cierre.
+- **Consecutivo Fiscal Inmutable (FAC-000001)**: Para asegurar orden contable y prevenir saltos de correlatividad, las facturas nunca se eliminan físicamente de la base de datos ni del almacenamiento. Las facturas equivocadas se marcan con estado `CANCELLED` y motivo obligatorio, preservando intacto el consecutivo numérico.
+- **Doble Formato de Factura (Tirilla 58mm POS + Factura Comercial Carta)**: Dado que el taller opera tanto con impresora térmica de mostrador de 58mm (para clientes que retiran físicamente) como con clientes corporativos que solicitan factura tamaño carta / PDF membretado, el visor modal incluye una pestaña conmutable para previsualizar e imprimir ambos formatos.
+- **Sincronización Transaccional con la Caja Activa**: Al crear y cobrar una factura en estado `PAID` (sea en efectivo, transferencia o tarjeta), el sistema automáticamente asienta el movimiento en la caja abierta de la jornada, evitando la doble digitación manual por parte del cajero.
+- **Facturación en 1 Clic desde Órdenes de Trabajo**: Se añadió un botón "Facturar Orden" directamente en el Dossier de la Orden de Trabajo que importa automáticamente los repuestos, servicios y mano de obra a la factura.
 
 ## Próximo paso:
-Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 16 — FACTURACIÓN Y RECIBOS INTERNOS (Emisión de comprobantes internos, numeración FAC-000001 y detalle de cobros)**.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 17 — IMPRESIÓN TÉRMICA DE 58 MM (Órdenes de Trabajo, Comprobantes de Recepción, Facturas y Arqueos de Caja)**.

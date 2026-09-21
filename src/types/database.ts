@@ -253,6 +253,8 @@ export interface CashMovement {
 }
 
 // 14. Facturación
+export type InvoicePaymentStatus = 'PAID' | 'PENDING' | 'CANCELLED';
+
 export interface Invoice {
   id: string;
   invoice_number: string;
@@ -261,13 +263,32 @@ export interface Invoice {
   subtotal: number;
   discount: number;
   tax: number;
+  tax_rate?: number;
   total: number;
-  payment_method: string;
-  payment_status: 'PAID' | 'PENDING' | 'CANCELLED';
+  payment_method: CashPaymentMethod | string;
+  payment_status: InvoicePaymentStatus;
   issued_by: string;
   created_at: string;
+  notes?: string | null;
+  cancel_reason?: string | null;
   customer?: Customer;
+  work_order?: WorkOrder | null;
   items?: InvoiceItem[];
+}
+
+export interface InvoiceInsert {
+  invoice_number?: string;
+  customer_id: string;
+  work_order_id?: string | null;
+  subtotal: number;
+  discount?: number;
+  tax?: number;
+  tax_rate?: number;
+  total: number;
+  payment_method: CashPaymentMethod | string;
+  payment_status: InvoicePaymentStatus;
+  issued_by?: string;
+  notes?: string | null;
 }
 
 export interface InvoiceItem {
@@ -277,6 +298,15 @@ export interface InvoiceItem {
   quantity: number;
   unit_price: number;
   total_price: number;
+  item_type?: 'service' | 'part' | 'product';
+}
+
+export interface InvoiceItemInsert {
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  item_type?: 'service' | 'part' | 'product';
 }
 
 // 15. Citas y Agenda

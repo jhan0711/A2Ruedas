@@ -15,6 +15,7 @@ import {
   Printer,
   ClipboardCheck,
   PenTool,
+  Receipt,
 } from 'lucide-react';
 import { WorkOrderTicketModal } from '../../components/receipts/WorkOrderTicketModal';
 import { WhatsAppComposeModal } from '../../components/whatsapp/WhatsAppComposeModal';
@@ -934,14 +935,25 @@ export const WorkOrdersPage: React.FC = () => {
           maxWidth="lg"
           footer={
             <div className="flex items-center justify-between w-full">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => openTicketModal(detailOrder)}
-                leftIcon={<Printer className="w-3.5 h-3.5" />}
-              >
-                Imprimir Comprobante (58 mm)
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => openTicketModal(detailOrder)}
+                  leftIcon={<Printer className="w-3.5 h-3.5" />}
+                >
+                  Tirilla (58 mm)
+                </Button>
+
+                <Link
+                  to="/admin/facturas"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors"
+                >
+                  <Receipt className="w-3.5 h-3.5" />
+                  <span>Facturar Orden</span>
+                </Link>
+              </div>
+
               <Button size="sm" variant="secondary" onClick={() => setDetailModalOpen(false)}>
                 Cerrar Ficha
               </Button>
