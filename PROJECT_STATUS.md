@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 17 — Impresión Térmica de 58 mm (Centro de Impresión Térmica, plantillas continuas, marbetes de bicicleta con QR, comprobantes de recepción/custodia, liquidación de órdenes, facturas, arqueos de caja y calibración de hardware)
+Fase actual: FASE 18 — Catálogo Público de Productos (/productos, vitrina digital sin login, inventario sincronizado, galería de fotos, deep links y bolsa de cotización por WhatsApp)
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -23,9 +23,9 @@ Estado: COMPLETADA
 - [x] FASE 15 — Módulo de Flujo de Caja (Apertura, ingresos, egresos, anticipos, medios de pago y arqueo de cierre)
 - [x] FASE 16 — Facturación y Recibos Internos (Emisión de comprobantes, numeración FAC-000001, sincronización de caja y tirilla 58mm)
 - [x] FASE 17 — Impresión Térmica de 58 mm (Centro de Impresión Térmica, plantillas continuas, marbetes de bicicleta con QR, comprobantes de recepción/custodia, liquidación de órdenes, facturas, arqueos de caja y calibración de hardware)
+- [x] FASE 18 — Catálogo Público de Productos (/productos, sin login)
 
 ## Fases pendientes:
-- [ ] FASE 18 — Catálogo Público de Productos (/productos, sin login)
 - [ ] FASE 19 — Configuración PWA (Manifest, Service Worker, Instalación, Offline)
 - [ ] FASE 20 — Auditoría de Seguridad (RLS, Sanitización, Protección de Rutas)
 - [ ] FASE 21 — QA Completo (Unitarias, Integración, E2E, Responsive)
@@ -224,16 +224,27 @@ Estado: COMPLETADA
   * Estándar CSS @page { size: auto; margin: 0; } uniforme en todas las plantillas: PASS.
   * Ciclo de persistencia, personalización y restauración de fábrica en LocalStorage: PASS.
 - Regresión total de las 17 fases del proyecto (14 suites de prueba): PASS (100%).
+- Catálogo Público de Productos (/productos, sin login) (12 pruebas automatizadas): PASS (100%).
+  * Sanitización estricta de productos públicos (cost_price, min_stock, location y notas internas omitidos): PASS.
+  * Detección automática de disponibilidad según stock en tiempo real y fallback de imagen: PASS.
+  * Exclusión estricta de productos desactivados (is_active: false): PASS.
+  * Filtrado reactivo por categoría con insignias de conteo dinámico: PASS.
+  * Búsqueda inteligente multi-criterio (nombre, marca, código SKU y categoría): PASS.
+  * Filtro de disponibilidad inmediata para entrega en tienda: PASS.
+  * Algoritmos de ordenamiento (menor precio, mayor precio, alfabético A-Z y relevancia): PASS.
+  * Conteo dinámico de productos activos por categoría inmune a productos inactivos: PASS.
+  * Resolución de deep-link por ID o SKU (?p=ID / ?sku=SKU) para compartir en redes: PASS.
+  * Construcción de enlace de WhatsApp con formato nacional (+57), cotización calculada y desglose: PASS.
+- Regresión completa de las 18 fases del proyecto (15 suites de prueba): PASS (100%).
 
 ## Pruebas pendientes:
-- Pruebas para el Catálogo Público de Productos (/productos, sin login) (Fase 18).
+- Pruebas para la Configuración PWA (Manifest, Service Worker, Instalación, Offline) (Fase 19).
 
 ## Decisiones técnicas:
-- **Consecutivo Fiscal Inmutable (FAC-000001)**: Para asegurar orden contable y prevenir saltos de correlatividad, las facturas nunca se eliminan físicamente de la base de datos ni del almacenamiento. Las facturas equivocadas se marcan con estado `CANCELLED` y motivo obligatorio, preservando intacto el consecutivo numérico.
-- **Doble Formato de Factura (Tirilla 58mm POS + Factura Comercial Carta)**: Dado que el taller opera tanto con impresora térmica de mostrador de 58mm (para clientes que retiran físicamente) como con clientes corporativos que solicitan factura tamaño carta / PDF membretado, el visor modal incluye una pestaña conmutable para previsualizar e imprimir ambos formatos.
-- **Sincronización Transaccional con la Caja Activa**: Al crear y cobrar una factura en estado `PAID` (sea en efectivo, transferencia o tarjeta), el sistema automáticamente asienta el movimiento en la caja abierta de la jornada, evitando la doble digitación manual por parte del cajero.
-- **Motor Universal de Impresión mediante Iframe Aislado (`printDirectHtml`)**: En lugar de abrir ventanas `about:blank` con `document.write` y cierres prematuros por `setTimeout`, se utiliza un iframe invisible persistente `#a2ruedas-universal-print-frame`. Esto erradica el colapso de renderizado y el encogimiento de 2mm en navegadores Chromium/Edge.
-- **Plantillas Térmicas de Monospace y Alta Densidad**: Se diseñaron 5 formatos oficiales de tirilla (Marbete QR para marco de bici, Recepción de taller con accesorios y daños previos, Liquidación de orden OT con desglose de repuestos y mano de obra, Factura POS de cobro rápido y Arqueo diario de caja con flujo de efectivo) más la Tirilla de Calibración de Hardware con regla milimétrica y bloque de 100% densidad térmica.
+- **Sanitización de Datos Comerciales Sensibles (`sanitizePublicProduct`)**: Para evitar fugas de información estratégica y proteger los márgenes del taller, el servicio público filtra rigurosamente el precio de costo (`cost_price`), el stock mínimo (`min_stock`), la ubicación física en el taller (`location`) y notas privadas antes de servir cualquier dato a la vista pública.
+- **Bolsa de Cotización y Deep-Link de WhatsApp en vez de Pasarela**: Al ser un taller de bicicletas enfocado en servicio técnico, instalación y retiro físico, los clientes prefieren consultar disponibilidad o asesoría técnica antes de pagar en línea. La bolsa flotante permite acumular repuestos y generar un mensaje instantáneo a WhatsApp con el formato comercial colombiano (+57), detalle de productos y cálculo estimado en pesos colombianos ($ COP).
+- **Deep-Links Compartibles (`?p=ID` / `?sku=SKU`)**: Se incorporó soporte de parámetros URL para que el taller pueda compartir enlaces directos a repuestos específicos en redes sociales (Instagram, WhatsApp, Facebook). Al ingresar, la vista abre automáticamente la galería interactiva del producto.
+- **Galería Multi-Foto Accesible**: Modal con carrusel de fotografías, navegación por teclado (flechas y tecla Escape) y soporte de miniaturas con fallback a imagen ciclista de alta definición.
 
 ## Próximo paso:
-Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 18 — CATÁLOGO PÚBLICO DE PRODUCTOS (`/productos`, sin login)**.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 19 — CONFIGURACIÓN PWA (Manifest, Service Worker, Instalación, Offline)**.
