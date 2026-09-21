@@ -10,6 +10,7 @@ import {
   DollarSign,
   Package,
   Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 import { inventoryService } from '../../services/inventoryService';
 import { Product, InventoryMovement } from '../../types/database';
@@ -578,13 +579,20 @@ export const InventoryPage: React.FC = () => {
               <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
                 Cálculo de Kardex Resultante
               </label>
-              <div className="h-8 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-500">
-                  {currentModalProduct ? `${currentModalProduct.stock} act.` : '0 act.'}
-                </span>
-                <span className="font-bold text-slate-900 dark:text-white">
-                  $\rightarrow$ {projectedStock} result.
-                </span>
+              <div className="h-9 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 flex items-center justify-between text-xs font-mono">
+                <div className="flex flex-col text-left">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase">Actual</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    {currentModalProduct ? `${currentModalProduct.stock} ${currentModalProduct.unit}` : '0'}
+                  </span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-blue-500 shrink-0 mx-2" />
+                <div className="flex flex-col text-right">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase">Resultante</span>
+                  <span className={`font-bold ${projectedStock < 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
+                    {projectedStock} {currentModalProduct?.unit || ''}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
