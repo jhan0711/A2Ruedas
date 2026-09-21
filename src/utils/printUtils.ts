@@ -1,4 +1,13 @@
-import { WorkOrder, Signature, Invoice } from '../types/database';
+import {
+  WorkOrder,
+  Signature,
+  Invoice,
+  Bicycle,
+  CashRegister,
+  CashRegisterSummary,
+  PrinterSettings,
+} from '../types/database';
+import { printerService, DEFAULT_PRINTER_SETTINGS } from '../services/printerService';
 
 /**
  * Genera el documento HTML completo y estilizado para Factura / Orden de Trabajo (Carta / A4)
@@ -758,7 +767,10 @@ export function printWorkOrderDocument(
 /**
  * Genera el documento HTML completo y estilizado para Tirilla Térmica POS (58 mm) de Factura
  */
-export function generateInvoiceThermalTicketHtml(invoice: Invoice): string {
+export function generateInvoiceThermalTicketHtml(invoice: Invoice, settings?: PrinterSettings): string {
+  const cfg = settings || DEFAULT_PRINTER_SETTINGS;
+  const widthMm = printerService.getPrintableWidthMm(cfg.paper_width);
+  const fontSizePx = printerService.getFontSizePx(cfg.font_density);
   const customerName = invoice.customer?.full_name || 'Consumidor Final (Venta Rápida)';
   const customerDoc = invoice.customer?.document_id || '';
   const items = invoice.items || [];
@@ -816,10 +828,10 @@ export function generateInvoiceThermalTicketHtml(invoice: Invoice): string {
         body {
           padding: 3mm 2mm;
           width: 100%;
-          max-width: 52mm;
+          max-width: ${widthMm}mm;
           margin: 0 auto;
           font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
-          font-size: 11px;
+          font-size: ${fontSizePx}px;
           line-height: 1.25;
           color: #000000;
         }
@@ -854,11 +866,11 @@ export function generateInvoiceThermalTicketHtml(invoice: Invoice): string {
     </head>
     <body>
       <div class="text-center">
-        <div style="font-size: 13px; font-weight: 900; letter-spacing: 0.5px;">A2RUEDAS TALLER</div>
-        <div style="font-size: 9.5px;">TALLER ESPECIALIZADO DE BICIS</div>
-        <div style="font-size: 8.5px;">NIT: 901.452.879-1</div>
-        <div style="font-size: 8.5px;">PBX: (+57) 310 456 7890</div>
-        <div style="font-size: 8.5px;">Calle 123 # 45-67, Bogotá</div>
+        <div style="font-size: 13px; font-weight: 900; letter-spacing: 0.5px;">${cfg.workshop_name}</div>
+        <div style="font-size: 9.5px;">${cfg.header_slogan}</div>
+        <div style="font-size: 8.5px;">NIT: ${cfg.workshop_nit}</div>
+        <div style="font-size: 8.5px;">PBX: ${cfg.workshop_phone}</div>
+        <div style="font-size: 8.5px;">${cfg.workshop_address}</div>
       </div>
 
       <div class="divider"></div>
@@ -1258,18 +1270,13 @@ export function generateInvoiceCommercialHtml(invoice: Invoice): string {
 }
 
 /**
- * Imprime una factura comercial o tirilla térmica de forma universal y segura mediante iframe invisible
+ * Motor universal de impresión invisible mediante iframe para evitar ventanas en blanco o bloqueos
  */
-export function printInvoiceDocument(invoice: Invoice, format: '58mm' | 'letter'): void {
-  const htmlContent =
-    format === '58mm'
-      ? generateInvoiceThermalTicketHtml(invoice)
-      : generateInvoiceCommercialHtml(invoice);
-
-  let iframe = document.getElementById('a2ruedas-invoice-print-frame') as HTMLIFrameElement;
+export function printDirectHtml(htmlContent: string): void {
+  let iframe = document.getElementById('a2ruedas-universal-print-frame') as HTMLIFrameElement;
   if (!iframe) {
     iframe = document.createElement('iframe');
-    iframe.id = 'a2ruedas-invoice-print-frame';
+    iframe.id = 'a2ruedas-universal-print-frame';
     iframe.style.position = 'fixed';
     iframe.style.top = '-9999px';
     iframe.style.left = '-9999px';
@@ -1294,9 +1301,737 @@ export function printInvoiceDocument(invoice: Invoice, format: '58mm' | 'letter'
       iframe.contentWindow?.focus();
       iframe.contentWindow?.print();
     } catch (e) {
-      console.warn('Fallback a window.print() para factura:', e);
+      console.warn('Fallback de impresión directa:', e);
       window.print();
     }
   }, 250);
 }
+
+/**
+ * Imprime una factura comercial o tirilla térmica de forma universal y segura
+ */
+export function printInvoiceDocument(
+  invoice: Invoice,
+  format: '58mm' | 'letter',
+  settings?: PrinterSettings
+): void {
+  const htmlContent =
+    format === '58mm'
+      ? generateInvoiceThermalTicketHtml(invoice, settings)
+      : generateInvoiceCommercialHtml(invoice);
+
+  printDirectHtml(htmlContent);
+}
+
+/**
+ * 1. Genera Marbete / Etiqueta Adhesiva de Bicicleta para Rollo Térmico Continuo (con Código QR)
+ */
+export function generateBikeTagThermalHtml(
+  bike: Bicycle,
+  workOrder?: WorkOrder | null,
+  qrDataUrl?: string,
+  settings?: PrinterSettings
+): string {
+  const cfg = settings || DEFAULT_PRINTER_SETTINGS;
+  const widthMm = printerService.getPrintableWidthMm(cfg.paper_width);
+  const fontSizePx = printerService.getFontSizePx(cfg.font_density);
+  const qrCodeStr = bike.qr_code || 'BIKE-000000';
+  const ownerName = bike.customer?.full_name || workOrder?.customer?.full_name || 'Consumidor Final';
+  const ownerPhone = bike.customer?.phone || workOrder?.customer?.phone || 'No registrado';
+  const dateStr = new Date().toLocaleDateString('es-CO');
+
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>Marbete ${qrCodeStr}</title>
+      <style>
+        @page { size: auto; margin: 0; }
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        html, body { margin: 0; padding: 0; background: #ffffff; }
+        body {
+          padding: 3mm 2mm;
+          width: 100%;
+          max-width: ${widthMm}mm;
+          margin: 0 auto;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
+          font-size: ${fontSizePx}px;
+          line-height: 1.25;
+          color: #000000;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .bold { font-weight: 900; }
+        .divider { border-top: 1px dashed #000000; margin: 4px 0; }
+        .double-divider { border-top: 2px solid #000000; margin: 4px 0; }
+        .flex-between { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; width: 100%; }
+        .cut-line { text-align: center; font-size: 8px; letter-spacing: 2px; margin-top: 10px; padding-top: 5px; border-top: 1px dashed #000; }
+      </style>
+    </head>
+    <body>
+      <div class="text-center">
+        <div style="font-size: 13px; font-weight: 900; letter-spacing: 0.5px;">${cfg.workshop_name}</div>
+        <div style="font-size: 8px; letter-spacing: 1px; margin-top: 1px;">ETIQUETA IDENTIFICADORA DE BICICLETA</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- QR Code Principal de Alto Contraste -->
+      ${
+        qrDataUrl
+          ? `
+        <div class="text-center" style="margin: 4px 0;">
+          <img src="${qrDataUrl}" alt="QR Bicicleta" style="width: 38mm; height: 38mm; display: block; margin: 0 auto;" />
+        </div>
+      `
+          : `
+        <div class="text-center" style="border: 2px solid #000; padding: 12px; margin: 6px 0;">
+          <div class="bold" style="font-size: 14px;">[ QR CODE ]</div>
+          <div style="font-size: 9px;">${qrCodeStr}</div>
+        </div>
+      `
+      }
+
+      <div class="text-center bold" style="font-size: 14px; letter-spacing: 1px; margin-top: 2px;">
+        ${qrCodeStr}
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Datos de la Bicicleta -->
+      <div style="font-size: 9.5px;">
+        <div class="flex-between">
+          <span>BICICLETA:</span>
+          <span class="bold">${bike.brand} ${bike.model}</span>
+        </div>
+        <div class="flex-between">
+          <span>TIPO/COLOR:</span>
+          <span>${bike.bike_type || 'MTB'} - ${bike.color || 'Estándar'}</span>
+        </div>
+        ${
+          bike.serial_number
+            ? `
+        <div class="flex-between">
+          <span>SERIAL:</span>
+          <span class="bold">${bike.serial_number}</span>
+        </div>
+        `
+            : ''
+        }
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Datos del Propietario -->
+      <div style="font-size: 9.5px;">
+        <div class="flex-between">
+          <span>DUEÑO:</span>
+          <span class="bold truncate" style="max-width: 32mm;">${ownerName}</span>
+        </div>
+        <div class="flex-between">
+          <span>TELÉFONO:</span>
+          <span>${ownerPhone}</span>
+        </div>
+        ${
+          workOrder
+            ? `
+        <div class="flex-between bold" style="margin-top: 3px;">
+          <span>ORDEN ACTIVA:</span>
+          <span>${workOrder.order_number}</span>
+        </div>
+        `
+            : ''
+        }
+      </div>
+
+      ${
+        workOrder?.reported_issues
+          ? `
+      <div class="divider"></div>
+      <div style="font-size: 8.5px;">
+        <span class="bold">FALLA REPORTADA:</span>
+        <div style="font-style: italic;">"${workOrder.reported_issues}"</div>
+      </div>
+      `
+          : ''
+      }
+
+      <div class="divider"></div>
+      <div class="text-center" style="font-size: 8px; color: #444;">
+        <span>Escanea el QR para consultar el historial</span><br>
+        <span>Fecha de Etiqueta: ${dateStr}</span>
+      </div>
+
+      <div class="cut-line">- - - ADHESIVO PARA MARCO - - -</div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * 2. Genera Comprobante de Recepción y Custodia de Taller para Tirilla 58 mm
+ */
+export function generateReceptionTicketHtml(
+  workOrder: WorkOrder,
+  signature?: Signature | null,
+  settings?: PrinterSettings
+): string {
+  const cfg = settings || DEFAULT_PRINTER_SETTINGS;
+  const widthMm = printerService.getPrintableWidthMm(cfg.paper_width);
+  const fontSizePx = printerService.getFontSizePx(cfg.font_density);
+  const dateFormatted = new Date(workOrder.created_at).toLocaleString('es-CO', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
+  const deliveryEst = workOrder.estimated_delivery_at
+    ? new Date(workOrder.estimated_delivery_at).toLocaleString('es-CO', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+      })
+    : 'A convenir con el cliente';
+
+  const customer = workOrder.customer;
+  const bike = workOrder.bicycle;
+
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>Recepción ${workOrder.order_number}</title>
+      <style>
+        @page { size: auto; margin: 0; }
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        html, body { margin: 0; padding: 0; background: #ffffff; }
+        body {
+          padding: 3mm 2mm;
+          width: 100%;
+          max-width: ${widthMm}mm;
+          margin: 0 auto;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
+          font-size: ${fontSizePx}px;
+          line-height: 1.25;
+          color: #000000;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .bold { font-weight: 900; }
+        .divider { border-top: 1px dashed #000000; margin: 5px 0; }
+        .double-divider { border-top: 2px solid #000000; margin: 5px 0; }
+        .flex-between { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; width: 100%; }
+        .cut-line { text-align: center; font-size: 8px; letter-spacing: 2px; margin-top: 12px; padding-top: 6px; border-top: 1px dashed #000; }
+      </style>
+    </head>
+    <body>
+      <div class="text-center">
+        <div style="font-size: 13px; font-weight: 900; letter-spacing: 0.5px;">${cfg.workshop_name}</div>
+        <div style="font-size: 9px;">${cfg.header_slogan}</div>
+        <div style="font-size: 8px;">NIT: ${cfg.workshop_nit} • Tel: ${cfg.workshop_phone}</div>
+        <div style="font-size: 8px;">${cfg.workshop_address}</div>
+      </div>
+
+      <div class="double-divider"></div>
+
+      <div class="text-center bold" style="font-size: 11px;">COMPROBANTE DE RECEPCIÓN</div>
+      <div class="text-center bold" style="font-size: 14px;">${workOrder.order_number}</div>
+
+      <div class="divider"></div>
+
+      <div style="font-size: 9.5px;">
+        <div class="flex-between">
+          <span>FECHA INGRESO:</span>
+          <span>${dateFormatted}</span>
+        </div>
+        <div class="flex-between">
+          <span>ENTREGA ESTIMADA:</span>
+          <span class="bold">${deliveryEst}</span>
+        </div>
+        <div class="flex-between">
+          <span>ESTADO:</span>
+          <span class="bold">${workOrder.status}</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="font-size: 9.5px;">
+        <div class="bold">DATOS DEL CLIENTE:</div>
+        <div>${customer?.full_name || 'Consumidor Final'}</div>
+        <div>Tel: ${customer?.phone || 'No registra'}</div>
+        ${customer?.document_id ? `<div>Doc: ${customer.document_id}</div>` : ''}
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="font-size: 9.5px;">
+        <div class="bold">DATOS DE LA BICICLETA:</div>
+        <div>${bike ? `${bike.brand} ${bike.model}` : 'Bicicleta General'}</div>
+        <div>${bike ? `${bike.bike_type} - ${bike.color}` : ''}</div>
+        ${bike?.serial_number ? `<div>Serial: ${bike.serial_number}</div>` : ''}
+        ${workOrder.entry_mileage_km ? `<div>Kilometraje: ${workOrder.entry_mileage_km} km</div>` : ''}
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="font-size: 9px;">
+        <div class="bold">FALLA REPORTADA POR EL CLIENTE:</div>
+        <div style="font-style: italic; margin-top: 1px;">"${workOrder.reported_issues}"</div>
+      </div>
+
+      ${
+        workOrder.accessories_received
+          ? `
+      <div class="divider"></div>
+      <div style="font-size: 9px;">
+        <div class="bold">ACCESORIOS RECIBIDOS EN CUSTODIA:</div>
+        <div style="margin-top: 1px;">✓ ${workOrder.accessories_received}</div>
+      </div>
+      `
+          : ''
+      }
+
+      ${
+        workOrder.internal_notes
+          ? `
+      <div class="divider"></div>
+      <div style="font-size: 9px;">
+        <div class="bold">INSPECCIÓN Y DAÑOS PREVIOS:</div>
+        <div style="margin-top: 1px;">${workOrder.internal_notes}</div>
+      </div>
+      `
+          : ''
+      }
+
+      <div class="divider"></div>
+
+      <!-- Condiciones de Custodia -->
+      <div style="font-size: 8px; line-height: 1.2; color: #333;">
+        <div class="bold">CONDICIONES DE INGRESO Y CUSTODIA:</div>
+        <div>1. El taller responde únicamente por los accesorios declarados en esta tirilla.</div>
+        <div>2. Plazo máximo de retiro: 30 días calendario tras la notificación de bicicleta lista.</div>
+      </div>
+
+      <!-- Firma del Cliente -->
+      <div class="text-center" style="margin-top: 10px;">
+        ${
+          signature?.signature_data
+            ? `
+          <div style="font-size: 8px; font-weight: bold; margin-bottom: 2px;">FIRMA DIGITAL REGISTRADA:</div>
+          <img src="${signature.signature_data}" style="max-height: 38px; max-width: 140px; margin: 0 auto; display: block;" />
+        `
+            : `
+          <div style="border-top: 1px solid #000; width: 110px; margin: 24px auto 2px auto;"></div>
+        `
+        }
+        <div style="font-size: 8px; font-weight: bold; border-top: 1px solid #000; padding-top: 2px; margin-top: 2px;">
+          ${signature?.signer_name || customer?.full_name || 'Firma Conforme del Cliente'}
+        </div>
+        ${signature?.signer_doc ? `<div style="font-size: 7.5px;">Doc: ${signature.signer_doc}</div>` : ''}
+      </div>
+
+      <div class="cut-line">- - - COMPROBANTE DE CUSTODIA - - -</div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * 3. Genera Tirilla de Liquidación y Entrega de Orden de Trabajo (OT)
+ */
+export function generateWorkOrderTicketHtml(
+  workOrder: WorkOrder,
+  signature?: Signature | null,
+  settings?: PrinterSettings
+): string {
+  const cfg = settings || DEFAULT_PRINTER_SETTINGS;
+  const widthMm = printerService.getPrintableWidthMm(cfg.paper_width);
+  const fontSizePx = printerService.getFontSizePx(cfg.font_density);
+  const items = workOrder.items || [];
+  const dateFormatted = new Date(workOrder.created_at).toLocaleString('es-CO', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
+  const customer = workOrder.customer;
+  const bike = workOrder.bicycle;
+
+  const itemsList =
+    items.length === 0
+      ? `<div style="text-align: center; color: #666; font-style: italic;">Sin repuestos ni servicios registrados</div>`
+      : items
+          .map(
+            (it) => `
+        <div style="margin-bottom: 3px;">
+          <div style="font-weight: bold; font-size: 10px; word-break: break-word;">${it.description}</div>
+          <div style="display: flex; justify-content: space-between; font-size: 9px; color: #333;">
+            <span>${it.quantity > 1 ? `${it.quantity} x $${it.unit_price.toLocaleString('es-CO')}` : '1 servicio/repuesto'}</span>
+            <span style="font-weight: bold;">$${it.total_price.toLocaleString('es-CO')}</span>
+          </div>
+        </div>
+      `
+          )
+          .join('');
+
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>Orden ${workOrder.order_number}</title>
+      <style>
+        @page { size: auto; margin: 0; }
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        html, body { margin: 0; padding: 0; background: #ffffff; }
+        body {
+          padding: 3mm 2mm;
+          width: 100%;
+          max-width: ${widthMm}mm;
+          margin: 0 auto;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
+          font-size: ${fontSizePx}px;
+          line-height: 1.25;
+          color: #000000;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .bold { font-weight: 900; }
+        .divider { border-top: 1px dashed #000000; margin: 5px 0; }
+        .double-divider { border-top: 2px solid #000000; margin: 5px 0; }
+        .flex-between { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; width: 100%; }
+        .cut-line { text-align: center; font-size: 8px; letter-spacing: 2px; margin-top: 12px; padding-top: 6px; border-top: 1px dashed #000; }
+      </style>
+    </head>
+    <body>
+      <div class="text-center">
+        <div style="font-size: 13px; font-weight: 900; letter-spacing: 0.5px;">${cfg.workshop_name}</div>
+        <div style="font-size: 9px;">${cfg.header_slogan}</div>
+        <div style="font-size: 8px;">NIT: ${cfg.workshop_nit} • Tel: ${cfg.workshop_phone}</div>
+        <div style="font-size: 8px;">${cfg.workshop_address}</div>
+      </div>
+
+      <div class="double-divider"></div>
+
+      <div class="text-center bold" style="font-size: 11px;">LIQUIDACIÓN DE ORDEN</div>
+      <div class="text-center bold" style="font-size: 14px;">${workOrder.order_number}</div>
+
+      <div class="divider"></div>
+
+      <div style="font-size: 9.5px;">
+        <div class="flex-between">
+          <span>FECHA:</span>
+          <span>${dateFormatted}</span>
+        </div>
+        <div class="flex-between">
+          <span>CLIENTE:</span>
+          <span class="bold truncate" style="max-width: 32mm;">${customer?.full_name || 'Consumidor Final'}</span>
+        </div>
+        ${customer?.phone ? `<div class="flex-between"><span>TELÉFONO:</span><span>${customer.phone}</span></div>` : ''}
+        <div class="flex-between">
+          <span>BICICLETA:</span>
+          <span>${bike ? `${bike.brand} ${bike.model}` : 'Bicicleta Taller'}</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="text-center bold" style="font-size: 9.5px; margin-bottom: 4px;">-- INTERVENCIONES Y REPUESTOS --</div>
+      ${itemsList}
+
+      <div class="double-divider"></div>
+
+      <div style="font-size: 10px;">
+        <div class="flex-between">
+          <span>MANO DE OBRA:</span>
+          <span>$${workOrder.total_labor.toLocaleString('es-CO')}</span>
+        </div>
+        <div class="flex-between">
+          <span>REPUESTOS:</span>
+          <span>$${workOrder.total_parts.toLocaleString('es-CO')}</span>
+        </div>
+        ${
+          workOrder.discount > 0
+            ? `
+        <div class="flex-between bold" style="color: #b91c1c;">
+          <span>DESCUENTO:</span>
+          <span>-$${workOrder.discount.toLocaleString('es-CO')}</span>
+        </div>`
+            : ''
+        }
+        <div class="double-divider"></div>
+        <div class="flex-between bold" style="font-size: 12px;">
+          <span>TOTAL A PAGAR:</span>
+          <span>$${workOrder.grand_total.toLocaleString('es-CO')} COP</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="font-size: 8px; line-height: 1.2; color: #333;">
+        <div>${cfg.warranty_text}</div>
+        <div style="margin-top: 2px;">Consulta timeline público con la Orden: ${workOrder.order_number}</div>
+      </div>
+
+      <!-- Firma de Entrega Conforme -->
+      <div class="text-center" style="margin-top: 10px;">
+        ${
+          signature?.signature_data
+            ? `
+          <div style="font-size: 8px; font-weight: bold; margin-bottom: 2px;">FIRMA DE ENTREGA CONFORME:</div>
+          <img src="${signature.signature_data}" style="max-height: 38px; max-width: 140px; margin: 0 auto; display: block;" />
+        `
+            : `
+          <div style="border-top: 1px solid #000; width: 110px; margin: 24px auto 2px auto;"></div>
+        `
+        }
+        <div style="font-size: 8px; font-weight: bold; border-top: 1px solid #000; padding-top: 2px; margin-top: 2px;">
+          ${signature?.signer_name || customer?.full_name || 'Firma Conforme del Cliente'}
+        </div>
+      </div>
+
+      <div class="cut-line">- - - COMPROBANTE DE ENTREGA - - -</div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * 4. Genera Comprobante Térmico de Cierre Diario de Caja (Arqueo) para Tirilla 58 mm
+ */
+export function generateCashRegisterTicketHtml(
+  register: CashRegister,
+  summary: CashRegisterSummary,
+  settings?: PrinterSettings
+): string {
+  const cfg = settings || DEFAULT_PRINTER_SETTINGS;
+  const widthMm = printerService.getPrintableWidthMm(cfg.paper_width);
+  const fontSizePx = printerService.getFontSizePx(cfg.font_density);
+  const openedDate = new Date(register.opened_at).toLocaleString('es-CO', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
+  const closedDate = register.closed_at
+    ? new Date(register.closed_at).toLocaleString('es-CO', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+      })
+    : 'EN CURSO (ABIERTA)';
+
+  const diff = register.difference || 0;
+  const diffLabel =
+    diff === 0
+      ? 'CAJA CUADRADA ($0)'
+      : diff > 0
+      ? `SOBRANTE (+ $${diff.toLocaleString('es-CO')})`
+      : `FALTANTE (- $${Math.abs(diff).toLocaleString('es-CO')})`;
+
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>Cierre Caja ${register.id.slice(0, 10)}</title>
+      <style>
+        @page { size: auto; margin: 0; }
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        html, body { margin: 0; padding: 0; background: #ffffff; }
+        body {
+          padding: 3mm 2mm;
+          width: 100%;
+          max-width: ${widthMm}mm;
+          margin: 0 auto;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
+          font-size: ${fontSizePx}px;
+          line-height: 1.25;
+          color: #000000;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .bold { font-weight: 900; }
+        .divider { border-top: 1px dashed #000000; margin: 5px 0; }
+        .double-divider { border-top: 2px solid #000000; margin: 5px 0; }
+        .flex-between { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; width: 100%; }
+        .cut-line { text-align: center; font-size: 8px; letter-spacing: 2px; margin-top: 12px; padding-top: 6px; border-top: 1px dashed #000; }
+      </style>
+    </head>
+    <body>
+      <div class="text-center">
+        <div style="font-size: 13px; font-weight: 900; letter-spacing: 0.5px;">${cfg.workshop_name}</div>
+        <div style="font-size: 9px;">CONTROL FINANCIERO Y ARQUEO DIARIO</div>
+        <div style="font-size: 8px;">NIT: ${cfg.workshop_nit} • Tel: ${cfg.workshop_phone}</div>
+      </div>
+
+      <div class="double-divider"></div>
+
+      <div class="text-center bold" style="font-size: 11px;">
+        ${register.status === 'OPEN' ? 'ARQUEO PARCIAL EN VIVO' : 'CIERRE DIARIO DE CAJA'}
+      </div>
+      <div class="text-center bold" style="font-size: 12px;">SESIÓN: ${register.id.slice(0, 10).toUpperCase()}</div>
+
+      <div class="divider"></div>
+
+      <div style="font-size: 9px;">
+        <div class="flex-between"><span>ESTADO:</span><span class="bold">${register.status}</span></div>
+        <div class="flex-between"><span>APERTURA:</span><span>${openedDate}</span></div>
+        <div class="flex-between"><span>ABIERTO POR:</span><span class="bold">${register.opened_by}</span></div>
+        <div class="flex-between"><span>CIERRE:</span><span>${closedDate}</span></div>
+        ${register.closed_by ? `<div class="flex-between"><span>CERRADO POR:</span><span class="bold">${register.closed_by}</span></div>` : ''}
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Efectivo en Gaveta -->
+      <div style="font-size: 9.5px;">
+        <div class="bold text-center mb-1">-- FLUJO DE EFECTIVO FÍSICO --</div>
+        <div class="flex-between"><span>Base Inicial:</span><span>$${register.initial_amount.toLocaleString('es-CO')}</span></div>
+        <div class="flex-between"><span>(+) Entradas Efectivo:</span><span>$${summary.totalCashIncome.toLocaleString('es-CO')}</span></div>
+        <div class="flex-between"><span>(-) Salidas / Gastos:</span><span>-$${summary.totalCashExpense.toLocaleString('es-CO')}</span></div>
+        <div class="double-divider"></div>
+        <div class="flex-between bold" style="font-size: 10.5px;">
+          <span>EFECTIVO ESPERADO:</span>
+          <span>$${summary.expectedCashInDrawer.toLocaleString('es-CO')}</span>
+        </div>
+        ${
+          register.final_counted_amount !== null && register.final_counted_amount !== undefined
+            ? `
+        <div class="flex-between bold" style="font-size: 10.5px; margin-top: 2px;">
+          <span>EFECTIVO FÍSICO CONTADO:</span>
+          <span>$${register.final_counted_amount.toLocaleString('es-CO')}</span>
+        </div>
+        <div class="flex-between bold" style="font-size: 11px; margin-top: 2px; padding: 2px; border: 1px dashed #000; text-align: center;">
+          <span>RESULTADO ARQUEO:</span>
+          <span>${diffLabel}</span>
+        </div>
+        `
+            : ''
+        }
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Pagos Digitales y Tarjetas -->
+      <div style="font-size: 9.5px;">
+        <div class="bold text-center mb-1">-- PAGOS DIGITALES Y BANCOS --</div>
+        <div class="flex-between"><span>Transferencias Nequi/Bancos:</span><span>$${summary.totalTransferIncome.toLocaleString('es-CO')}</span></div>
+        <div class="flex-between"><span>Datáfono / Tarjetas:</span><span>$${summary.totalCardIncome.toLocaleString('es-CO')}</span></div>
+        <div class="flex-between"><span>Otros Medios:</span><span>$${summary.totalOtherIncome.toLocaleString('es-CO')}</span></div>
+        <div class="double-divider"></div>
+        <div class="flex-between bold" style="font-size: 11px;">
+          <span>BALANCE NETO TOTAL:</span>
+          <span>$${summary.netBalance.toLocaleString('es-CO')}</span>
+        </div>
+      </div>
+
+      <!-- Firma del Cajero -->
+      <div class="text-center" style="margin-top: 14px;">
+        <div style="border-top: 1px solid #000; width: 110px; margin: 20px auto 2px auto;"></div>
+        <div style="font-size: 8px; font-weight: bold;">Firma del Cajero / Responsable</div>
+        <div style="font-size: 7.5px;">${register.closed_by || register.opened_by}</div>
+      </div>
+
+      <div class="cut-line">- - - CIERRE DE CAJA ARCHIVABLE - - -</div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * 5. Genera Tirilla de Calibración y Diagnóstico de Hardware (Prueba 58 mm)
+ */
+export function generateTestTicketHtml(settings?: PrinterSettings): string {
+  const cfg = settings || DEFAULT_PRINTER_SETTINGS;
+  const widthMm = printerService.getPrintableWidthMm(cfg.paper_width);
+  const fontSizePx = printerService.getFontSizePx(cfg.font_density);
+  const now = new Date().toLocaleString('es-CO');
+
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>Calibración Térmica</title>
+      <style>
+        @page { size: auto; margin: 0; }
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        html, body { margin: 0; padding: 0; background: #ffffff; }
+        body {
+          padding: 3mm 2mm;
+          width: 100%;
+          max-width: ${widthMm}mm;
+          margin: 0 auto;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
+          font-size: ${fontSizePx}px;
+          line-height: 1.25;
+          color: #000000;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .bold { font-weight: 900; }
+        .divider { border-top: 1px dashed #000000; margin: 5px 0; }
+        .double-divider { border-top: 2px solid #000000; margin: 5px 0; }
+        .flex-between { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; width: 100%; }
+        .cut-line { text-align: center; font-size: 8px; letter-spacing: 2px; margin-top: 12px; padding-top: 6px; border-top: 1px dashed #000; }
+      </style>
+    </head>
+    <body>
+      <div class="text-center">
+        <div style="font-size: 14px; font-weight: 900; letter-spacing: 1px;">A2RUEDAS TALLER</div>
+        <div style="font-size: 9.5px; font-weight: bold; margin-top: 2px;">TEST DE IMPRESIÓN Y CALIBRACIÓN</div>
+        <div style="font-size: 8.5px; color: #444;">${now}</div>
+      </div>
+
+      <div class="double-divider"></div>
+
+      <!-- Regla de Alineación Milimétrica -->
+      <div style="font-size: 8px; font-family: monospace; text-align: center;">
+        <div>-- REGLA DE ALINEACIÓN --</div>
+        <div style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 2px 0;">
+          |0mm.......25mm.......${widthMm}mm|
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Verificación de Densidad Tipográfica -->
+      <div style="font-size: 8.5px;">
+        <div class="bold mb-1">PRUEBA DE DENSIDAD TIPOGRÁFICA:</div>
+        <div style="font-size: 9.5px;">1. Compacta (9.5px): A2Ruedas Bicicletas 12345</div>
+        <div style="font-size: 11px;">2. Normal (11px): A2Ruedas Bicicletas 12345</div>
+        <div style="font-size: 12.5px; font-weight: bold;">3. Destacada: A2Ruedas Bicicletas 12345</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Parámetros del Taller Configurados -->
+      <div style="font-size: 8.5px;">
+        <div class="bold mb-1">PARÁMETROS ACTIVOS:</div>
+        <div class="flex-between"><span>Ancho de Rollo:</span><span class="bold">${cfg.paper_width} (${widthMm} mm útiles)</span></div>
+        <div class="flex-between"><span>Densidad:</span><span class="bold">${cfg.font_density}</span></div>
+        <div class="flex-between"><span>Líneas de Avance:</span><span class="bold">${cfg.feed_lines} líneas</span></div>
+        <div class="flex-between"><span>Código QR:</span><span class="bold">${cfg.show_qr_code ? 'Habilitado' : 'Deshabilitado'}</span></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Bloque de Densidad Térmica 100% Negro -->
+      <div class="text-center" style="margin: 4px 0;">
+        <div style="background: #000; color: #fff; padding: 3px 0; font-weight: bold; font-size: 9px; letter-spacing: 2px;">
+          ■■■ DENSIDAD TÉRMICA 100% ■■■
+        </div>
+      </div>
+
+      <div class="double-divider"></div>
+
+      <div class="text-center bold" style="font-size: 9.5px; margin-top: 4px;">
+        ✓ CABEZAL TÉRMICO Y CORTE OPERATIVO
+      </div>
+      <div class="text-center" style="font-size: 8px; margin-top: 2px;">
+        A2Ruedas PWA • Sistema de Gestión de Taller
+      </div>
+
+      <div class="cut-line">- - - CORTAR AQUÍ (LÍNEA DE TEST) - - -</div>
+    </body>
+    </html>
+  `;
+}
+
 

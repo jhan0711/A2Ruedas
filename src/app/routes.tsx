@@ -19,6 +19,7 @@ import { QRCodesPage } from '../pages/admin/QRCodesPage';
 import { WhatsAppPage } from '../pages/admin/WhatsAppPage';
 import { CashPage } from '../pages/admin/CashPage';
 import { InvoicesPage } from '../pages/admin/InvoicesPage';
+import { ThermalPrintPage } from '../pages/admin/ThermalPrintPage';
 import { ModulePlaceholder } from '../pages/admin/ModulePlaceholder';
 
 export const router = createBrowserRouter([
@@ -95,13 +96,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'impresion',
-            element: (
-              <ModulePlaceholder
-                title="Centro de Impresión Térmica 58 mm"
-                phase="Fase 17"
-                description="Plantillas térmicas de alta densidad para órdenes de trabajo y recibos."
-              />
-            ),
+            element: <ThermalPrintPage />,
           },
           {
             path: 'configuracion',

@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 16 — Facturación y Recibos Internos (Emisión de comprobantes internos, numeración correlativa FAC-000001, detalle de repuestos/mano de obra, medios de pago e impresión)
+Fase actual: FASE 17 — Impresión Térmica de 58 mm (Centro de Impresión Térmica, plantillas continuas, marbetes de bicicleta con QR, comprobantes de recepción/custodia, liquidación de órdenes, facturas, arqueos de caja y calibración de hardware)
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -22,9 +22,9 @@ Estado: COMPLETADA
 - [x] FASE 14 — Módulo de Comunicación por WhatsApp (Deep links dinámicos, plantillas automáticas y bitácora)
 - [x] FASE 15 — Módulo de Flujo de Caja (Apertura, ingresos, egresos, anticipos, medios de pago y arqueo de cierre)
 - [x] FASE 16 — Facturación y Recibos Internos (Emisión de comprobantes, numeración FAC-000001, sincronización de caja y tirilla 58mm)
+- [x] FASE 17 — Impresión Térmica de 58 mm (Centro de Impresión Térmica, plantillas continuas, marbetes de bicicleta con QR, comprobantes de recepción/custodia, liquidación de órdenes, facturas, arqueos de caja y calibración de hardware)
 
 ## Fases pendientes:
-- [ ] FASE 17 — Impresión Térmica de 58 mm (Órdenes y Facturas)
 - [ ] FASE 18 — Catálogo Público de Productos (/productos, sin login)
 - [ ] FASE 19 — Configuración PWA (Manifest, Service Worker, Instalación, Offline)
 - [ ] FASE 20 — Auditoría de Seguridad (RLS, Sanitización, Protección de Rutas)
@@ -209,15 +209,31 @@ Estado: COMPLETADA
   * Compartir comprobante por WhatsApp con formato nacional Colombia: PASS.
   * Métricas y KPIs consolidados de facturación: PASS.
 - Regresión completa de las 16 fases del proyecto (13 suites de prueba): PASS (100%).
+- Centro de Impresión Térmica de 58 mm (13 pruebas automatizadas): PASS (100%).
+  * Valores predeterminados de taller y hardware térmico (58mm, 3 líneas de avance): PASS.
+  * Cálculo exacto de margen y ancho útil milimétrico (52 mm para rollo de 58 mm): PASS.
+  * Escala tipográfica adaptativa para legibilidad térmica (9.5px, 11px, 12.5px): PASS.
+  * Generación de marbete adhesivo de bicicleta para marco con código QR: PASS.
+  * Generación de comprobante de recepción técnica e inventario de accesorios: PASS.
+  * Generación de tirilla de liquidación y entrega de orden con desglose y garantía: PASS.
+  * Generación de tirilla térmica POS de factura con datos del cliente y medio de pago: PASS.
+  * Soporte automático de Venta Rápida (Consumidor Final) en factura térmica: PASS.
+  * Generación de tirilla de arqueo y cierre diario de caja con desglose: PASS.
+  * Detección visual y registro de descuadre (Faltante / Sobrante) en tirilla: PASS.
+  * Generación de tirilla de prueba con regla milimétrica y barra de densidad: PASS.
+  * Estándar CSS @page { size: auto; margin: 0; } uniforme en todas las plantillas: PASS.
+  * Ciclo de persistencia, personalización y restauración de fábrica en LocalStorage: PASS.
+- Regresión total de las 17 fases del proyecto (14 suites de prueba): PASS (100%).
 
 ## Pruebas pendientes:
-- Pruebas de integración y maquetación especializada para Impresión Térmica de 58 mm (Fase 17).
+- Pruebas para el Catálogo Público de Productos (/productos, sin login) (Fase 18).
 
 ## Decisiones técnicas:
 - **Consecutivo Fiscal Inmutable (FAC-000001)**: Para asegurar orden contable y prevenir saltos de correlatividad, las facturas nunca se eliminan físicamente de la base de datos ni del almacenamiento. Las facturas equivocadas se marcan con estado `CANCELLED` y motivo obligatorio, preservando intacto el consecutivo numérico.
 - **Doble Formato de Factura (Tirilla 58mm POS + Factura Comercial Carta)**: Dado que el taller opera tanto con impresora térmica de mostrador de 58mm (para clientes que retiran físicamente) como con clientes corporativos que solicitan factura tamaño carta / PDF membretado, el visor modal incluye una pestaña conmutable para previsualizar e imprimir ambos formatos.
 - **Sincronización Transaccional con la Caja Activa**: Al crear y cobrar una factura en estado `PAID` (sea en efectivo, transferencia o tarjeta), el sistema automáticamente asienta el movimiento en la caja abierta de la jornada, evitando la doble digitación manual por parte del cajero.
-- **Facturación en 1 Clic desde Órdenes de Trabajo**: Se añadió un botón "Facturar Orden" directamente en el Dossier de la Orden de Trabajo que importa automáticamente los repuestos, servicios y mano de obra a la factura.
+- **Motor Universal de Impresión mediante Iframe Aislado (`printDirectHtml`)**: En lugar de abrir ventanas `about:blank` con `document.write` y cierres prematuros por `setTimeout`, se utiliza un iframe invisible persistente `#a2ruedas-universal-print-frame`. Esto erradica el colapso de renderizado y el encogimiento de 2mm en navegadores Chromium/Edge.
+- **Plantillas Térmicas de Monospace y Alta Densidad**: Se diseñaron 5 formatos oficiales de tirilla (Marbete QR para marco de bici, Recepción de taller con accesorios y daños previos, Liquidación de orden OT con desglose de repuestos y mano de obra, Factura POS de cobro rápido y Arqueo diario de caja con flujo de efectivo) más la Tirilla de Calibración de Hardware con regla milimétrica y bloque de 100% densidad térmica.
 
 ## Próximo paso:
-Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 17 — IMPRESIÓN TÉRMICA DE 58 MM (Órdenes de Trabajo, Comprobantes de Recepción, Facturas y Arqueos de Caja)**.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 18 — CATÁLOGO PÚBLICO DE PRODUCTOS (`/productos`, sin login)**.

@@ -35,6 +35,7 @@ export interface Bicycle {
   updated_at: string;
   customer?: Customer;
   photos?: BicyclePhoto[];
+  qr_code?: string | null;
 }
 
 export interface BicyclePhoto {
@@ -446,4 +447,20 @@ export interface WhatsAppTemplate {
   template: string;
   variables: string[];
 }
+
+// 15. Configuración de Impresión Térmica (Fase 17)
+export interface PrinterSettings {
+  paper_width: '58mm' | '80mm';
+  workshop_name: string;
+  workshop_nit: string;
+  workshop_phone: string;
+  workshop_address: string;
+  header_slogan: string;
+  footer_message: string;
+  warranty_text: string;
+  font_density: 'compact' | 'normal' | 'large';
+  show_qr_code: boolean;
+  feed_lines: number;
+}
+
 
