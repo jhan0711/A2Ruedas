@@ -21,6 +21,7 @@ import {
   Printer,
   DollarSign,
   Sparkles,
+  AlertTriangle,
 } from 'lucide-react';
 import { bicycleService } from '../../services/bicycleService';
 import { customerService } from '../../services/customerService';
@@ -820,7 +821,7 @@ export const BicyclesPage: React.FC = () => {
             <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 via-slate-50 to-amber-50/50 dark:from-blue-950/40 dark:via-slate-900 dark:to-amber-950/20 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-extrabold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                  <span className="font-extrabold text-lg text-slate-900 dark:text-white flex items-center gap-2 capitalize">
                     <Bike className="w-5 h-5 text-blue-600" />
                     {detailBike.brand} {detailBike.model}
                   </span>
@@ -1081,12 +1082,48 @@ export const BicyclesPage: React.FC = () => {
                                 <span className="font-semibold text-slate-700 dark:text-slate-300">Motivo / Problema: </span>
                                 <span className="text-slate-600 dark:text-slate-400">{order.reported_issues}</span>
                               </div>
-                              {order.internal_notes && (
-                                <div>
-                                  <span className="font-semibold text-slate-700 dark:text-slate-300">Nota Técnica: </span>
-                                  <span className="text-slate-600 dark:text-slate-400">{order.internal_notes}</span>
-                                </div>
-                              )}
+                              {(() => {
+                                const notes = order.internal_notes || '';
+                                if (!notes) return null;
+                                const damageMatch = notes.match(/\[INSPECCIÓN DE DAÑOS PREVIOS \(\d+\)\]: (.*?)(?=\s*\[|$)/);
+                                const damageList = damageMatch ? damageMatch[1].split(' | ').map((d) => d.trim()) : [];
+                                const depositMatch = notes.match(/\[ANTICIPO RECIBIDO\]: (.*?)(?=\s*\[|$)/);
+                                const depositStr = depositMatch ? depositMatch[1] : '';
+                                const cleanNote = notes
+                                  .replace(/\[INSPECCIÓN DE DAÑOS PREVIOS \(\d+\)\]:.*?(?=\s*\[|$)/, '')
+                                  .replace(/\[INSPECCIÓN\]:.*?(?=\s*\[|$)/, '')
+                                  .replace(/\[ANTICIPO RECIBIDO\]:.*?(?=\s*\[|$)/, '')
+                                  .trim();
+
+                                return (
+                                  <div className="space-y-1.5 pt-0.5">
+                                    {damageList.length > 0 && (
+                                      <div className="p-2 rounded bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 text-[11px] space-y-1">
+                                        <span className="font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 text-[10px] uppercase tracking-wider">
+                                          <AlertTriangle className="w-3 h-3 text-amber-600" />
+                                          Daños o Rayones Previos Registrados:
+                                        </span>
+                                        <ul className="list-disc pl-4 space-y-0.5 text-amber-800 dark:text-amber-200/90 font-medium">
+                                          {damageList.map((d, dIdx) => (
+                                            <li key={dIdx}>{d}</li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                    {cleanNote && (
+                                      <div>
+                                        <span className="font-semibold text-slate-700 dark:text-slate-300">Nota Técnica: </span>
+                                        <span className="text-slate-600 dark:text-slate-400">{cleanNote}</span>
+                                      </div>
+                                    )}
+                                    {depositStr && (
+                                      <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
+                                        💵 Anticipo registrado: {depositStr}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
 
                             {/* Servicios y Repuestos */}

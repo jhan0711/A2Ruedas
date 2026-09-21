@@ -92,7 +92,7 @@ export const BikePublicPage: React.FC = () => {
         className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>Volver a la tienda</span>
+        <span>Volver al inicio</span>
       </Link>
 
       {/* Ficha Principal de la Bicicleta */}
@@ -110,7 +110,7 @@ export const BikePublicPage: React.FC = () => {
               </span>
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight pt-1">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight pt-1 capitalize">
               {timelineData.brand} {timelineData.model}
             </h1>
 
@@ -266,7 +266,7 @@ export const BikePublicPage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Falla reportada y Notas del taller */}
+                  {/* Falla reportada y Notas del taller / Daños previos */}
                   {item.reported_issues && (
                     <p className="text-xs text-slate-600 dark:text-slate-400">
                       <strong className="text-slate-700 dark:text-slate-300">Motivo de ingreso:</strong>{' '}
@@ -274,11 +274,41 @@ export const BikePublicPage: React.FC = () => {
                     </p>
                   )}
 
-                  {item.technician_notes && (
-                    <p className="text-[11px] text-slate-500 italic bg-slate-50 dark:bg-slate-800/40 p-2 rounded border border-slate-100 dark:border-slate-800">
-                      "{item.technician_notes}"
-                    </p>
-                  )}
+                  {(() => {
+                    const notes = item.technician_notes || '';
+                    if (!notes) return null;
+
+                    const damageMatch = notes.match(/\[INSPECCIÓN DE DAÑOS PREVIOS \(\d+\)\]: (.*?)(?=\s*\[|$)/);
+                    const damageList = damageMatch ? damageMatch[1].split(' | ').map((d) => d.trim()) : [];
+                    const cleanNote = notes
+                      .replace(/\[INSPECCIÓN DE DAÑOS PREVIOS \(\d+\)\]:.*?(?=\s*\[|$)/, '')
+                      .replace(/\[INSPECCIÓN\]:.*?(?=\s*\[|$)/, '')
+                      .replace(/\[ANTICIPO RECIBIDO\]:.*?(?=\s*\[|$)/, '')
+                      .trim();
+
+                    return (
+                      <div className="space-y-1.5 pt-1">
+                        {damageList.length > 0 && (
+                          <div className="p-2.5 rounded-lg bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 text-[11px] space-y-1">
+                            <span className="font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 text-[10px] uppercase tracking-wider">
+                              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                              Constancia de Daños Previos al Ingreso:
+                            </span>
+                            <ul className="list-disc pl-4 space-y-0.5 text-amber-800 dark:text-amber-200/90 font-medium">
+                              {damageList.map((d, dIdx) => (
+                                <li key={dIdx}>{d}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {cleanNote && (
+                          <p className="text-[11px] text-slate-600 dark:text-slate-400 italic bg-slate-50 dark:bg-slate-800/40 p-2 rounded border border-slate-100 dark:border-slate-800">
+                            <strong className="text-slate-700 dark:text-slate-300 not-italic">Nota técnica:</strong> "{cleanNote}"
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Repuestos Cambiados */}
                   {item.parts_changed.length > 0 && (
