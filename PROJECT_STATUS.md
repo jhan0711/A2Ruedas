@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 24 — Optimización de Performance (Bundle, Renders, Caching)
+Fase actual: FASE 25 — Preparación para Despliegue en Producción
 Estado: COMPLETADA
 Última actualización: 2026-09-21
 
@@ -30,9 +30,9 @@ Estado: COMPLETADA
 - [x] FASE 22 — Prueba Completa de Negocio Extremo a Extremo
 - [x] FASE 23 — Pulido de UX/UI Final y Accesibilidad
 - [x] FASE 24 — Optimización de Performance (Bundle, Renders, Caching)
+- [x] FASE 25 — Preparación para Despliegue en Producción
 
 ## Fases pendientes:
-- [ ] FASE 25 — Preparación para Despliegue en Producción
 - [ ] FASE 26 — Entrega Final y Manuales de Operación
 
 ## Funcionalidades implementadas:
@@ -318,9 +318,21 @@ Estado: COMPLETADA
   * Suite de pruebas automatizadas en `tests/performanceOptimization.test.mjs` (10/10 checks PASS): PASS.
   * Consolidación en Runner Maestro (`npm test`): 22 suites ejecutadas, 239 verificaciones unitarias/E2E (100.0% PASS) en 3.22 segundos.
   * Compilación de producción (`npm run build`): Exit code 0 sin errores ni advertencias de tamaño.
+- **Preparación para Despliegue en Producción (Fase 25)**: PASS (100%).
+  * Regla de reescritura SPA `/* /index.html 200` en `public/_redirects` para compatibilidad con Netlify y servidores estáticos: PASS.
+  * Configuración completa de despliegue en `netlify.toml` (build, publish dist, status 200, cabeceras de seguridad y caché): PASS.
+  * Configuración espejo para Vercel en `vercel.json` (rewrites, headers de seguridad HTTP, directivas de caché): PASS.
+  * Cabeceras de seguridad estrictas (`X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, y `Permissions-Policy: camera=(self)`): PASS.
+  * Directivas de caché optimizadas: caché inmutable de 1 año para `/assets/*` y revalidación obligatoria (`max-age=0, must-revalidate`) para `/sw.js` y manifest: PASS.
+  * Archivo `public/robots.txt` para indexación de tienda pública y bloqueo de rastreo en rutas administrativas privadas (`/admin`, `/login`): PASS.
+  * Archivo `public/sitemap.xml` para optimización SEO con URLs públicas y frecuencias de rastreo: PASS.
+  * Script autónomo de pre-despliegue `scripts/predeployCheck.mjs` y comando `npm run preflight`: PASS (6/6 verificaciones exitosas).
+  * Suite de pruebas automatizadas en `tests/productionReadiness.test.mjs` (10/10 checks PASS): PASS.
+  * Consolidación en Runner Maestro (`npm test`): 23 suites ejecutadas, 249 verificaciones unitarias/E2E (100.0% PASS) en 3.02 segundos.
+  * Certificación preflight: PASS (TypeScript, Vite Build, dist/ artifacts, bundle size limits, QA runner).
 
 ## Pruebas pendientes:
-- Pruebas para Preparación para Despliegue en Producción (Fase 25).
+- Pruebas para Entrega Final y Manuales de Operación (Fase 26).
 
 ## Decisiones técnicas:
 - **Sanitización de Datos Comerciales Sensibles (`sanitizePublicProduct`)**: Para evitar fugas de información estratégica y proteger los márgenes del taller, el servicio público filtra rigurosamente el precio de costo (`cost_price`), el stock mínimo (`min_stock`), la ubicación física en el taller (`location`) y notas privadas antes de servir cualquier dato a la vista pública.
@@ -331,10 +343,11 @@ Estado: COMPLETADA
 - **Inmutabilidad Financiera por Disparador en PostgreSQL (`tr_cash_movement_immutability`)**: Para prevenir fraudes o alteraciones retroactivas de arqueos en el taller, una vez que una sesión de caja es cerrada (`closed_at IS NOT NULL`), el motor de base de datos rechaza de forma inmutable cualquier inserción, actualización o eliminación de movimientos asociados a dicha caja.
 - **Blindaje Estricto de Roles y Aislamiento de Perfiles (RLS)**: Se restringió la política de `profiles` de forma que los técnicos mecánicos solo pueden actualizar sus propios datos personales de contacto, imposibilitando la auto-promoción no autorizada a rol administrador.
 - **Protección contra Open Redirects (`isSafeInternalRedirect`)**: En el proceso de inicio de sesión (`/login`), se valida que la ruta de retorno sea estrictamente un path interno de la aplicación (comenzando por `/` simple y descartando `//` o caracteres de escape de host), evitando que atacantes redirijan a los usuarios a sitios de phishing externos tras autenticarse.
-- **Runner Maestro de QA Multiplataforma (`tests/qaRunner.mjs`)**: Orquestador centralizado de pruebas que descubre dinámicamente las 22 suites de prueba, mide tiempos en milisegundos, extrae aserciones individuales y presenta un tablero de métricas formateado con colores ANSI en terminal, integrable nativamente con `npm test` en cualquier entorno (Windows, Linux, CI/CD).
+- **Runner Maestro de QA Multiplataforma (`tests/qaRunner.mjs`)**: Orquestador centralizado de pruebas que descubre dinámicamente las 23 suites de prueba, mide tiempos en milisegundos, extrae aserciones individuales y presenta un tablero de métricas formateado con colores ANSI en terminal, integrable nativamente con `npm test` en cualquier entorno (Windows, Linux, CI/CD).
 - **Recorrido Interactivo de Procesos del Negocio (`BusinessFlowTourModal`)**: Módulo guiado paso a paso en el Dashboard principal que permite a dueños y mecánicos consultar en cualquier momento la secuencia operativa exacta de las 5 jornadas del taller, con accesos directos a cada módulo, consejos prácticos para evitar pérdidas de inventario o descuadres de caja y diseño modal accesible.
 - **Accesibilidad Universal y Pautas WCAG 2.1 Nivel AA**: Incorporación de enlaces de omisión (`SkipToContent`) para usuarios de teclado, atributos `aria-invalid` y `aria-describedby` en formularios para lectores de pantalla, indicadores de foco de alto contraste `:focus-visible`, anulación de animaciones disruptivas vía `@media (prefers-reduced-motion: reduce)`, prevención de salto acumulativo de diseño (CLS) mediante componentes esqueleto (`Skeleton`) y notificaciones flotantes con regiones vivas `aria-live`.
 - **Code-Splitting y Troceado Granular en Rollup/Vite**: Al reemplazar importaciones estáticas monolíticas por `React.lazy` con troceado por categorías de librerías (`vendor-react`, `vendor-supabase`, `vendor-qr`, `vendor-icons`), el tamaño del archivo inicial se redujo de 1.41 MB a 118 kB minificado (31 kB gzipped). Las dependencias pesadas como `jsqr` solo se descargan cuando el usuario visita el módulo de lectura QR, garantizando una carga instantánea de la tienda pública y del panel del taller.
+- **Infraestructura Cloud Multiplataforma y Preflight Autónomo**: Se implementaron archivos de configuración estándar para Netlify (`netlify.toml`, `public/_redirects`) y Vercel (`vercel.json`) con reescritura 200 hacia `index.html` para soportar navegación directa y recarga de páginas en Single Page Application (SPA). Se aseguraron cabeceras de protección HTTP contra clickjacking y sniffing, permisos de hardware para cámara en escaneo de marbetes QR, y un script de validación integral `scripts/predeployCheck.mjs` invocable con `npm run preflight`.
 
 ## Próximo paso:
-Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 25 — PREPARACIÓN PARA DESPLIEGUE EN PRODUCCIÓN**.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 26 — ENTREGA FINAL Y MANUALES DE OPERACIÓN**.

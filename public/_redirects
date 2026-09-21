@@ -1,0 +1,3 @@
+# Netlify SPA Redirect Rules
+# Redirige todas las rutas hacia index.html con código 200 para permitir el enrutamiento del lado del cliente (React Router)
+/*    /index.html   200

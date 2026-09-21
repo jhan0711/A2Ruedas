@@ -1,0 +1,13 @@
+# Robots.txt para A2Ruedas - Taller de Bicicletas y Tienda Especializada
+User-agent: *
+Allow: /
+Allow: /productos
+Allow: /bike/*
+
+# Bloquear rastreo de administración privada y credenciales
+Disallow: /admin/
+Disallow: /admin/*
+Disallow: /login
+
+# Mapa del sitio oficial para motores de búsqueda
+Sitemap: https://a2ruedas.com/sitemap.xml
