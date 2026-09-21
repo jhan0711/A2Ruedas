@@ -11,9 +11,11 @@ import {
   TrendingUp,
   Image as ImageIcon,
   CheckCircle2,
+  Tags,
 } from 'lucide-react';
 import { inventoryService } from '../../services/inventoryService';
 import { Product, ProductInsert, ProductCategory } from '../../types/database';
+import { CategoryManagerModal } from '../../components/inventory/CategoryManagerModal';
 import {
   Button,
   Input,
@@ -48,6 +50,7 @@ export const ProductsAdminPage: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
 
   // Formulario
   const [formData, setFormData] = useState<ProductInsert>({
@@ -262,9 +265,19 @@ export const ProductsAdminPage: React.FC = () => {
           </p>
         </div>
 
-        <Button size="sm" onClick={openCreateModal} leftIcon={<Plus className="w-3.5 h-3.5" />}>
-          Nuevo Producto
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCategoryManagerOpen(true)}
+            leftIcon={<Tags className="w-3.5 h-3.5 text-blue-600" />}
+          >
+            Gestionar Categorías
+          </Button>
+          <Button size="sm" onClick={openCreateModal} leftIcon={<Plus className="w-3.5 h-3.5" />}>
+            Nuevo Producto
+          </Button>
+        </div>
       </div>
 
       {/* Alerta de feedback */}
@@ -563,9 +576,19 @@ export const ProductsAdminPage: React.FC = () => {
             />
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Categoría *
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Categoría *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setCategoryManagerOpen(true)}
+                  className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 flex items-center gap-0.5 hover:underline"
+                  title="Crear o administrar categorías"
+                >
+                  <Plus className="w-3 h-3" /> Nueva
+                </button>
+              </div>
               <select
                 value={formData.category_id}
                 onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
@@ -735,6 +758,21 @@ export const ProductsAdminPage: React.FC = () => {
         confirmText="Eliminar Producto"
         variant="danger"
         isLoading={isDeleting}
+      />
+
+      {/* Modal de Gestión de Categorías */}
+      <CategoryManagerModal
+        isOpen={categoryManagerOpen}
+        onClose={() => setCategoryManagerOpen(false)}
+        categories={categories}
+        products={products}
+        onCategoriesUpdated={async () => {
+          const cats = await inventoryService.getCategories();
+          setCategories(cats);
+        }}
+        onCategoryCreated={(newCat) => {
+          setFormData((prev) => ({ ...prev, category_id: newCat.id }));
+        }}
       />
     </div>
   );

@@ -3,8 +3,13 @@ import { Product, ProductInsert, ProductUpdate, ProductCategory, InventoryMoveme
 
 const LOCAL_STORAGE_PRODUCTS = 'a2ruedas_products_cache';
 const LOCAL_STORAGE_MOVEMENTS = 'a2ruedas_movements_cache';
+const LOCAL_STORAGE_CATEGORIES = 'a2ruedas_categories_cache';
 
 const defaultCategories: ProductCategory[] = [
+  { id: 'cat-bikes', name: 'Bicicletas Convencionales', slug: 'bicicletas', description: 'Bicicletas de ruta, gravel, montaña (MTB), urbanas y BMX', created_at: new Date().toISOString() },
+  { id: 'cat-ebikes', name: 'Bicicletas Eléctricas (E-Bikes)', slug: 'bicis-electricas', description: 'Bicicletas asistidas, baterías de litio, motores y cargadores', created_at: new Date().toISOString() },
+  { id: 'cat-apparel', name: 'Ropa y Equipamiento', slug: 'ropa-equipamiento', description: 'Jerseys técnicos, badanas, chaquetas cortavientos, guantes y zapatillas', created_at: new Date().toISOString() },
+  { id: 'cat-nutrition', name: 'Nutrición y Suplementos', slug: 'suplementos-nutricion', description: 'Geles energéticos, hidratantes isotónicos, electrolitos y barras de proteína', created_at: new Date().toISOString() },
   { id: 'cat-1', name: 'Transmisión', slug: 'transmision', description: 'Cadenas, piñones, cassettes, tensores y mandos', created_at: new Date().toISOString() },
   { id: 'cat-2', name: 'Frenos', slug: 'frenos', description: 'Pastillas, mordazas, discos, rotores y líquido', created_at: new Date().toISOString() },
   { id: 'cat-3', name: 'Llantas y Neumáticos', slug: 'llantas-neumaticos', description: 'Corazas, neumáticos, sellante tubeless y válvulas', created_at: new Date().toISOString() },
@@ -14,6 +19,90 @@ const defaultCategories: ProductCategory[] = [
 ];
 
 const initialProducts: Product[] = [
+  {
+    id: 'prod-bike-01',
+    sku: 'BIC-GRV-01',
+    category_id: 'cat-bikes',
+    name: 'Bicicleta Gravel Specialized Diverge E5',
+    brand: 'Specialized',
+    description: 'Bicicleta de gravel ligera y resistente con transmisión Shimano Claris 2x8, frenos de disco mecánicos y cuadro de aluminio premium E5.',
+    cost_price: 3800000,
+    sale_price: 5450000,
+    stock: 2,
+    min_stock: 1,
+    unit: 'unidad',
+    location: 'Exhibición Sala 1',
+    image_url: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=700&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=700&q=80',
+    ],
+    is_active: true,
+    created_at: new Date('2026-01-05').toISOString(),
+    updated_at: new Date('2026-01-05').toISOString(),
+  },
+  {
+    id: 'prod-ebike-01',
+    sku: 'EBK-TRK-02',
+    category_id: 'cat-ebikes',
+    name: 'Bicicleta Eléctrica Trek FX+ 2 Stagger E-Bike',
+    brand: 'Trek',
+    description: 'E-bike urbana híbrida con motor de buje trasero de 250W, batería interna de 250Wh, luces integradas, guardabarros y parrilla trasera.',
+    cost_price: 5400000,
+    sale_price: 7890000,
+    stock: 1,
+    min_stock: 1,
+    unit: 'unidad',
+    location: 'Exhibición Sala E-Mobility',
+    image_url: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=700&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=700&q=80',
+    ],
+    is_active: true,
+    created_at: new Date('2026-01-08').toISOString(),
+    updated_at: new Date('2026-01-08').toISOString(),
+  },
+  {
+    id: 'prod-apparel-01',
+    sku: 'ROP-JER-AERO',
+    category_id: 'cat-apparel',
+    name: 'Jersey Técnico Pro Aero Edición Taller A2Ruedas',
+    brand: 'Suarez',
+    description: 'Jersey manga corta de ciclismo con tejidos de secado rápido, paneles de malla transpirable, cremallera completa YKK y 3 bolsillos traseros.',
+    cost_price: 110000,
+    sale_price: 185000,
+    stock: 8,
+    min_stock: 3,
+    unit: 'unidad',
+    location: 'Estante Ropa R-1',
+    image_url: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=700&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=700&q=80',
+    ],
+    is_active: true,
+    created_at: new Date('2026-01-10').toISOString(),
+    updated_at: new Date('2026-01-10').toISOString(),
+  },
+  {
+    id: 'prod-nutrition-01',
+    sku: 'NUT-GEL-GU24',
+    category_id: 'cat-nutrition',
+    name: 'Pack Geles Energéticos GU Energy Gel Caja x 24 Uds',
+    brand: 'GU Energy',
+    description: 'Geles energéticos con carbohidratos de absorción dual, electrolitos y aminoácidos. Sabor Caramelo Salado con cafeína.',
+    cost_price: 98000,
+    sale_price: 149000,
+    stock: 15,
+    min_stock: 4,
+    unit: 'caja',
+    location: 'Vitrina Nutrición N-1',
+    image_url: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=700&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=700&q=80',
+    ],
+    is_active: true,
+    created_at: new Date('2026-01-11').toISOString(),
+    updated_at: new Date('2026-01-11').toISOString(),
+  },
   {
     id: 'prod-001',
     sku: 'REP-CAD-09',
@@ -198,17 +287,151 @@ function saveLocalMovements(list: InventoryMovement[]) {
   localStorage.setItem(LOCAL_STORAGE_MOVEMENTS, JSON.stringify(list));
 }
 
+function getLocalCategories(): ProductCategory[] {
+  const cached = localStorage.getItem(LOCAL_STORAGE_CATEGORIES);
+  if (!cached) {
+    localStorage.setItem(LOCAL_STORAGE_CATEGORIES, JSON.stringify(defaultCategories));
+    return defaultCategories;
+  }
+  try {
+    const parsed = JSON.parse(cached);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : defaultCategories;
+  } catch {
+    return defaultCategories;
+  }
+}
+
+function saveLocalCategories(list: ProductCategory[]) {
+  localStorage.setItem(LOCAL_STORAGE_CATEGORIES, JSON.stringify(list));
+}
+
 export const inventoryService = {
   async getCategories(): Promise<ProductCategory[]> {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('product_categories').select('*').order('name');
-        if (!error && data && data.length > 0) return data;
+        if (!error && data && data.length > 0) {
+          saveLocalCategories(data);
+          return data;
+        }
       } catch (err) {
         console.warn('Usando categorías locales:', err);
       }
     }
-    return defaultCategories;
+    return getLocalCategories();
+  },
+
+  async createCategory(categoryData: { name: string; description?: string; slug?: string }): Promise<ProductCategory> {
+    const slug =
+      categoryData.slug ||
+      categoryData.name
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+    const newCategory: ProductCategory = {
+      id: `cat-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      name: categoryData.name.trim(),
+      slug,
+      description: categoryData.description?.trim() || null,
+      created_at: new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from('product_categories')
+          .insert({
+            name: newCategory.name,
+            slug: newCategory.slug,
+            description: newCategory.description,
+          })
+          .select()
+          .single();
+
+        if (!error && data) {
+          const list = getLocalCategories();
+          saveLocalCategories([...list, data]);
+          return data;
+        }
+      } catch (err) {
+        console.warn('Error al guardar categoría en Supabase, persistiendo localmente:', err);
+      }
+    }
+
+    const current = getLocalCategories();
+    const updated = [...current, newCategory];
+    saveLocalCategories(updated);
+    return newCategory;
+  },
+
+  async updateCategory(id: string, updates: { name?: string; description?: string }): Promise<ProductCategory> {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from('product_categories')
+          .update({
+            ...(updates.name ? { name: updates.name.trim() } : {}),
+            ...(updates.description !== undefined ? { description: updates.description.trim() } : {}),
+          })
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (!error && data) {
+          const list = getLocalCategories().map((c) => (c.id === id ? data : c));
+          saveLocalCategories(list);
+          return data;
+        }
+      } catch (err) {
+        console.warn('Error al actualizar categoría en Supabase:', err);
+      }
+    }
+
+    const current = getLocalCategories();
+    const target = current.find((c) => c.id === id);
+    if (!target) throw new Error('Categoría no encontrada');
+
+    const updatedCat: ProductCategory = {
+      ...target,
+      name: updates.name !== undefined ? updates.name.trim() : target.name,
+      description: updates.description !== undefined ? updates.description.trim() : target.description,
+    };
+
+    const updatedList = current.map((c) => (c.id === id ? updatedCat : c));
+    saveLocalCategories(updatedList);
+    return updatedCat;
+  },
+
+  async deleteCategory(id: string): Promise<boolean> {
+    // 1. Validar si hay productos asignados a esta categoría
+    const products = await this.getProducts();
+    const hasProducts = products.some((p) => p.category_id === id);
+    if (hasProducts) {
+      throw new Error(
+        'No es posible eliminar esta categoría porque contiene productos asignados. Reasigna o elimina los productos primero.'
+      );
+    }
+
+    if (isSupabaseConfigured) {
+      try {
+        const { error } = await supabase.from('product_categories').delete().eq('id', id);
+        if (!error) {
+          const list = getLocalCategories().filter((c) => c.id !== id);
+          saveLocalCategories(list);
+          return true;
+        }
+      } catch (err) {
+        console.warn('Error al eliminar categoría en Supabase:', err);
+      }
+    }
+
+    const current = getLocalCategories();
+    const updatedList = current.filter((c) => c.id !== id);
+    saveLocalCategories(updatedList);
+    return true;
   },
 
   async getProducts(categoryId?: string, searchTerm?: string): Promise<Product[]> {
