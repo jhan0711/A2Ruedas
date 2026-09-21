@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 7 — Módulo de Bicicletas
+Fase actual: FASE 8 — Módulo de Inventario y Kardex
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -13,9 +13,9 @@ Estado: COMPLETADA
 - [x] FASE 5 — Supabase y Base de Datos (Modelos, Migraciones, RLS, Capa de Servicios)
 - [x] FASE 6 — Módulo de Clientes (CRUD, búsqueda y vinculación)
 - [x] FASE 7 — Módulo de Bicicletas (Registro, serial, fotos de inspección, QR)
+- [x] FASE 8 — Módulo de Inventario (Productos, stock, Kardex, alertas)
 
 ## Fases pendientes:
-- [ ] FASE 8 — Módulo de Inventario (Productos, stock, movimientos, alertas)
 - [ ] FASE 9 — Módulo de Órdenes de Trabajo (OT-000001, estados, repuestos)
 - [ ] FASE 10 — Recepción de Bicicleta + Firma Digital Táctil
 - [ ] FASE 11 — Agenda y Calendario de Mantenimientos
@@ -77,30 +77,39 @@ Estado: COMPLETADA
   * Consolidación de órdenes de trabajo asociadas a cada bicicleta.
   * Eliminación con modal de confirmación `ConfirmModal` (Regla 44).
   * Suite de pruebas automatizadas en `tests/bicycles.test.mjs`.
+- **Módulo de Inventario y Kardex (Fase 8)**:
+  * Catálogo maestro de productos y repuestos en `/admin/productos` con SKU, nombre, marca, categoría, costo, precio venta, margen comercial (%) y ubicación física.
+  * Soporte para múltiples fotografías por producto (galería con selector).
+  * Control de existencias y auditoría de Kardex en `/admin/inventario` con Entradas, Salidas y Ajustes de almacén.
+  * Alertas tempranas automáticas de stock mínimo (`stock <= min_stock`).
+  * Validación matemática estricta de Kardex con prueba obligatoria ($0 + 10 - 2 = 8$).
+  * Prevención estricta de stock negativo.
+  * Suite de pruebas automatizadas en `tests/inventory.test.mjs`.
 
 ## Funcionalidades pendientes:
-- Módulo de Inventario y Kardex (Fase 8).
-- Módulo de Órdenes de Trabajo (Fase 9).
+- Módulo de Órdenes de Trabajo (OT-000001, estados, repuestos) (Fase 9).
+- Recepción de Bicicleta + Firma Digital Táctil (Fase 10).
 
 ## Errores conocidos:
 - Ninguno. Compilación limpia y pruebas ejecutadas exitosamente al 100%.
 
 ## Pruebas ejecutadas:
 - Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (0 errores).
-- Validación de campos obligatorios de bicicleta: PASS.
-- Relación 1:N cliente multi-bicicletas: PASS.
-- Formato y unicidad de códigos QR `BIKE-XXXXXX`: PASS.
-- Búsqueda reactiva por marca, modelo y serial: PASS.
-- Tipificación de fotografías de inspección de taller: PASS.
-- Generación de WhatsApp directo contextualizado con la bicicleta: PASS.
+- Prueba matemática obligatoria de Kardex ($0 + 10 - 2 = 8$): PASS.
+- Consistencia de stock intermedio y final en Kardex: PASS.
+- Prevención estricta de stock negativo (Bloqueo cuando cantidad > stock disponible): PASS.
+- Disparo de alerta de stock crítico ($stock \le min\_stock$): PASS.
+- Cálculo automático de margen de rentabilidad comercial: PASS.
+- Búsqueda reactiva por SKU, nombre y ubicación en taller: PASS.
 
 ## Pruebas pendientes:
-- Pruebas E2E de inventario y Kardex (Fase 8).
+- Pruebas E2E de ciclo de Órdenes de Trabajo (Fase 9).
 
 ## Decisiones técnicas:
-- **Respaldo de Evidencia Fotográfica**: Las fotos de ingreso protegen al taller ante discrepancias con clientes, registrando el estado estético y mecánico inicial.
-- **Identidad QR Desacoplada**: El código QR se genera y asocia a la bicicleta de forma única e inmutable, permitiendo reimpresión de etiquetas sin alterar el registro.
+- **Auditoría Inmutable de Kardex**: Cada alteración física de existencias genera obligatoriamente una fila en `inventory_movements` con stock anterior y resultante para evitar desajustes o pérdidas.
+- **Doble Persistencia con Supabase**: Catálogo y movimientos se sincronizan con las tablas `products` e `inventory_movements` preservando resiliencia offline/local.
 
 ## Próximo paso:
-Iniciar **FASE 8 — MÓDULO DE INVENTARIO**: Catálogo de productos, control de stock, alertas de stock mínimo, registro de movimientos Kardex (entradas, salidas y ajustes) con prueba matemática de balance.
+Iniciar **FASE 9 — MÓDULO DE ÓRDENES DE TRABAJO (OT)**: Creación de órdenes con correlativo estricto `OT-000001`, ciclo completo de 9 estados, vinculación de bicicleta/cliente, adición de repuestos desde inventario con descuento automático en Kardex, y cálculo de mano de obra.
+
 

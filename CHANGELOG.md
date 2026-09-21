@@ -9,7 +9,21 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
-## [0.7.0] - 2026-09-20
+## [0.8.0] - 2026-09-20
+
+### Agregado
+- **Fase 8 — Módulo de Inventario y Kardex**:
+  - Implementación de la vista `ProductsAdminPage` en `/admin/productos` para catálogo maestro con precios de costo, precios de venta, cálculo automático de margen (%) y ubicación física.
+  - Implementación de la vista `InventoryPage` en `/admin/inventario` para auditoría de Kardex y registro de movimientos de almacén.
+  - Soporte para múltiples fotografías por producto (selector de galería con miniatura e indicador de fotos adicionales).
+  - Modal de registro de movimientos de Kardex con tipificación: Entradas (`in`), Salidas (`out`) y Ajustes (`adjustment`), con motivo obligatorio.
+  - Detección visual y alerta temprana de desabastecimiento cuando `stock <= min_stock`.
+  - Sección de artículos críticos con botón de reabastecimiento rápido en un clic.
+  - Tarjetas de KPIs del almacén: Valoración del inventario a precio de costo, valoración proyectada a la venta, artículos en stock bajo y unidades totales.
+  - Prevención estricta de stock negativo con bloqueo de salidas superiores a existencias.
+  - Suite de pruebas automatizadas en `tests/inventory.test.mjs` con 12 aserciones y cumplimiento estricto de la prueba matemática de Kardex ($0 + 10 - 2 = 8$).
+
+---
 
 ### Agregado
 - **Fase 7 — Módulo de Bicicletas**:

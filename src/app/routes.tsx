@@ -10,6 +10,8 @@ import { DashboardPage } from '../pages/admin/DashboardPage';
 import { DesignSystemPage } from '../pages/admin/DesignSystemPage';
 import { CustomersPage } from '../pages/admin/CustomersPage';
 import { BicyclesPage } from '../pages/admin/BicyclesPage';
+import { InventoryPage } from '../pages/admin/InventoryPage';
+import { ProductsAdminPage } from '../pages/admin/ProductsAdminPage';
 import { ModulePlaceholder } from '../pages/admin/ModulePlaceholder';
 
 export const router = createBrowserRouter([
@@ -76,23 +78,11 @@ export const router = createBrowserRouter([
           },
           {
             path: 'inventario',
-            element: (
-              <ModulePlaceholder
-                title="Inventario y Kardex"
-                phase="Fase 8"
-                description="Control de existencias, alertas de stock mínimo y registro de movimientos."
-              />
-            ),
+            element: <InventoryPage />,
           },
           {
             path: 'productos',
-            element: (
-              <ModulePlaceholder
-                title="Gestión de Catálogo de Productos"
-                phase="Fase 8"
-                description="Administración de precios, costos, categorías y productos para venta."
-              />
-            ),
+            element: <ProductsAdminPage />,
           },
           {
             path: 'clientes',
