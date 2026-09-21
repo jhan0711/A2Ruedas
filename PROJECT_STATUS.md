@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 11 — Agenda y Calendario de Mantenimientos
+Fase actual: FASE 12 — Historial Completo y Timeline de Bicicleta
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -17,9 +17,9 @@ Estado: COMPLETADA
 - [x] FASE 9 — Módulo de Órdenes de Trabajo (OT-000001, estados, repuestos)
 - [x] FASE 10 — Recepción de Bicicleta + Firma Digital Táctil
 - [x] FASE 11 — Agenda y Calendario de Mantenimientos
+- [x] FASE 12 — Historial Completo y Timeline de Bicicleta
 
 ## Fases pendientes:
-- [ ] FASE 12 — Historial Completo y Timeline de Bicicleta
 - [ ] FASE 13 — Módulo de Códigos QR (Generación, descarga, escaneo por cámara)
 - [ ] FASE 14 — Módulo de Comunicación por WhatsApp (Deep links dinámicos)
 - [ ] FASE 15 — Módulo de Flujo de Caja (Apertura, ingresos, egresos, cierre)
@@ -110,28 +110,41 @@ Estado: COMPLETADA
   * Generador de Deep Links de WhatsApp para confirmación inmediata de citas.
   * Integración con módulo de recepción para transferir cliente y bicicleta con un solo clic.
   * Suite de pruebas automatizadas en `tests/appointments.test.mjs`.
+- **Historial Completo y Timeline de Bicicleta (Fase 12)**:
+  * Dossier Técnico B2B renovado con navegación por pestañas en `/admin/bicicletas`:
+    1. *Timeline de Mantenimientos*: Línea de tiempo cronológica vertical con lectura de odómetro, diagnósticos técnicos, desglose de servicios, repuestos instalados e impresión instantánea de comprobantes térmicos o tamaño carta vía `WorkOrderTicketModal`.
+    2. *Ficha Técnica & Componentes*: Especificaciones completas de fábrica, serial de cuadro, historial evolutivo de odómetro y recomendaciones preventivas inteligentes por tipo de bici (MTB, Ruta, Gravel, E-Bike).
+    3. *Fotos de Inspección*: Galería categorizada con subida reactiva de evidencia visual.
+    4. *Historial Consolidado de Repuestos*: Auditoría de todas las piezas reemplazadas a lo largo de la vida útil de la bicicleta con fecha, cantidad, orden OT y valor monetario.
+  * Página Pública de Certificación por Código QR en `/bike/:code`:
+    1. Perfil técnico público de la bicicleta sin requerir inicio de sesión.
+    2. Insignia de autenticidad ("Historial Verificado A2Ruedas ✓").
+    3. Protección estricta de privacidad: CERO exposición de datos personales sensibles (PII como teléfonos, cédulas o nombres completos del propietario jamás se muestran al público).
+    4. Odómetro acumulado en tiempo real, recomendaciones de mantenimiento y enlace directo a WhatsApp para agendar servicio.
+  * Preselección relacional en `/admin/ordenes/nueva` al hacer clic en "Crear Nueva Orden" desde la ficha de cualquier bicicleta.
+  * Suite de pruebas automatizadas en `tests/bicycleTimeline.test.mjs`.
 
 ## Errores conocidos:
 - Ninguno. Compilación limpia y pruebas ejecutadas exitosamente al 100%.
 
 ## Pruebas ejecutadas:
 - Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (0 errores).
-- Validación de creación de citas con mecánico y tiempo estimado: PASS.
-- Cálculo de aforo diario (4 de 6 cupos = 67% ocupación): PASS.
-- Exclusión estricta de citas CANCELLED para liberación de cupos en agenda: PASS.
-- Alerta visual de aforo completo cuando se alcanzan 6 de 6 cupos (100% ocupado): PASS.
-- Ciclo de 4 estados de citas en agenda: PASS.
-- Generación de enlace directo a WhatsApp para confirmación de turnos: PASS.
-- Transferencia reactiva de datos de cita a módulo de recepción formal: PASS.
-- Regresión completa de las 10 fases previas (8 suites de prueba): PASS (100%).
+- Búsqueda y resolución de timeline por QR (`BIKE-8F3A92` -> Trek Marlin 7): PASS.
+- Protección estricta de privacidad (CERO datos personales/PII expuestos al público): PASS.
+- Cálculo de odómetro actual acumulado (Mayor valor registrado: 1.250 km): PASS.
+- Orden cronológico descendente y repuestos públicos (4 repuestos en timeline): PASS.
+- Recomendaciones inteligentes según tipo (MTB) y kilometraje (>1000 km): PASS.
+- Manejo seguro de código QR inexistente (retorna null sin error): PASS.
+- Dossier administrativo con cálculo total gastado ($220.000 COP) y 4 repuestos: PASS.
+- Regresión completa de las 11 fases previas (9 suites de prueba): PASS (100%).
 
 ## Pruebas pendientes:
-- Pruebas E2E de historial cronológico de bicicleta y consulta pública por QR (Fase 12).
+- Pruebas E2E de escaneo de códigos QR con cámara web y móvil (Fase 13).
 
 ## Decisiones técnicas:
-- **Aforo y Cupos en Tiempo Real**: El aforo diario se computa dinámicamente sumando todas las citas no canceladas asignadas a una fecha determinada, comparándolas contra la capacidad máxima diaria del taller (`DEFAULT_DAILY_CAPACITY = 6`). Esto previene la sobrecarga de los mecánicos antes de admitir nuevas reservas.
-- **Traspaso Fluido Cita -> Recepción**: Al pulsar *"Iniciar Recepción"* en una cita, el sistema navega a `/admin/ordenes/nueva` inyectando en `location.state` el cliente y la bicicleta para preseleccionar ambos registros automáticamente.
-- **Generación de Enlaces de WhatsApp**: Se codifican los parámetros de la cita (nombre, fecha, hora, mecánico y servicio) en una plantilla URL estandarizada (`https://wa.me/...`) para que el recepcionista envíe confirmaciones sin escribir manualmente.
+- **Protección Estricta de Privacidad (CERO PII en vista pública)**: La función de servicio `getPublicBicycleTimeline(code)` y la página `/bike/:code` filtran expresamente cualquier dato privado del cliente (teléfono, documento de identidad, nombre completo). Solo se exponen datos mecánicos de la bicicleta, odómetro y mantenimientos realizados.
+- **Dossier Técnico con Acceso Directo a Comprobantes**: El modal de la bicicleta en `/admin/bicicletas` incorpora `WorkOrderTicketModal` para permitir la reimpresión o consulta del comprobante de cualquier orden pasada sin tener que salir al módulo de órdenes.
+- **Rastreo Evolutivo de Odómetro**: Se calcula el odómetro vigente tomando el valor más alto registrado en las órdenes de trabajo no canceladas, permitiendo visibilizar la progresión de kilometraje y emitir alertas preventivas automáticas cuando se superan los 1.000 km.
 
 ## Próximo paso:
-Iniciar **FASE 12 — HISTORIAL COMPLETO Y TIMELINE DE BICICLETA**: Registro cronológico de mantenimientos, trazabilidad por código QR público, repuestos cambiados y odómetro/kilometraje.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 13 — MÓDULO DE CÓDIGOS QR (Generación, descarga, escaneo por cámara)**.

@@ -262,3 +262,67 @@ export interface Appointment {
 
 export type AppointmentInsert = Omit<Appointment, 'id' | 'created_at' | 'customer' | 'bicycle'>;
 export type AppointmentUpdate = Partial<AppointmentInsert>;
+
+// 16. Timeline Público de Bicicleta (Por Código QR)
+export interface PublicWorkOrderTimelineItem {
+  id: string;
+  order_number: string;
+  status: WorkOrderStatus;
+  date: string;
+  entry_mileage_km?: number | null;
+  reported_issues: string;
+  technician_notes?: string | null;
+  services: string[];
+  parts_changed: string[];
+  photos?: string[];
+}
+
+export interface PublicBikeTimeline {
+  qr_code: string;
+  brand: string;
+  model: string;
+  bike_type: string;
+  color: string;
+  serial_number?: string | null;
+  frame_size?: string | null;
+  wheel_size?: string | null;
+  year?: number | null;
+  key_components?: string | null;
+  current_mileage_km?: number | null;
+  last_service_date?: string | null;
+  is_verified: boolean;
+  photos: BicyclePhoto[];
+  work_orders: PublicWorkOrderTimelineItem[];
+  recommendations: string[];
+}
+
+// 17. Dossier Técnico Administrativo Completo
+export interface ReplacedPartSummary {
+  date: string;
+  order_number: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+}
+
+export interface MileageRecord {
+  date: string;
+  km: number;
+  order_number: string;
+}
+
+export interface BicycleFullDossier {
+  bicycle: Bicycle;
+  customer?: Customer | null;
+  qrCode?: BikeQRCode | null;
+  photos: BicyclePhoto[];
+  workOrders: WorkOrder[];
+  totalServicesCount: number;
+  totalSpent: number;
+  currentMileageKm?: number | null;
+  mileageHistory: MileageRecord[];
+  allPartsReplaced: ReplacedPartSummary[];
+  recommendations: string[];
+}
+

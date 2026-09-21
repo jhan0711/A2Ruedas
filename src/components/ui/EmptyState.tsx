@@ -9,6 +9,7 @@ export interface EmptyStateProps {
   actionText?: string;
   onAction?: () => void;
   className?: string;
+  children?: React.ReactNode;
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
@@ -18,6 +19,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   actionText,
   onAction,
   className = '',
+  children,
 }) => {
   return (
     <div
@@ -32,6 +34,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           {description}
         </p>
       </div>
+      {children}
       {actionText && onAction && (
         <div className="pt-1">
           <Button variant="outline" size="sm" onClick={onAction}>

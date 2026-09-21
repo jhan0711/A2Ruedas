@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import {
   ClipboardCheck,
   User,
@@ -30,6 +30,7 @@ type Step = 'client_bike' | 'inspection' | 'services' | 'signature' | 'success';
 
 export const ReceptionPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Paso actual
   const [currentStep, setCurrentStep] = useState<Step>('client_bike');
@@ -80,18 +81,24 @@ export const ReceptionPage: React.FC = () => {
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Cargar clientes iniciales
+  // Cargar clientes iniciales y preseleccionar si se recibe desde otra pantalla
   useEffect(() => {
     const loadCustomers = async () => {
       try {
         const list = await customerService.getCustomers();
         setCustomers(list);
+
+        const state = location.state as { customer_id?: string; customerId?: string; bicycle_id?: string; bikeId?: string } | null;
+        const targetCust = state?.customer_id || state?.customerId;
+        if (targetCust) {
+          setSelectedCustomerId(targetCust);
+        }
       } catch (err) {
         console.error('Error al cargar clientes:', err);
       }
     };
     loadCustomers();
-  }, []);
+  }, [location.state]);
 
   // Cargar bicicletas cuando cambia el cliente seleccionado
   useEffect(() => {
@@ -105,7 +112,12 @@ export const ReceptionPage: React.FC = () => {
       try {
         const bikes = await bicycleService.getBicycles(selectedCustomerId);
         setCustomerBikes(bikes);
-        if (bikes.length > 0) {
+        
+        const state = location.state as { bicycle_id?: string; bikeId?: string } | null;
+        const targetBike = state?.bicycle_id || state?.bikeId;
+        if (targetBike && bikes.some((b) => b.id === targetBike)) {
+          setSelectedBikeId(targetBike);
+        } else if (bikes.length > 0) {
           setSelectedBikeId(bikes[0].id);
         } else {
           setSelectedBikeId('');
@@ -123,7 +135,7 @@ export const ReceptionPage: React.FC = () => {
       if (!signerName) setSignerName(currentCust.full_name);
       if (!signerDoc && currentCust.document_id) setSignerDoc(currentCust.document_id);
     }
-  }, [selectedCustomerId, customers]);
+  }, [selectedCustomerId, customers, location.state]);
 
   // Filtrado reactivo de clientes para selector rápido
   const filteredCustomers = customers.filter(

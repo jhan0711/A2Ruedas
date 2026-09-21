@@ -52,6 +52,47 @@ const initialOrders: WorkOrder[] = [
     ],
   },
   {
+    id: 'wo-004',
+    order_number: 'OT-000000',
+    customer_id: 'c-001',
+    bicycle_id: 'b-001',
+    status: 'ENTREGADA',
+    reported_issues: 'Mantenimiento preventivo inicial y ajuste de frenos hidráulicos.',
+    accessories_received: 'Soporte de termo',
+    entry_mileage_km: 650,
+    estimated_delivery_at: new Date('2026-01-20').toISOString(),
+    total_labor: 55000,
+    total_parts: 45000,
+    discount: 0,
+    grand_total: 100000,
+    internal_notes: 'Primer servicio preventivo cumplido. Cambio de pastillas delanteras.',
+    created_at: new Date('2026-01-18').toISOString(),
+    updated_at: new Date('2026-01-20').toISOString(),
+    items: [
+      {
+        id: 'woi-007',
+        work_order_id: 'wo-004',
+        item_type: 'service',
+        description: 'Mantenimiento Preventivo / Básico',
+        quantity: 1,
+        unit_price: 55000,
+        total_price: 55000,
+        created_at: new Date('2026-01-18').toISOString(),
+      },
+      {
+        id: 'woi-008',
+        work_order_id: 'wo-004',
+        item_type: 'part',
+        product_id: 'prod-002',
+        description: 'Pastillas de Freno Shimano B05S Resina',
+        quantity: 1,
+        unit_price: 45000,
+        total_price: 45000,
+        created_at: new Date('2026-01-18').toISOString(),
+      },
+    ],
+  },
+  {
     id: 'wo-002',
     order_number: 'OT-000002',
     customer_id: 'c-002',
@@ -252,6 +293,25 @@ export const workOrderService = {
     }
     const list = await this.getWorkOrders();
     return list.find((o) => o.id === id) || null;
+  },
+
+  async getWorkOrdersByBicycleId(bicycleId: string): Promise<WorkOrder[]> {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from('work_orders')
+          .select('*, customer:customers(*), bicycle:bicycles(*), items:work_order_items(*)')
+          .eq('bicycle_id', bicycleId)
+          .order('created_at', { ascending: false });
+        if (!error && data) return data;
+      } catch (err) {
+        console.warn('Error al obtener OTs por bicicleta en Supabase:', err);
+      }
+    }
+    const list = await this.getWorkOrders();
+    return list
+      .filter((o) => o.bicycle_id === bicycleId)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   },
 
   async getNextOrderNumber(): Promise<string> {
