@@ -554,16 +554,16 @@ export const ThermalPrintPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Acciones Rápidas */}
-        <div className="flex items-center gap-2">
+        {/* Acciones Rápidas del Encabezado */}
+        <div className="flex items-center gap-2.5">
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={handlePrintTestTicket}
+            leftIcon={<Sliders className="w-3.5 h-3.5 text-slate-400" />}
             title="Imprime una tirilla de calibración con regla milimétrica y barra de densidad"
-            className="flex items-center gap-1.5"
+            className="shadow-xs"
           >
-            <Sliders className="w-3.5 h-3.5" />
             Tirilla de Calibración
           </Button>
 
@@ -571,9 +571,9 @@ export const ThermalPrintPage: React.FC = () => {
             variant="primary"
             size="sm"
             onClick={handlePrintStudio}
-            className="flex items-center gap-1.5 shadow-sm"
+            leftIcon={<Printer className="w-3.5 h-3.5" />}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm border-blue-500"
           >
-            <Printer className="w-3.5 h-3.5" />
             Imprimir Actual (58 mm)
           </Button>
         </div>
@@ -593,10 +593,10 @@ export const ThermalPrintPage: React.FC = () => {
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
         <button
           onClick={() => setActiveTab('studio')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all border ${
             activeTab === 'studio'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-blue-600 text-white border-blue-500 shadow-sm'
+              : 'bg-white/60 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <Eye className="w-4 h-4" />
@@ -605,10 +605,10 @@ export const ThermalPrintPage: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('search')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all border ${
             activeTab === 'search'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-blue-600 text-white border-blue-500 shadow-sm'
+              : 'bg-white/60 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <Search className="w-4 h-4" />
@@ -620,10 +620,10 @@ export const ThermalPrintPage: React.FC = () => {
             setTempSettings({ ...settings });
             setActiveTab('settings');
           }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all border ${
             activeTab === 'settings'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-blue-600 text-white border-blue-500 shadow-sm'
+              : 'bg-white/60 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <Settings className="w-4 h-4" />
@@ -665,7 +665,7 @@ export const ThermalPrintPage: React.FC = () => {
                   onClick={() => setSelectedTemplate('BIKE_TAG')}
                   className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 ${
                     selectedTemplate === 'BIKE_TAG'
-                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 text-blue-900 dark:text-blue-100 ring-2 ring-blue-500/20'
+                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100 ring-2 ring-blue-500/20'
                       : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300'
                   }`}
                 >
@@ -688,7 +688,7 @@ export const ThermalPrintPage: React.FC = () => {
                   onClick={() => setSelectedTemplate('RECEPTION')}
                   className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 ${
                     selectedTemplate === 'RECEPTION'
-                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 text-blue-900 dark:text-blue-100 ring-2 ring-blue-500/20'
+                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100 ring-2 ring-blue-500/20'
                       : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300'
                   }`}
                 >
@@ -711,7 +711,7 @@ export const ThermalPrintPage: React.FC = () => {
                   onClick={() => setSelectedTemplate('WORK_ORDER')}
                   className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 ${
                     selectedTemplate === 'WORK_ORDER'
-                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 text-blue-900 dark:text-blue-100 ring-2 ring-blue-500/20'
+                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100 ring-2 ring-blue-500/20'
                       : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300'
                   }`}
                 >
@@ -734,7 +734,7 @@ export const ThermalPrintPage: React.FC = () => {
                   onClick={() => setSelectedTemplate('INVOICE')}
                   className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 ${
                     selectedTemplate === 'INVOICE'
-                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 text-blue-900 dark:text-blue-100 ring-2 ring-blue-500/20'
+                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100 ring-2 ring-blue-500/20'
                       : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300'
                   }`}
                 >
@@ -757,7 +757,7 @@ export const ThermalPrintPage: React.FC = () => {
                   onClick={() => setSelectedTemplate('CASH_REGISTER')}
                   className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 ${
                     selectedTemplate === 'CASH_REGISTER'
-                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 text-blue-900 dark:text-blue-100 ring-2 ring-blue-500/20'
+                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100 ring-2 ring-blue-500/20'
                       : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300'
                   }`}
                 >
@@ -780,7 +780,7 @@ export const ThermalPrintPage: React.FC = () => {
                   onClick={() => setSelectedTemplate('TEST')}
                   className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 ${
                     selectedTemplate === 'TEST'
-                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 text-blue-900 dark:text-blue-100 ring-2 ring-blue-500/20'
+                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100 ring-2 ring-blue-500/20'
                       : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300'
                   }`}
                 >
@@ -807,7 +807,7 @@ export const ThermalPrintPage: React.FC = () => {
               </span>
 
               {selectedTemplate === 'TEST' && (
-                <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-xs text-slate-600 dark:text-slate-300">
+                <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-xs text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
                   ℹ️ Esta tirilla se genera dinámicamente según los parámetros configurados en el taller (ancho de {settings.paper_width}, densidad tipográfica {settings.font_density} y líneas de avance de corte {settings.feed_lines}).
                 </div>
               )}
@@ -898,35 +898,41 @@ export const ThermalPrintPage: React.FC = () => {
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 3. Disparo de Impresión de Alta Precisión
               </span>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2.5">
                 <Button
                   variant="primary"
                   size="md"
                   onClick={handlePrintStudio}
                   disabled={isGeneratingPreview || !previewHtml}
-                  className="flex items-center gap-2 shadow-md"
+                  leftIcon={<Printer className="w-4 h-4" />}
+                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-md border-blue-500"
                 >
-                  <Printer className="w-4 h-4" />
                   Imprimir en Térmica (58 mm)
                 </Button>
 
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="md"
                   onClick={handleCopyHtml}
-                  className="flex items-center gap-1.5"
+                  leftIcon={
+                    copiedCode ? (
+                      <Check className="w-4 h-4 text-emerald-500" />
+                    ) : (
+                      <Copy className="w-4 h-4 text-slate-400" />
+                    )
+                  }
+                  className="shadow-xs"
                 >
-                  {copiedCode ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                   {copiedCode ? '¡Copiado!' : 'Copiar HTML'}
                 </Button>
 
                 <Button
-                  variant="ghost"
+                  variant="secondary"
                   size="md"
                   onClick={loadAllData}
-                  className="flex items-center gap-1.5 text-slate-500"
+                  leftIcon={<RefreshCw className="w-4 h-4 text-slate-400" />}
+                  className="shadow-xs"
                 >
-                  <RefreshCw className="w-4 h-4" />
                   Actualizar Datos
                 </Button>
               </div>
@@ -1021,10 +1027,10 @@ export const ThermalPrintPage: React.FC = () => {
                 <button
                   key={c.id}
                   onClick={() => setSearchCategory(c.id as any)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
                     searchCategory === c.id
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                      ? 'bg-blue-600 text-white border-blue-500 shadow-sm'
+                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
                   {c.label}
@@ -1034,16 +1040,16 @@ export const ThermalPrintPage: React.FC = () => {
           </div>
 
           {/* Tabla de Reimpresión */}
-          <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+          <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-24">Tipo</TableHead>
                   <TableHead className="w-28">Folio / Código</TableHead>
                   <TableHead>Concepto / Detalle</TableHead>
-                  <TableHead className="w-32">Fecha</TableHead>
+                  <TableHead className="w-28">Fecha</TableHead>
                   <TableHead className="w-28 text-right">Monto</TableHead>
-                  <TableHead className="w-64 text-center">Acciones de Impresión</TableHead>
+                  <TableHead className="w-[360px] text-center">Acciones de Impresión</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1100,32 +1106,35 @@ export const ThermalPrintPage: React.FC = () => {
                       </TableCell>
 
                       <TableCell>
-                        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                        <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
                           {it.type === 'ORDER' && (
                             <>
                               <button
                                 type="button"
                                 onClick={() => handleQuickPrint({ ...it, variant: 'TAG' })}
-                                title="Imprimir Marbete Adhesivo con QR de la bicicleta"
-                                className="px-2 py-1 text-[11px] rounded font-medium bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 border border-blue-200 dark:border-blue-900"
+                                title="Imprimir Marbete con Código QR para marco de bicicleta"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-blue-500/15 text-blue-600 dark:text-blue-300 hover:bg-blue-500/25 border border-blue-500/30 transition-colors shadow-xs"
                               >
-                                🏷️ Marbete QR
+                                <QrCode className="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                Marbete QR
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleQuickPrint({ ...it, variant: 'RECEPTION' })}
-                                title="Imprimir Comprobante de Recepción y Custodia"
-                                className="px-2 py-1 text-[11px] rounded font-medium bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-900"
+                                title="Imprimir Comprobante de Recepción y Custodia de Taller"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500/25 border border-indigo-500/30 transition-colors shadow-xs"
                               >
-                                📋 Recepción
+                                <Tag className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
+                                Recepción
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleQuickPrint({ ...it, variant: 'DELIVERY' })}
-                                title="Imprimir Liquidación de Orden OT"
-                                className="px-2 py-1 text-[11px] rounded font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-900"
+                                title="Imprimir Liquidación y Entrega de Orden OT"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30 transition-colors shadow-xs"
                               >
-                                🚲 Entrega OT
+                                <Printer className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
+                                Entrega OT
                               </button>
                             </>
                           )}
@@ -1134,9 +1143,10 @@ export const ThermalPrintPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleQuickPrint(it)}
-                              className="px-2.5 py-1 text-[11px] rounded font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-900 flex items-center gap-1"
+                              title="Imprimir Factura de Venta POS (58 mm)"
+                              className="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30 transition-colors shadow-xs"
                             >
-                              <Printer className="w-3 h-3" />
+                              <Printer className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
                               Imprimir Factura
                             </button>
                           )}
@@ -1145,9 +1155,10 @@ export const ThermalPrintPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleQuickPrint(it)}
-                              className="px-2.5 py-1 text-[11px] rounded font-medium bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-900 flex items-center gap-1"
+                              title="Imprimir Marbete Adhesivo con QR"
+                              className="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-md bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500/25 border border-indigo-500/30 transition-colors shadow-xs"
                             >
-                              <QrCode className="w-3 h-3" />
+                              <QrCode className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
                               Imprimir Marbete QR
                             </button>
                           )}
@@ -1156,9 +1167,10 @@ export const ThermalPrintPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleQuickPrint(it)}
-                              className="px-2.5 py-1 text-[11px] rounded font-medium bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 hover:bg-purple-100 border border-purple-200 dark:border-purple-900 flex items-center gap-1"
+                              title="Imprimir Comprobante de Arqueo de Caja"
+                              className="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-md bg-purple-500/15 text-purple-600 dark:text-purple-300 hover:bg-purple-500/25 border border-purple-500/30 transition-colors shadow-xs"
                             >
-                              <DollarSign className="w-3 h-3" />
+                              <DollarSign className="w-3 h-3 text-purple-500 dark:text-purple-400" />
                               Imprimir Arqueo
                             </button>
                           )}
@@ -1167,9 +1179,9 @@ export const ThermalPrintPage: React.FC = () => {
                             type="button"
                             onClick={() => handleOpenInStudio(it)}
                             title="Abrir en el Estudio para ver vista previa"
-                            className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                            className="inline-flex items-center justify-center p-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-transparent hover:border-slate-700 transition-colors"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </TableCell>
@@ -1368,27 +1380,25 @@ export const ThermalPrintPage: React.FC = () => {
           </Card>
 
           {/* Botones de Acción de Configuración */}
-          <div className="flex items-center justify-between gap-4 pt-2">
-            <Button
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+            <button
               type="button"
-              variant="outline"
-              size="md"
               onClick={() => setResetModalOpen(true)}
-              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-rose-200 flex items-center gap-1.5"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 border border-rose-500/30 hover:border-rose-500/50 transition-all shadow-xs"
             >
               <RotateCcw className="w-4 h-4" />
               Restablecer Valores de Fábrica
-            </Button>
+            </button>
 
-            <div className="flex items-center gap-3">
+            <div className="w-full sm:w-auto flex items-center justify-end gap-3">
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 size="md"
                 onClick={handlePrintTestTicket}
-                className="flex items-center gap-1.5"
+                leftIcon={<Sliders className="w-4 h-4 text-slate-400" />}
+                className="shadow-xs"
               >
-                <Sliders className="w-4 h-4" />
                 Imprimir Test de Calibración
               </Button>
 
@@ -1396,9 +1406,9 @@ export const ThermalPrintPage: React.FC = () => {
                 type="submit"
                 variant="primary"
                 size="md"
-                className="flex items-center gap-1.5 shadow-sm"
+                leftIcon={<Check className="w-4 h-4" />}
+                className="bg-blue-600 hover:bg-blue-700 text-white border-blue-500 shadow-md"
               >
-                <Check className="w-4 h-4" />
                 Guardar Parámetros de Impresión
               </Button>
             </div>
