@@ -13,6 +13,7 @@ import {
 } from '../types/database';
 import { customerService } from './customerService';
 import { workOrderService } from './workOrderService';
+import { sanitizeString } from '../utils/securityUtils';
 
 const LOCAL_STORAGE_BIKES = 'a2ruedas_bicycles_cache';
 const LOCAL_STORAGE_QRS = 'a2ruedas_qrs_cache';
@@ -507,10 +508,10 @@ export const bicycleService = {
           status: wo.status,
           date: wo.created_at,
           entry_mileage_km: wo.entry_mileage_km,
-          reported_issues: wo.reported_issues,
-          technician_notes: wo.internal_notes,
-          services: services.length > 0 ? services : [wo.reported_issues],
-          parts_changed: partsChanged,
+          reported_issues: sanitizeString(wo.reported_issues),
+          technician_notes: null, // Ocultar notas privadas del taller en la vista pública por QR
+          services: services.length > 0 ? services.map(sanitizeString) : [sanitizeString(wo.reported_issues)],
+          parts_changed: partsChanged.map(sanitizeString),
         };
       });
 

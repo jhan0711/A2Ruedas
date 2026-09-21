@@ -3,6 +3,7 @@ import { Bike, Lock, Mail, ArrowRight, ShieldCheck, KeyRound } from 'lucide-reac
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Button, Input, Alert } from '../../components/ui';
+import { isSafeInternalRedirect } from '../../utils/securityUtils';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('admin@a2ruedas.com');
@@ -14,7 +15,8 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/admin';
+  const requestedFrom = (location.state as { from?: { pathname: string } })?.from?.pathname;
+  const from = isSafeInternalRedirect(requestedFrom) ? (requestedFrom as string) : '/admin';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

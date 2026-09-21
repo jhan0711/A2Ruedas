@@ -1,8 +1,8 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 19 — Configuración PWA (Web App Manifest, Service Worker, Instalación en Móviles y Soporte Offline)
+Fase actual: FASE 20 — Auditoría de Seguridad (RLS, Sanitización, Protección de Rutas e Inmutabilidad Financiera)
 Estado: COMPLETADA
-Última actualización: 2026-09-20
+Última actualización: 2026-09-21
 
 ## Fases completadas:
 - [x] FASE 0 — Análisis del Entorno
@@ -25,9 +25,9 @@ Estado: COMPLETADA
 - [x] FASE 17 — Impresión Térmica de 58 mm (Centro de Impresión Térmica, plantillas continuas, marbetes de bicicleta con QR, comprobantes de recepción/custodia, liquidación de órdenes, facturas, arqueos de caja y calibración de hardware)
 - [x] FASE 18 — Catálogo Público de Productos (/productos, sin login)
 - [x] FASE 19 — Configuración PWA (Manifest, Service Worker, Instalación, Offline)
+- [x] FASE 20 — Auditoría de Seguridad (RLS, Sanitización, Protección de Rutas)
 
 ## Fases pendientes:
-- [ ] FASE 20 — Auditoría de Seguridad (RLS, Sanitización, Protección de Rutas)
 - [ ] FASE 21 — QA Completo (Unitarias, Integración, E2E, Responsive)
 - [ ] FASE 22 — Prueba Completa de Negocio Extremo a Extremo
 - [ ] FASE 23 — Pulido de UX/UI Final y Accesibilidad
@@ -250,9 +250,25 @@ Estado: COMPLETADA
   * Paridad de manifest.json para compatibilidad con navegadores legacy: PASS.
   * Presencia de todos los artefactos PWA en el bundle de producción (dist/): PASS.
 - Regresión total de las 19 fases del proyecto (16 suites de prueba): PASS (100%).
+- Auditoría de Seguridad (RLS, Sanitización, Protección de Rutas) (14 pruebas automatizadas): PASS (100%).
+  * Prevención estricta de XSS (Scripts, iframes, atributos onerror/onload y esquemas maliciosos eliminados): PASS.
+  * Mitigación de Open Redirects en flujo de autenticación y navegación (isSafeInternalRedirect): PASS.
+  * Integridad financiera y prevención de cantidades negativas o corruptas en caja y facturación: PASS.
+  * Normalización estricta de telefonía nacional e internacional (+57) y neutralización de caracteres: PASS.
+  * Validación RFC y sanitización de correos electrónicos corporativos: PASS.
+  * Aislamiento alfanumérico en referencias SKU y documentos de identidad (Cédulas/NIT): PASS.
+  * Verificación criptográfica y regex de identificadores QR autorizados (^BIKE-[0-9A-F]{6}$): PASS.
+  * Enmascaramiento de información privada del cliente (PII) para comprobantes públicos: PASS.
+  * Bloqueo de esquemas peligrosos (javascript:, data:, vbscript:) en enlaces web: PASS.
+  * Ausencia determinista de cost_price, min_stock y location en vistas públicas del catálogo: PASS.
+  * Protección y ocultación de notas técnicas privadas y datos personales en el timeline público por QR: PASS.
+  * Integridad de scripts SQL de endurecimiento RLS e inmutabilidad financiera en PostgreSQL: PASS.
+  * Presencia de directivas y meta tags de seguridad HTTP (X-Content-Type-Options, Referrer-Policy) en index.html: PASS.
+  * Garantía de inmutabilidad y prevención de fraude en arqueos y movimientos de cajas cerradas: PASS.
+- Regresión total de las 20 fases del proyecto (17 suites de prueba): PASS (100%).
 
 ## Pruebas pendientes:
-- Pruebas para la Auditoría de Seguridad (RLS, Sanitización, Protección de Rutas) (Fase 20).
+- Pruebas para QA Completo (Unitarias, Integración, E2E, Responsive) (Fase 21).
 
 ## Decisiones técnicas:
 - **Sanitización de Datos Comerciales Sensibles (`sanitizePublicProduct`)**: Para evitar fugas de información estratégica y proteger los márgenes del taller, el servicio público filtra rigurosamente el precio de costo (`cost_price`), el stock mínimo (`min_stock`), la ubicación física en el taller (`location`) y notas privadas antes de servir cualquier dato a la vista pública.
@@ -260,6 +276,9 @@ Estado: COMPLETADA
 - **Service Worker con Estrategia Mixta (Network First + Cache First + Offline Fallback)**: Para la navegación entre vistas del taller y del catálogo público se utiliza *Network First* garantizando que los datos más recientes siempre se descarguen si hay conexión; en caso de fallo de red, se sirve la versión cacheada o la pantalla de contingencia `offline.html`. Para activos estáticos (iconos, fuentes, scripts empaquetados con hash) se emplea *Cache First* con actualización en segundo plano para una carga instantánea.
 - **Instalación Multi-Plataforma con Guía Nativa para iOS Safari**: Debido a que Safari en iOS no soporta el evento nativo `beforeinstallprompt`, el sistema detecta dispositivos Apple y presenta instrucciones visuales con los íconos de "Compartir" -> "Agregar a pantalla de inicio" (+), mientras que en Android y Desktop lanza directamente la solicitud de instalación del navegador.
 - **Gestión Reactiva de Conectividad (`PWAContext`)**: Se implementó una máquina de estados con auto-ocultado de la alerta verde de "Conexión restaurada" y un banner persistente en modo desconectado para tranquilizar al usuario de que la app sigue operable localmente.
+- **Inmutabilidad Financiera por Disparador en PostgreSQL (`tr_cash_movement_immutability`)**: Para prevenir fraudes o alteraciones retroactivas de arqueos en el taller, una vez que una sesión de caja es cerrada (`closed_at IS NOT NULL`), el motor de base de datos rechaza de forma inmutable cualquier inserción, actualización o eliminación de movimientos asociados a dicha caja.
+- **Blindaje Estricto de Roles y Aislamiento de Perfiles (RLS)**: Se restringió la política de `profiles` de forma que los técnicos mecánicos solo pueden actualizar sus propios datos personales de contacto, imposibilitando la auto-promoción no autorizada a rol administrador.
+- **Protección contra Open Redirects (`isSafeInternalRedirect`)**: En el proceso de inicio de sesión (`/login`), se valida que la ruta de retorno sea estrictamente un path interno de la aplicación (comenzando por `/` simple y descartando `//` o caracteres de escape de host), evitando que atacantes redirijan a los usuarios a sitios de phishing externos tras autenticarse.
 
 ## Próximo paso:
-Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 20 — AUDITORÍA DE SEGURIDAD (RLS, Sanitización, Protección de Rutas)**.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 21 — QA COMPLETO (Unitarias, Integración, E2E, Responsive)**.
