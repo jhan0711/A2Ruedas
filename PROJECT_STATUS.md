@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 21 — QA Completo (Runner Maestro Automatizado, Suite E2E de Negocio y Auditoría de Responsividad/A11y)
+Fase actual: FASE 23 — Pulido de UX/UI Final y Accesibilidad
 Estado: COMPLETADA
 Última actualización: 2026-09-21
 
@@ -27,10 +27,10 @@ Estado: COMPLETADA
 - [x] FASE 19 — Configuración PWA (Manifest, Service Worker, Instalación, Offline)
 - [x] FASE 20 — Auditoría de Seguridad (RLS, Sanitización, Protección de Rutas)
 - [x] FASE 21 — QA Completo (Unitarias, Integración, E2E, Responsive)
+- [x] FASE 22 — Prueba Completa de Negocio Extremo a Extremo
+- [x] FASE 23 — Pulido de UX/UI Final y Accesibilidad
 
 ## Fases pendientes:
-- [ ] FASE 22 — Prueba Completa de Negocio Extremo a Extremo
-- [ ] FASE 23 — Pulido de UX/UI Final y Accesibilidad
 - [ ] FASE 24 — Optimización de Performance (Bundle, Renders, Caching)
 - [ ] FASE 25 — Preparación para Despliegue en Producción
 - [ ] FASE 26 — Entrega Final y Manuales de Operación
@@ -296,9 +296,20 @@ Estado: COMPLETADA
   * Suite automatizada de simulación de escenarios de negocio en `tests/businessScenarios.test.mjs` (15 verificaciones exhaustivas): PASS.
   * Consolidación en Runner Maestro (`npm test`): 20 suites automatizadas, 219 verificaciones (100.0% PASS) en 2.78 segundos.
   * Compilación de producción con TypeScript y Vite (`npm run build`): Exit code 0 sin errores.
+- **Pulido de UX/UI Final y Accesibilidad (Fase 23)**: PASS (100%).
+  * Enlace accesible de omisión para teclado `SkipToContent` con revelado dinámico en foco y transferencia de foco a anclajes `#main-content` (AdminLayout) y `#public-content` (PublicLayout): PASS.
+  * Vinculación estricta de atributos ARIA en formularios (`aria-invalid`, `aria-describedby` dinámico y `role="alert"` en mensajes de error de `Input` y `Select`): PASS.
+  * Sistema Global de Notificaciones Accesibles `ToastContext` (`ToastProvider`, `useToast`, `success`, `error`, `warning`, `info`) con regiones vivas `aria-live="polite"` / `assertive` y botón con `aria-label`: PASS.
+  * Componente `Skeleton` de carga progresiva con `aria-hidden="true"` y variantes (`card`, `table-row`, `circular`, `rectangular`, `text`) para mitigación de Cumulative Layout Shift (CLS): PASS.
+  * Micro-interacciones táctiles `active:scale-[0.98]`, anillo de foco visible `focus-visible:ring-2` y soporte `aria-busy` en `Button`: PASS.
+  * Modal accesible con `role="dialog"`, `aria-modal="true"`, `aria-describedby` y foco visible: PASS.
+  * Reglas CSS globales para navegación accesible (`:focus-visible`), respeto riguroso a usuarios con sensibilidad a animaciones (`@media (prefers-reduced-motion: reduce)`) y scrollbars ergonómicos: PASS.
+  * Suite de pruebas automatizadas en `tests/uxA11yPolish.test.mjs` (10/10 checks PASS): PASS.
+  * Consolidación en Runner Maestro (`npm test`): 21 suites ejecutadas, 229 verificaciones unitarias/E2E (100.0% PASS) en 2.87 segundos.
+  * Compilación de producción (`npm run build`): Exit code 0 sin errores.
 
 ## Pruebas pendientes:
-- Pruebas para Pulido de UX/UI Final y Accesibilidad (Fase 23).
+- Pruebas para Optimización de Performance (Bundle, Renders, Caching) (Fase 24).
 
 ## Decisiones técnicas:
 - **Sanitización de Datos Comerciales Sensibles (`sanitizePublicProduct`)**: Para evitar fugas de información estratégica y proteger los márgenes del taller, el servicio público filtra rigurosamente el precio de costo (`cost_price`), el stock mínimo (`min_stock`), la ubicación física en el taller (`location`) y notas privadas antes de servir cualquier dato a la vista pública.
@@ -309,8 +320,9 @@ Estado: COMPLETADA
 - **Inmutabilidad Financiera por Disparador en PostgreSQL (`tr_cash_movement_immutability`)**: Para prevenir fraudes o alteraciones retroactivas de arqueos en el taller, una vez que una sesión de caja es cerrada (`closed_at IS NOT NULL`), el motor de base de datos rechaza de forma inmutable cualquier inserción, actualización o eliminación de movimientos asociados a dicha caja.
 - **Blindaje Estricto de Roles y Aislamiento de Perfiles (RLS)**: Se restringió la política de `profiles` de forma que los técnicos mecánicos solo pueden actualizar sus propios datos personales de contacto, imposibilitando la auto-promoción no autorizada a rol administrador.
 - **Protección contra Open Redirects (`isSafeInternalRedirect`)**: En el proceso de inicio de sesión (`/login`), se valida que la ruta de retorno sea estrictamente un path interno de la aplicación (comenzando por `/` simple y descartando `//` o caracteres de escape de host), evitando que atacantes redirijan a los usuarios a sitios de phishing externos tras autenticarse.
-- **Runner Maestro de QA Multiplataforma (`tests/qaRunner.mjs`)**: Orquestador centralizado de pruebas que descubre dinámicamente las 20 suites de prueba, mide tiempos en milisegundos, extrae aserciones individuales y presenta un tablero de métricas formateado con colores ANSI en terminal, integrable nativamente con `npm test` en cualquier entorno (Windows, Linux, CI/CD).
+- **Runner Maestro de QA Multiplataforma (`tests/qaRunner.mjs`)**: Orquestador centralizado de pruebas que descubre dinámicamente las 21 suites de prueba, mide tiempos en milisegundos, extrae aserciones individuales y presenta un tablero de métricas formateado con colores ANSI en terminal, integrable nativamente con `npm test` en cualquier entorno (Windows, Linux, CI/CD).
 - **Recorrido Interactivo de Procesos del Negocio (`BusinessFlowTourModal`)**: Módulo guiado paso a paso en el Dashboard principal que permite a dueños y mecánicos consultar en cualquier momento la secuencia operativa exacta de las 5 jornadas del taller, con accesos directos a cada módulo, consejos prácticos para evitar pérdidas de inventario o descuadres de caja y diseño modal accesible.
+- **Accesibilidad Universal y Pautas WCAG 2.1 Nivel AA**: Incorporación de enlaces de omisión (`SkipToContent`) para usuarios de teclado, atributos `aria-invalid` y `aria-describedby` en formularios para lectores de pantalla, indicadores de foco de alto contraste `:focus-visible`, anulación de animaciones disruptivas vía `@media (prefers-reduced-motion: reduce)`, prevención de salto acumulativo de diseño (CLS) mediante componentes esqueleto (`Skeleton`) y notificaciones flotantes con regiones vivas `aria-live`.
 
 ## Próximo paso:
-Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 23 — PULIDO DE UX/UI FINAL Y ACCESIBILIDAD**.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 24 — OPTIMIZACIÓN DE PERFORMANCE (BUNDLE, RENDERS, CACHING)**.

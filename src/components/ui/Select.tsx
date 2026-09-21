@@ -15,7 +15,11 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, error, helperText, options, children, className = '', id, disabled, ...props }, ref) => {
-    const selectId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+    const reactId = React.useId();
+    const selectId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : `select-${reactId}`);
+    const errorId = `${selectId}-error`;
+    const helperId = `${selectId}-helper`;
+    const describedBy = error ? errorId : helperText ? helperId : undefined;
 
     return (
       <div className="w-full space-y-1 text-left">
@@ -33,6 +37,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             id={selectId}
             disabled={disabled}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy}
             className={`block w-full text-xs rounded-md border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800 pl-3 pr-8 py-1.5 appearance-none ${
               error
                 ? 'border-red-500 focus:ring-red-500'
@@ -55,9 +61,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         </div>
 
         {error ? (
-          <p className="text-[11px] text-red-600 dark:text-red-400 font-medium">{error}</p>
+          <p id={errorId} role="alert" className="text-[11px] text-red-600 dark:text-red-400 font-medium">{error}</p>
         ) : helperText ? (
-          <p className="text-[11px] text-slate-500 dark:text-slate-400">{helperText}</p>
+          <p id={helperId} className="text-[11px] text-slate-500 dark:text-slate-400">{helperText}</p>
         ) : null}
       </div>
     );

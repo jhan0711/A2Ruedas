@@ -27,7 +27,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     },
     ref,
   ) => {
-    const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+    const reactId = React.useId();
+    const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : `input-${reactId}`);
+    const errorId = `${inputId}-error`;
+    const helperId = `${inputId}-helper`;
+    const describedBy = error ? errorId : helperText ? helperId : undefined;
 
     return (
       <div className="w-full space-y-1 text-left">
@@ -57,6 +61,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             disabled={disabled}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy}
             className={`block w-full text-xs rounded-md border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800 ${
               prefixText ? 'rounded-l-none' : ''
             } ${leftIcon ? 'pl-8' : 'pl-3'} ${rightElement ? 'pr-9' : 'pr-3'} py-1.5 ${
@@ -75,9 +81,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         </div>
 
         {error ? (
-          <p className="text-[11px] text-red-600 dark:text-red-400 font-medium">{error}</p>
+          <p id={errorId} role="alert" className="text-[11px] text-red-600 dark:text-red-400 font-medium">{error}</p>
         ) : helperText ? (
-          <p className="text-[11px] text-slate-500 dark:text-slate-400">{helperText}</p>
+          <p id={helperId} className="text-[11px] text-slate-500 dark:text-slate-400">{helperText}</p>
         ) : null}
       </div>
     );

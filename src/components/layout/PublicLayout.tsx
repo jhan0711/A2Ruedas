@@ -3,6 +3,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Bike, Sun, Moon, MapPin, Clock, MessageCircle, Download } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { usePWA } from '../../context/PWAContext';
+import { SkipToContent } from '../ui';
 
 export const PublicLayout: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -11,6 +12,7 @@ export const PublicLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
+      <SkipToContent targetId="public-content" label="Saltar al contenido principal" />
       {/* Barra superior informativa */}
       <div className="bg-slate-900 text-slate-300 text-[11px] py-1.5 px-4 border-b border-slate-800">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2">
@@ -116,7 +118,7 @@ export const PublicLayout: React.FC = () => {
       </header>
 
       {/* Contenido público */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 lg:p-8">
+      <main id="public-content" tabIndex={-1} className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 lg:p-8 outline-none focus:outline-none">
         <Outlet />
       </main>
 
