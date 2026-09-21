@@ -18,18 +18,26 @@
   font-feature-settings: "tnum" on, "zero" on;
 }
 
-/* Estilos de impresión térmica de 58 mm (384 px a 203 DPI) */
+/* Estilos de impresión calibrados (Térmica 58 mm y Factura Carta/A4) */
 @media print {
   @page {
-    size: 58mm auto;
-    margin: 0;
+    margin: 8mm;
   }
 
-  body {
+  /* Desactivar recortes de modales y scrollbars en impresión */
+  html, body {
     background: #ffffff !important;
     color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  div, section, main, article {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
   }
 
   body * {
@@ -37,23 +45,33 @@
   }
 
   #printable-thermal-ticket,
-  #printable-thermal-ticket * {
+  #printable-thermal-ticket *,
+  #printable-formal-sheet,
+  #printable-formal-sheet * {
     visibility: visible;
   }
 
   #printable-thermal-ticket {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 48mm !important;
-    max-width: 48mm !important;
-    margin: 0 !important;
-    padding: 2mm !important;
+    position: relative !important;
+    margin: 0 auto !important;
+    width: 52mm !important;
+    max-width: 52mm !important;
     font-size: 10px !important;
-    line-height: 1.25 !important;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
     color: #000000 !important;
     background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  #printable-formal-sheet {
+    position: relative !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
   }
 
   .no-print {
