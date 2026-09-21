@@ -286,9 +286,19 @@ Estado: COMPLETADA
   * Regiones vivas no disruptivas (aria-live="polite") para notificaciones PWA en segundo plano: PASS.
   * Ejecución consolidada del Runner Maestro (19 suites, 204 verificaciones en <3 segundos): PASS.
 - Regresión global de las 21 fases del proyecto (19 suites de prueba en `tests/`): PASS (100%).
+- **Prueba Completa de Negocio Extremo a Extremo (Fase 22)**: PASS (100%).
+  * Modal interactivo "Guía de Flujos Reales del Taller" (`src/components/admin/BusinessFlowTourModal.tsx`) con selector de 5 jornadas operativas integradas en el Dashboard.
+  * Jornada 1 (Recepción y Marbete QR): Recepción técnica con mapeo de daños, accesorios y marbete adhesivo con QR 58 mm: PASS.
+  * Jornada 2 (Diagnóstico y Cotización): Diagnóstico, cotización interactiva, mano de obra + repuestos y presupuesto a WhatsApp (+57): PASS.
+  * Jornada 3 (Taller y Kardex): Flujo de taller a través de 6 estados secuenciales y descuento automático en Kardex: PASS.
+  * Jornada 4 (POS y Facturación): Facturación rápida de mostrador, tirilla térmica POS 58 mm y cobro con medios digitales (Nequi/Daviplata/Efectivo): PASS.
+  * Jornada 5 (Arqueo y Cierre): Arqueo diario de caja, cuadre de billetes colombianos y tirilla de cierre contable: PASS.
+  * Suite automatizada de simulación de escenarios de negocio en `tests/businessScenarios.test.mjs` (15 verificaciones exhaustivas): PASS.
+  * Consolidación en Runner Maestro (`npm test`): 20 suites automatizadas, 219 verificaciones (100.0% PASS) en 2.78 segundos.
+  * Compilación de producción con TypeScript y Vite (`npm run build`): Exit code 0 sin errores.
 
 ## Pruebas pendientes:
-- Pruebas para la Prueba Completa de Negocio Extremo a Extremo en Producción (Fase 22).
+- Pruebas para Pulido de UX/UI Final y Accesibilidad (Fase 23).
 
 ## Decisiones técnicas:
 - **Sanitización de Datos Comerciales Sensibles (`sanitizePublicProduct`)**: Para evitar fugas de información estratégica y proteger los márgenes del taller, el servicio público filtra rigurosamente el precio de costo (`cost_price`), el stock mínimo (`min_stock`), la ubicación física en el taller (`location`) y notas privadas antes de servir cualquier dato a la vista pública.
@@ -299,7 +309,8 @@ Estado: COMPLETADA
 - **Inmutabilidad Financiera por Disparador en PostgreSQL (`tr_cash_movement_immutability`)**: Para prevenir fraudes o alteraciones retroactivas de arqueos en el taller, una vez que una sesión de caja es cerrada (`closed_at IS NOT NULL`), el motor de base de datos rechaza de forma inmutable cualquier inserción, actualización o eliminación de movimientos asociados a dicha caja.
 - **Blindaje Estricto de Roles y Aislamiento de Perfiles (RLS)**: Se restringió la política de `profiles` de forma que los técnicos mecánicos solo pueden actualizar sus propios datos personales de contacto, imposibilitando la auto-promoción no autorizada a rol administrador.
 - **Protección contra Open Redirects (`isSafeInternalRedirect`)**: En el proceso de inicio de sesión (`/login`), se valida que la ruta de retorno sea estrictamente un path interno de la aplicación (comenzando por `/` simple y descartando `//` o caracteres de escape de host), evitando que atacantes redirijan a los usuarios a sitios de phishing externos tras autenticarse.
-- **Runner Maestro de QA Multiplataforma (`tests/qaRunner.mjs`)**: Orquestador centralizado de pruebas que descubre dinámicamente las 19 suites de prueba, mide tiempos en milisegundos, extrae aserciones individuales y presenta un tablero de métricas formateado con colores ANSI en terminal, integrable nativamente con `npm test` en cualquier entorno (Windows, Linux, CI/CD).
+- **Runner Maestro de QA Multiplataforma (`tests/qaRunner.mjs`)**: Orquestador centralizado de pruebas que descubre dinámicamente las 20 suites de prueba, mide tiempos en milisegundos, extrae aserciones individuales y presenta un tablero de métricas formateado con colores ANSI en terminal, integrable nativamente con `npm test` en cualquier entorno (Windows, Linux, CI/CD).
+- **Recorrido Interactivo de Procesos del Negocio (`BusinessFlowTourModal`)**: Módulo guiado paso a paso en el Dashboard principal que permite a dueños y mecánicos consultar en cualquier momento la secuencia operativa exacta de las 5 jornadas del taller, con accesos directos a cada módulo, consejos prácticos para evitar pérdidas de inventario o descuadres de caja y diseño modal accesible.
 
 ## Próximo paso:
-Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 22 — PRUEBA COMPLETA DE NEGOCIO EXTREMO A EXTREMO**.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 23 — PULIDO DE UX/UI FINAL Y ACCESIBILIDAD**.

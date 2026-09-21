@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Bike,
   Calendar,
@@ -11,8 +11,10 @@ import {
   QrCode,
   ArrowRight,
   CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { BusinessFlowTourModal } from '../../components/admin/BusinessFlowTourModal';
 import {
   Button,
   Badge,
@@ -29,6 +31,8 @@ import {
 } from '../../components/ui';
 
 export const DashboardPage: React.FC = () => {
+  const [tourOpen, setTourOpen] = useState(false);
+
   return (
     <div className="space-y-6">
       {/* Encabezado y acciones rápidas */}
@@ -43,6 +47,16 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setTourOpen(true)}
+            leftIcon={<Sparkles className="w-3.5 h-3.5 text-amber-500" />}
+            className="border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40"
+            title="Abrir la guía paso a paso de las 5 jornadas reales del taller"
+          >
+            Guía de Flujos del Taller
+          </Button>
           <Link to="/admin/ordenes/nueva">
             <Button size="sm" leftIcon={<PlusCircle className="w-3.5 h-3.5" />}>
               Ingresar Bicicleta (OT)
@@ -55,6 +69,8 @@ export const DashboardPage: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      <BusinessFlowTourModal isOpen={tourOpen} onClose={() => setTourOpen(false)} />
 
       {/* Grid de 8 Indicadores Clave (KPIs) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
