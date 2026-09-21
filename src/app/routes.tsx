@@ -13,6 +13,7 @@ import { BicyclesPage } from '../pages/admin/BicyclesPage';
 import { InventoryPage } from '../pages/admin/InventoryPage';
 import { ProductsAdminPage } from '../pages/admin/ProductsAdminPage';
 import { WorkOrdersPage } from '../pages/admin/WorkOrdersPage';
+import { ReceptionPage } from '../pages/admin/ReceptionPage';
 import { ModulePlaceholder } from '../pages/admin/ModulePlaceholder';
 
 export const router = createBrowserRouter([
@@ -63,13 +64,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'ordenes/nueva',
-            element: (
-              <ModulePlaceholder
-                title="Recepción de Bicicleta y Firma Digital"
-                phase="Fase 10"
-                description="Formulario de ingreso, registro de daños y firma del cliente en pantalla."
-              />
-            ),
+            element: <ReceptionPage />,
           },
           {
             path: 'inventario',

@@ -145,8 +145,8 @@ export interface WorkOrder {
 
 export type WorkOrderInsert = Omit<
   WorkOrder,
-  'id' | 'created_at' | 'updated_at' | 'customer' | 'bicycle' | 'items'
->;
+  'id' | 'order_number' | 'created_at' | 'updated_at' | 'customer' | 'bicycle' | 'items'
+> & { order_number?: string };
 export type WorkOrderUpdate = Partial<WorkOrderInsert>;
 
 // 9. Items de la Orden de Trabajo

@@ -1,5 +1,7 @@
-import { Printer, QrCode } from 'lucide-react';
-import { WorkOrder } from '../../types/database';
+import React, { useState, useEffect } from 'react';
+import { Printer, QrCode, PenTool } from 'lucide-react';
+import { WorkOrder, Signature } from '../../types/database';
+import { workOrderService } from '../../services/workOrderService';
 import { Button, Modal } from '../ui';
 
 interface WorkOrderTicketModalProps {
@@ -13,6 +15,27 @@ export const WorkOrderTicketModal: React.FC<WorkOrderTicketModalProps> = ({
   onClose,
   order,
 }) => {
+  const [signature, setSignature] = useState<Signature | null>(null);
+
+  useEffect(() => {
+    if (!order || !isOpen) {
+      setSignature(null);
+      return;
+    }
+
+    const loadSignatures = async () => {
+      try {
+        const sigs = await workOrderService.getSignatures(order.id);
+        const receptionSig = sigs.find((s) => s.signature_type === 'reception') || sigs[0] || null;
+        setSignature(receptionSig);
+      } catch (err) {
+        console.warn('Error al cargar firma para ticket:', err);
+      }
+    };
+
+    loadSignatures();
+  }, [order, isOpen]);
+
   if (!order) return null;
 
   const handlePrint = () => {
@@ -184,10 +207,37 @@ export const WorkOrderTicketModal: React.FC<WorkOrderTicketModalProps> = ({
             </div>
 
             {/* Espacio para firma */}
-            <div className="pt-6 pb-2 text-center">
-              <div className="border-t border-slate-400 w-44 mx-auto pt-1 text-[9px] text-slate-600">
-                Firma Conforme del Cliente
-              </div>
+            <div className="pt-3 pb-2 text-center">
+              {signature?.signature_data ? (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-center gap-1 text-[9px] text-blue-700 font-semibold">
+                    <PenTool className="w-2.5 h-2.5" />
+                    <span>FIRMA DIGITAL REGISTRADA</span>
+                  </div>
+                  <div className="py-1">
+                    <img
+                      src={signature.signature_data}
+                      alt="Firma Digital"
+                      className="h-14 max-w-[200px] mx-auto object-contain bg-white"
+                    />
+                  </div>
+                  <div className="border-t border-slate-400 w-48 mx-auto pt-0.5 text-[9px] text-slate-800">
+                    <div className="font-bold">{signature.signer_name}</div>
+                    {signature.signer_doc && (
+                      <div className="text-[8px] text-slate-600">Doc: {signature.signer_doc}</div>
+                    )}
+                    <div className="text-[7px] text-slate-400">
+                      Fecha: {new Date(signature.signed_at).toLocaleString('es-CO')}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="pt-6">
+                  <div className="border-t border-slate-400 w-44 mx-auto pt-1 text-[9px] text-slate-600">
+                    Firma Conforme del Cliente
+                  </div>
+                </div>
+              )}
             </div>
 
             <p className="text-[9px] text-slate-400 uppercase tracking-widest pt-1">

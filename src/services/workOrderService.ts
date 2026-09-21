@@ -490,4 +490,24 @@ export const workOrderService = {
 
     return signature;
   },
+
+  async getSignatures(workOrderId: string): Promise<Signature[]> {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from('signatures')
+          .select('*')
+          .eq('work_order_id', workOrderId)
+          .order('signed_at', { ascending: false });
+        if (!error && data) return data;
+      } catch (err) {
+        console.warn('Error al consultar firmas en Supabase:', err);
+      }
+    }
+
+    const signatures: Signature[] = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_SIGNATURES) || '[]'
+    );
+    return signatures.filter((s) => s.work_order_id === workOrderId);
+  },
 };

@@ -15,9 +15,9 @@ Estado: COMPLETADA
 - [x] FASE 7 — Módulo de Bicicletas (Registro, serial, fotos de inspección, QR)
 - [x] FASE 8 — Módulo de Inventario (Productos, stock, Kardex, alertas)
 - [x] FASE 9 — Módulo de Órdenes de Trabajo (OT-000001, estados, repuestos)
+- [x] FASE 10 — Recepción de Bicicleta + Firma Digital Táctil
 
 ## Fases pendientes:
-- [ ] FASE 10 — Recepción de Bicicleta + Firma Digital Táctil
 - [ ] FASE 11 — Agenda y Calendario de Mantenimientos
 - [ ] FASE 12 — Historial Completo y Timeline de Bicicleta
 - [ ] FASE 13 — Módulo de Códigos QR (Generación, descarga, escaneo por cámara)
@@ -98,31 +98,32 @@ Estado: COMPLETADA
   * Suite de pruebas automatizadas en `tests/workOrders.test.mjs`.
 
 ## Funcionalidades pendientes:
-- Recepción de Bicicleta + Firma Digital Táctil en pantalla (Fase 10).
 - Agenda y Calendario de Mantenimientos (Fase 11).
+- Historial Completo y Timeline de Bicicleta (Fase 12).
 
 ## Errores conocidos:
 - Ninguno. Compilación limpia y pruebas ejecutadas exitosamente al 100%.
 
 ## Pruebas ejecutadas:
 - Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (0 errores).
-- Validación de formato correlativo de OT (`^OT-\d{6}$`): PASS.
-- Secuencia correlativa automática a partir de lista o vacío: PASS.
-- Soporte para el ciclo completo de 9 estados del taller: PASS.
-- Consistencia del balance financiero ($Labor + Parts - Discount = Total$): PASS.
-- Descuento automático en Kardex al agregar repuestos: PASS.
-- Auditoría de movimiento de salida vinculado a la OT: PASS.
-- Plantillas de WhatsApp contextuales para estados `LISTA` y `PRESUPUESTO`: PASS.
+- Validación de formato Base64 PNG para firma digital táctil: PASS.
+- Registro de firma de recepción con metadatos inmutables (tipo, firmante, cédula, fecha): PASS.
+- Detección anatómica en diagrama SVG interactivo de bicicleta (5 zonas clave): PASS.
+- Serialización inmutable de daños preexistentes para protección legal del taller: PASS.
+- Consolidación de inventario de accesorios en custodia del cliente: PASS.
+- Simulación completa de flujo de recepción y emisión de orden OT con estado `RECIBIDA`: PASS.
+- Integración de firma digital y accesorios en comprobante térmico POS 58 mm: PASS.
 
 ## Pruebas pendientes:
-- Pruebas E2E de firma digital en canvas táctil (Fase 10).
+- Pruebas E2E de calendario y asignación de mecánicos (Fase 11).
 
 ## Decisiones técnicas:
-- **Correlativo Inquebrantable**: El número de orden se determina evaluando el número correlativo más alto registrado y formateándolo con 6 dígitos (`OT-000001`), evitando duplicados.
-- **Sincronización Transaccional Taller-Almacén**: La selección de piezas en una orden de trabajo descuenta de inmediato el stock físico en el almacén para evitar ventas cruzadas de repuestos comprometidos.
+- **Lienzo Táctil HTML5 Canvas**: Se implementó manejo explícito de `touchstart`, `touchmove`, `touchend` con `touch-action: none` y compensación de `devicePixelRatio` para evitar el desplazamiento de la página y garantizar trazos hipernítidos en pantallas móviles y tablets.
+- **Diagrama Anatómico Vectorial**: La inspección visual sitúa los marcadores en porcentajes relativos $(x\%, y\%)$ sobre una silueta SVG técnica, lo cual permite un renderizado responsivo perfecto en cualquier resolución de pantalla y serializa los daños en la auditoría interna.
+- **Comprobante Térmico con Firma**: La tirilla de 58 mm consume directamente la firma digital en Base64 para imprimir el comprobante con la rúbrica del cliente ya incrustada.
 
 ## Próximo paso:
-Iniciar **FASE 10 — RECEPCIÓN DE BICICLETA Y FIRMA DIGITAL**: Formulario especializado de recepción con diagrama de daños / inspección inicial visual y lienzo interactivo de firma digital táctil del cliente en pantalla.
+Iniciar **FASE 11 — AGENDA Y CALENDARIO DE MANTENIMIENTOS**: Vista de calendario interactivo para agendar turnos de servicio técnico, capacidad diaria del taller, asignación de mecánicos y reprogramación de citas.
 
 
 

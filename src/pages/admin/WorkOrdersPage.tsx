@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Wrench,
   Search,
@@ -12,6 +13,8 @@ import {
   X,
   History,
   Printer,
+  ClipboardCheck,
+  PenTool,
 } from 'lucide-react';
 import { WorkOrderTicketModal } from '../../components/receipts/WorkOrderTicketModal';
 import { workOrderService } from '../../services/workOrderService';
@@ -26,6 +29,7 @@ import {
   Customer,
   Bicycle,
   Product,
+  Signature,
 } from '../../types/database';
 import { WorkOrderStatus } from '../../types';
 import {
@@ -103,6 +107,7 @@ export const WorkOrdersPage: React.FC = () => {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailOrder, setDetailOrder] = useState<WorkOrder | null>(null);
   const [orderHistory, setOrderHistory] = useState<WorkOrderStatusHistory[]>([]);
+  const [orderSignatures, setOrderSignatures] = useState<Signature[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   // Modal Eliminar Orden
@@ -291,10 +296,14 @@ export const WorkOrdersPage: React.FC = () => {
     setDetailModalOpen(true);
     setIsLoadingHistory(true);
     try {
-      const history = await workOrderService.getOrderHistory(order.id);
+      const [history, sigs] = await Promise.all([
+        workOrderService.getOrderHistory(order.id),
+        workOrderService.getSignatures(order.id),
+      ]);
       setOrderHistory(history);
+      setOrderSignatures(sigs);
     } catch (err) {
-      console.error('Error al cargar historial de OT:', err);
+      console.error('Error al cargar historial o firmas de OT:', err);
     } finally {
       setIsLoadingHistory(false);
     }
@@ -383,9 +392,16 @@ export const WorkOrdersPage: React.FC = () => {
           </p>
         </div>
 
-        <Button size="sm" onClick={openCreateModal} leftIcon={<Plus className="w-3.5 h-3.5" />}>
-          Nueva Orden de Trabajo
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link to="/admin/ordenes/nueva">
+            <Button size="sm" variant="primary" leftIcon={<ClipboardCheck className="w-3.5 h-3.5" />}>
+              Recepción con Firma Digital
+            </Button>
+          </Link>
+          <Button size="sm" variant="outline" onClick={openCreateModal} leftIcon={<Plus className="w-3.5 h-3.5" />}>
+            Orden Rápida
+          </Button>
+        </div>
       </div>
 
       {/* Alerta de feedback */}
@@ -1003,6 +1019,28 @@ export const WorkOrdersPage: React.FC = () => {
               <p className="text-slate-800 dark:text-slate-200">{detailOrder.reported_issues}</p>
             </div>
 
+            {/* Accesorios y Custodia */}
+            {detailOrder.accessories_received && (
+              <div className="p-3 rounded-md bg-blue-50/40 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 space-y-1 text-xs">
+                <span className="font-bold text-blue-900 dark:text-blue-300 uppercase text-[10px] block">
+                  ACCESORIOS RECIBIDOS EN CUSTODIA:
+                </span>
+                <p className="text-slate-800 dark:text-slate-200">{detailOrder.accessories_received}</p>
+              </div>
+            )}
+
+            {/* Notas Técnicas / Inspección de Daños Previos */}
+            {detailOrder.internal_notes && (
+              <div className="p-3 rounded-md bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1 text-xs">
+                <span className="font-bold text-slate-700 dark:text-slate-300 uppercase text-[10px] block">
+                  INSPECCIÓN TÉCNICA Y DAÑOS PREVIOS REGISTRADOS:
+                </span>
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-mono text-[11px]">
+                  {detailOrder.internal_notes}
+                </p>
+              </div>
+            )}
+
             {/* Desglose de Ítems */}
             <div className="space-y-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5">
@@ -1053,6 +1091,50 @@ export const WorkOrdersPage: React.FC = () => {
                 </span>
               </div>
             </div>
+
+            {/* Firmas Digitales Registradas */}
+            {orderSignatures.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <PenTool className="w-3.5 h-3.5 text-blue-600" />
+                  Firmas Digitales de Conformidad ({orderSignatures.length})
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {orderSignatures.map((sig) => (
+                    <div
+                      key={sig.id}
+                      className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2 text-xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">
+                          {sig.signature_type === 'reception'
+                            ? 'Firma de Recepción (Ingreso)'
+                            : 'Firma de Entrega (Retiro)'}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          {new Date(sig.signed_at).toLocaleString('es-CO')}
+                        </span>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-950 p-2 rounded border border-slate-200 dark:border-slate-800 flex justify-center">
+                        <img
+                          src={sig.signature_data}
+                          alt={`Firma de ${sig.signer_name}`}
+                          className="h-16 object-contain"
+                        />
+                      </div>
+                      <div className="text-[11px] text-slate-700 dark:text-slate-300">
+                        <strong>Firmante:</strong> {sig.signer_name}
+                        {sig.signer_doc && (
+                          <span className="text-slate-500 font-mono ml-1">
+                            (Doc: {sig.signer_doc})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Historial de Auditoría de Estados */}
             <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
