@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 20 — Auditoría de Seguridad (RLS, Sanitización, Protección de Rutas e Inmutabilidad Financiera)
+Fase actual: FASE 21 — QA Completo (Runner Maestro Automatizado, Suite E2E de Negocio y Auditoría de Responsividad/A11y)
 Estado: COMPLETADA
 Última actualización: 2026-09-21
 
@@ -26,9 +26,9 @@ Estado: COMPLETADA
 - [x] FASE 18 — Catálogo Público de Productos (/productos, sin login)
 - [x] FASE 19 — Configuración PWA (Manifest, Service Worker, Instalación, Offline)
 - [x] FASE 20 — Auditoría de Seguridad (RLS, Sanitización, Protección de Rutas)
+- [x] FASE 21 — QA Completo (Unitarias, Integración, E2E, Responsive)
 
 ## Fases pendientes:
-- [ ] FASE 21 — QA Completo (Unitarias, Integración, E2E, Responsive)
 - [ ] FASE 22 — Prueba Completa de Negocio Extremo a Extremo
 - [ ] FASE 23 — Pulido de UX/UI Final y Accesibilidad
 - [ ] FASE 24 — Optimización de Performance (Bundle, Renders, Caching)
@@ -266,9 +266,29 @@ Estado: COMPLETADA
   * Presencia de directivas y meta tags de seguridad HTTP (X-Content-Type-Options, Referrer-Policy) en index.html: PASS.
   * Garantía de inmutabilidad y prevención de fraude en arqueos y movimientos de cajas cerradas: PASS.
 - Regresión total de las 20 fases del proyecto (17 suites de prueba): PASS (100%).
+- QA Completo (Runner Maestro, Suite E2E de Negocio y Auditoría de Responsividad/A11y) (18 pruebas automatizadas adicionales): PASS (100%).
+  * Simulación de ciclo de vida completo de cliente y bicicleta desde recepción hasta retiro conforme: PASS.
+  * Asignación y vinculación criptográfica de código QR oficial en flujo de recepción: PASS.
+  * Mapeo inmutable de daños preexistentes, accesorios en custodia y firma digital táctil: PASS.
+  * Evolución de orden de trabajo OT-000001 a través de sus 6 estados operacionales sin saltos: PASS.
+  * Descuento atómico de existencias en Kardex con trazabilidad contable de repuestos instalados: PASS.
+  * Emisión de factura correlativa FAC-000001 y sincronización transaccional de cobro en Caja: PASS.
+  * Comprobante físico térmico de 58 mm con términos contractuales y cláusula de garantía de 30 días: PASS.
+  * Notificación automática de retiro por WhatsApp formateada con indicativo de país (+57): PASS.
+  * Verificación del timeline certificado por QR preservando la privacidad del propietario: PASS.
+  * Meta tag de Viewport optimizado para teléfonos móviles en index.html: PASS.
+  * Cálculo matemático de ratios de contraste cromático superiores a 4.5:1 (WCAG AA): PASS.
+  * Dimensiones táctiles mínimas para botones móviles (>= 44x44 px): PASS.
+  * Estructura semántica de ventanas modales con ARIA roles y captura de tecla Escape: PASS.
+  * Etiquetas accesibles aria-label en botones de solo icono para lectores de pantalla: PASS.
+  * Jerarquía HTML semántica estricta (<header>, <nav>, <main>, <footer>): PASS.
+  * Adaptabilidad responsiva escalonada (1 columna móvil, 2 columnas tablet, 3 columnas desktop): PASS.
+  * Regiones vivas no disruptivas (aria-live="polite") para notificaciones PWA en segundo plano: PASS.
+  * Ejecución consolidada del Runner Maestro (19 suites, 204 verificaciones en <3 segundos): PASS.
+- Regresión global de las 21 fases del proyecto (19 suites de prueba en `tests/`): PASS (100%).
 
 ## Pruebas pendientes:
-- Pruebas para QA Completo (Unitarias, Integración, E2E, Responsive) (Fase 21).
+- Pruebas para la Prueba Completa de Negocio Extremo a Extremo en Producción (Fase 22).
 
 ## Decisiones técnicas:
 - **Sanitización de Datos Comerciales Sensibles (`sanitizePublicProduct`)**: Para evitar fugas de información estratégica y proteger los márgenes del taller, el servicio público filtra rigurosamente el precio de costo (`cost_price`), el stock mínimo (`min_stock`), la ubicación física en el taller (`location`) y notas privadas antes de servir cualquier dato a la vista pública.
@@ -279,6 +299,7 @@ Estado: COMPLETADA
 - **Inmutabilidad Financiera por Disparador en PostgreSQL (`tr_cash_movement_immutability`)**: Para prevenir fraudes o alteraciones retroactivas de arqueos en el taller, una vez que una sesión de caja es cerrada (`closed_at IS NOT NULL`), el motor de base de datos rechaza de forma inmutable cualquier inserción, actualización o eliminación de movimientos asociados a dicha caja.
 - **Blindaje Estricto de Roles y Aislamiento de Perfiles (RLS)**: Se restringió la política de `profiles` de forma que los técnicos mecánicos solo pueden actualizar sus propios datos personales de contacto, imposibilitando la auto-promoción no autorizada a rol administrador.
 - **Protección contra Open Redirects (`isSafeInternalRedirect`)**: En el proceso de inicio de sesión (`/login`), se valida que la ruta de retorno sea estrictamente un path interno de la aplicación (comenzando por `/` simple y descartando `//` o caracteres de escape de host), evitando que atacantes redirijan a los usuarios a sitios de phishing externos tras autenticarse.
+- **Runner Maestro de QA Multiplataforma (`tests/qaRunner.mjs`)**: Orquestador centralizado de pruebas que descubre dinámicamente las 19 suites de prueba, mide tiempos en milisegundos, extrae aserciones individuales y presenta un tablero de métricas formateado con colores ANSI en terminal, integrable nativamente con `npm test` en cualquier entorno (Windows, Linux, CI/CD).
 
 ## Próximo paso:
-Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 21 — QA COMPLETO (Unitarias, Integración, E2E, Responsive)**.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 22 — PRUEBA COMPLETA DE NEGOCIO EXTREMO A EXTREMO**.
