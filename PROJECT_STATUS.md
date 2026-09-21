@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 13 — Módulo de Códigos QR y Etiquetas Adhesivas
+Fase actual: FASE 14 — Módulo de Comunicación por WhatsApp (Deep links dinámicos, plantillas y trazabilidad)
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -19,9 +19,9 @@ Estado: COMPLETADA
 - [x] FASE 11 — Agenda y Calendario de Mantenimientos
 - [x] FASE 12 — Historial Completo y Timeline de Bicicleta
 - [x] FASE 13 — Módulo de Códigos QR (Generación, descarga, escaneo por cámara)
+- [x] FASE 14 — Módulo de Comunicación por WhatsApp (Deep links dinámicos, plantillas automáticas y bitácora)
 
 ## Fases pendientes:
-- [ ] FASE 14 — Módulo de Comunicación por WhatsApp (Deep links dinámicos)
 - [ ] FASE 15 — Módulo de Flujo de Caja (Apertura, ingresos, egresos, cierre)
 - [ ] FASE 16 — Facturación y Recibos Internos
 - [ ] FASE 17 — Impresión Térmica de 58 mm (Órdenes y Facturas)
@@ -142,32 +142,42 @@ Estado: COMPLETADA
   * Botón global "Escanear QR" en la cabecera `Header.tsx` para acceso instantáneo desde cualquier pantalla del panel.
   * Botón de escaneo express en el Paso 1 de Recepción de Bicicleta (`ReceptionPage.tsx`) que autocompleta el cliente y la bicicleta en 1 clic.
   * Suite de pruebas automatizadas en `tests/qrCodes.test.mjs` (19 pruebas con 100% PASS).
+- **Módulo de Comunicación por WhatsApp (Fase 14)**:
+  * Catálogo maestro de 10 plantillas oficiales de taller (`ORDEN_RECIBIDA`, `PRESUPUESTO_LISTO`, `ESPERANDO_REPUESTO`, `BICICLETA_LISTA`, `ENTREGA_AGRADECIMIENTO`, `CONFIRMACION_CITA`, `RECORDATORIO_CITA`, `ALERTA_KILOMETRAJE`, `HISTORIAL_QR`, `PERSONALIZADO`).
+  * Motor de interpolación inteligente con variables dinámicas (`{CLIENTE}`, `{BICICLETA}`, `{ORDEN}`, `{TOTAL}`, `{SALDO}`, `{FECHA}`, `{HORA}`, `{MECANICO}`, `{ENLACE_QR}`, `{KILOMETRAJE}`).
+  * Normalizador automático de números móviles colombianos a formato internacional (`573...`).
+  * Construcción de Deep Links estándar `https://wa.me/57...` con codificación segura de caracteres especiales, saltos de línea y emojis.
+  * Modal interactivo `WhatsAppComposeModal` con simulador fotorrealista de chat de WhatsApp (cabecera verde, burbuja con hora en vivo, doble check azul y selector de plantillas).
+  * Centro Administrativo de WhatsApp en `/admin/whatsapp` con tarjetas de KPI (Mensajes Enviados, Clientes Únicos, Trazabilidad de Órdenes OT, 100% Auditado), galería de prueba rápida de plantillas y bitácora con búsqueda reactiva, filtrado por disparador, copia rápida y reenvío.
+  * Integración en el flujo de trabajo del taller:
+    1. Paso 4 de Recepción de Bicicleta (`ReceptionPage.tsx`) con apertura automática tras crear la orden.
+    2. Tabla de Órdenes de Trabajo (`WorkOrdersPage.tsx`) con clic directo en el número de teléfono del cliente y botón de acción en fila.
+    3. Modal Dossier Técnico (`WorkOrdersPage.tsx`) con notificación contextualizada a WhatsApp.
+  * Trazabilidad y persistencia dual en tabla `whatsapp_messages` y almacenamiento local (`localStorage`) para resiliencia sin conexión.
+  * Suite de pruebas automatizadas en `tests/whatsapp.test.mjs` (13 pruebas con 100% PASS).
 
 ## Errores conocidos:
 - Ninguno. Compilación limpia y pruebas ejecutadas exitosamente al 100%.
 
 ## Pruebas ejecutadas:
 - Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (0 errores).
-- Normalización y extracción de códigos QR (directo, minúsculas, URL pública, URL local con params, hex suelto): PASS.
-- Rechazo estricto de URLs externas o textos ajenos: PASS.
-- Generación y validación regex de códigos QR (`^BIKE-[0-9A-F]{6}$`): PASS.
-- Construcción de enlace público para el payload del QR (`https://.../bike/BIKE-XXXXXX`): PASS.
-- Especificación técnica de sticker adhesivo (600x360 px, Corrección H): PASS.
-- Búsqueda y filtrado multicriterio en el Centro de QRs (marca, serial, QR, cliente): PASS.
-- Filtrado y generación de pliego masivo para impresión Carta / A4: PASS.
-- Especificación CSS y formateo para rollo térmico de 58 mm (sin márgenes de hoja carta): PASS.
-- Generación de tirilla térmica 58mm con metadatos técnicos y marcas de corte continuo: PASS.
-- Autocompletado de recepción al escanear QR y detección de QR libre: PASS.
-- Regresión completa de las 12 fases previas (10 suites de prueba): PASS (100%).
+- Normalización y extracción de códigos QR y sticker adhesivo: PASS (19/19).
+- Normalización telefónica (+57, 10 dígitos, limpieza de caracteres no numéricos): PASS.
+- Deep Links wa.me con codificación URL de emojis y saltos de línea: PASS.
+- Catálogo de 10 plantillas oficiales de taller: PASS.
+- Interpolación dinámica de datos (cliente, bici, orden, totales y saldo pendiente): PASS.
+- Mapeo de estados de taller a plantillas sugeridas: PASS.
+- Bitácora de auditoría y búsqueda reactiva multicriterio: PASS.
+- Cálculo de métricas y KPIs de WhatsApp: PASS.
+- Regresión completa de las 14 fases previas (11 suites de prueba): PASS (100%).
 
 ## Pruebas pendientes:
-- Pruebas E2E de mensajería con WhatsApp Web / API (Fase 14).
+- Pruebas de integración para el Módulo de Flujo de Caja (Fase 15).
 
 ## Decisiones técnicas:
-- **Formato Especializado para Impresoras Térmicas de 58 mm**: Para evitar que las impresoras térmicas de recibos muestren márgenes gigantescos de hoja carta (como ocurre por defecto en navegadores), se implementó la regla `@page { size: 58mm auto; margin: 0; }` con ancho de 50 mm, tipografía monocromática y QR de alto contraste. Esto permite a los mecánicos imprimir la etiqueta directamente en la impresora de recibos del mostrador y adherirla al marco de la bici protegida con cinta adhesiva transparente.
-- **Nivel de Corrección de Error 'H' (30% de recuperación)**: Las bicicletas en el taller están expuestas a aceite, barro, detergentes y desgaste físico del cuadro. Usar `errorCorrectionLevel: 'H'` garantiza que el código QR siga siendo perfectamente legible incluso si un tercio de la etiqueta resulta dañada o manchada.
-- **Motor de Escaneo Dual (`BarcodeDetector` + `jsQR`)**: Prioriza el decodificador nativo de la GPU/SO donde esté disponible (Android Chrome, etc.) para latencia casi cero, y conmuta silenciosamente al decodificador por Canvas de `jsQR` en navegadores de escritorio (Safari, Firefox, Chrome Windows).
-- **Normalización Agresiva de Texto Escaneado**: El taller puede utilizar cámaras de celular, cámaras web de computador o pistolas lectoras 2D tipo teclado USB. La función `extractQRCodeFromText` extrae y normaliza el ID tanto si la pistola envía la URL completa (`https://a2ruedas.app/bike/BIKE-D1CBB0`), el código formateado (`BIKE-D1CBB0`) o los 6 caracteres hexadecimales limpios (`d1cbb0`).
+- **Enfoque de Deep Links Oficiales (`wa.me`) sin intermediarios de pago**: Para una PWA ágil y sin costos mensuales recurrentes de la API oficial de WhatsApp Cloud o Twilio, se utilizaron Deep Links de WhatsApp Web / App directa. Esto permite al mecánico o administrador disparar el mensaje en 1 clic desde su propio WhatsApp personal o empresarial del taller en cualquier dispositivo (PC, tablet o smartphone), registrando simultáneamente la auditoría en la base de datos `whatsapp_messages`.
+- **Cálculo de Saldo Pendiente en Plantillas de Cobro**: En la plantilla `BICICLETA_LISTA`, el sistema extrae automáticamente los abonos o anticipos previos y muestra al cliente exactamente el saldo que debe cancelar al momento de retirar su bicicleta, eliminando confusiones de caja en el mostrador.
+- **Simulador Fotorrealista de Chat WhatsApp**: Permite al recepcionista o mecánico leer con anticipación exactamente cómo verá el cliente el mensaje en la pantalla de su celular antes de enviarlo, evitando errores ortográficos o montos incorrectos.
 
 ## Próximo paso:
-Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 14 — MÓDULO DE COMUNICACIÓN POR WHATSAPP (Deep links dinámicos, plantillas y trazabilidad)**.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 15 — MÓDULO DE FLUJO DE CAJA (Apertura de caja, ingresos, egresos, medios de pago y arqueo de cierre)**.

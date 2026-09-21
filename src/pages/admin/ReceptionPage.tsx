@@ -27,6 +27,7 @@ import { BicycleDamageDiagram, DamagePoint } from '../../components/inspection/B
 import { AccessoriesChecklist } from '../../components/inspection/AccessoriesChecklist';
 import { WorkOrderTicketModal } from '../../components/receipts/WorkOrderTicketModal';
 import { QRScannerModal } from '../../components/qr/QRScannerModal';
+import { WhatsAppComposeModal } from '../../components/whatsapp/WhatsAppComposeModal';
 
 type Step = 'client_bike' | 'inspection' | 'services' | 'signature' | 'success';
 
@@ -83,6 +84,7 @@ export const ReceptionPage: React.FC = () => {
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
 
   const handleScanSelectBike = (bike: Bicycle) => {
     setSelectedCustomerId(bike.customer_id);
@@ -316,17 +318,6 @@ export const ReceptionPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Enlace para WhatsApp
-  const getWhatsAppMessage = () => {
-    if (!createdOrder) return '';
-    const phone = createdOrder.customer?.phone?.replace(/\D/g, '') || '';
-    const waNumber = phone.startsWith('57') ? phone : `57${phone}`;
-    const text = encodeURIComponent(
-      `¡Hola ${createdOrder.customer?.full_name}! 👋 Te confirmamos que tu bicicleta ${createdOrder.bicycle?.brand} ${createdOrder.bicycle?.model} ha sido RECIBIDA exitosamente en A2Ruedas Taller con la Orden N° ${createdOrder.order_number}. Diagnóstico en curso. Puedes consultar el estado en cualquier momento. ¡Gracias por confiar en nosotros!`
-    );
-    return `https://wa.me/${waNumber}?text=${text}`;
   };
 
   return (
@@ -927,15 +918,15 @@ export const ReceptionPage: React.FC = () => {
             </Button>
 
             {createdOrder.customer?.phone && (
-              <a
-                href={getWhatsAppMessage()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-emerald-600 text-white font-medium text-xs hover:bg-emerald-700 transition-colors shadow-xs"
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => setWhatsappModalOpen(true)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white border-none shadow-xs"
+                leftIcon={<MessageCircle className="w-4 h-4" />}
               >
-                <MessageCircle className="w-4 h-4" />
                 Notificar por WhatsApp
-              </a>
+              </Button>
             )}
 
             <Button
@@ -1146,6 +1137,16 @@ export const ReceptionPage: React.FC = () => {
         isOpen={scannerOpen}
         onClose={() => setScannerOpen(false)}
         onSelectBicycle={handleScanSelectBike}
+      />
+
+      {/* Modal de Envío de WhatsApp con Bitácora */}
+      <WhatsAppComposeModal
+        isOpen={whatsappModalOpen}
+        onClose={() => setWhatsappModalOpen(false)}
+        customer={createdOrder?.customer}
+        workOrder={createdOrder}
+        bicycle={createdOrder?.bicycle}
+        defaultTrigger="RECIBIDA"
       />
     </div>
   );

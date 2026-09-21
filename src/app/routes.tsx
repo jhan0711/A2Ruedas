@@ -16,6 +16,7 @@ import { WorkOrdersPage } from '../pages/admin/WorkOrdersPage';
 import { ReceptionPage } from '../pages/admin/ReceptionPage';
 import { AppointmentsPage } from '../pages/admin/AppointmentsPage';
 import { QRCodesPage } from '../pages/admin/QRCodesPage';
+import { WhatsAppPage } from '../pages/admin/WhatsAppPage';
 import { ModulePlaceholder } from '../pages/admin/ModulePlaceholder';
 
 export const router = createBrowserRouter([
@@ -97,6 +98,10 @@ export const router = createBrowserRouter([
           {
             path: 'qr',
             element: <QRCodesPage />,
+          },
+          {
+            path: 'whatsapp',
+            element: <WhatsAppPage />,
           },
           {
             path: 'impresion',

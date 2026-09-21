@@ -326,3 +326,57 @@ export interface BicycleFullDossier {
   recommendations: string[];
 }
 
+// 18. Módulo de Comunicación por WhatsApp (Fase 14)
+export type WhatsAppTrigger =
+  | 'RECIBIDA'
+  | 'DIAGNOSTICO'
+  | 'PRESUPUESTO'
+  | 'ESPERANDO_REPUESTO'
+  | 'EN_REPARACION'
+  | 'LISTA'
+  | 'ENTREGADA'
+  | 'CITA_PROGRAMADA'
+  | 'RECORDATORIO_CITA'
+  | 'ALERTA_KILOMETRAJE'
+  | 'HISTORIAL_QR'
+  | 'MANUAL';
+
+export interface WhatsAppMessage {
+  id: string;
+  customer_id: string;
+  work_order_id?: string | null;
+  phone_number: string;
+  message_content: string;
+  status_trigger: WhatsAppTrigger | string;
+  created_at: string;
+  // Hydrated
+  customer?: Customer | null;
+  work_order?: WorkOrder | null;
+}
+
+export type WhatsAppMessageInsert = Omit<
+  WhatsAppMessage,
+  'id' | 'created_at' | 'customer' | 'work_order'
+>;
+
+export type WhatsAppTemplateId =
+  | 'ORDEN_RECIBIDA'
+  | 'PRESUPUESTO_LISTO'
+  | 'ESPERANDO_REPUESTO'
+  | 'BICICLETA_LISTA'
+  | 'ENTREGA_AGRADECIMIENTO'
+  | 'CONFIRMACION_CITA'
+  | 'RECORDATORIO_CITA'
+  | 'ALERTA_KILOMETRAJE'
+  | 'HISTORIAL_QR'
+  | 'PERSONALIZADO';
+
+export interface WhatsAppTemplate {
+  id: WhatsAppTemplateId;
+  title: string;
+  description: string;
+  trigger: WhatsAppTrigger;
+  template: string;
+  variables: string[];
+}
+

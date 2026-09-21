@@ -17,6 +17,7 @@ import {
   PenTool,
 } from 'lucide-react';
 import { WorkOrderTicketModal } from '../../components/receipts/WorkOrderTicketModal';
+import { WhatsAppComposeModal } from '../../components/whatsapp/WhatsAppComposeModal';
 import { workOrderService } from '../../services/workOrderService';
 import { customerService } from '../../services/customerService';
 import { bicycleService } from '../../services/bicycleService';
@@ -118,6 +119,15 @@ export const WorkOrdersPage: React.FC = () => {
   // Modal Imprimir Ticket Térmico
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
   const [ticketOrder, setTicketOrder] = useState<WorkOrder | null>(null);
+
+  // Modal WhatsApp con Auditoría
+  const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
+  const [whatsappOrder, setWhatsappOrder] = useState<WorkOrder | null>(null);
+
+  const handleOpenWhatsApp = (order: WorkOrder) => {
+    setWhatsappOrder(order);
+    setWhatsappModalOpen(true);
+  };
 
   useEffect(() => {
     loadData();
@@ -339,26 +349,6 @@ export const WorkOrdersPage: React.FC = () => {
     }
   };
 
-  // Mensaje contextual de WhatsApp según el estado
-  const getWhatsAppMessage = (order: WorkOrder): string => {
-    const custName = order.customer?.full_name || 'Cliente';
-    const bikeInfo = order.bicycle ? `${order.bicycle.brand} ${order.bicycle.model}` : 'tu bicicleta';
-    const orderNum = order.order_number;
-
-    switch (order.status) {
-      case 'LISTA':
-        return `Hola ${custName}, te escribimos de A2Ruedas Taller para informarte que tu bicicleta ${bikeInfo} ya se encuentra LISTA para entrega (Orden ${orderNum}). Valor a cancelar: $${order.grand_total.toLocaleString('es-CO')}. ¡Te esperamos!`;
-      case 'PRESUPUESTO':
-        return `Hola ${custName}, te compartimos el presupuesto para tu bicicleta ${bikeInfo} (Orden ${orderNum}): Total repuestos y mano de obra: $${order.grand_total.toLocaleString('es-CO')}. ¿Confirmas la aprobación para iniciar?`;
-      case 'EN_REPARACION':
-        return `Hola ${custName}, te confirmamos que tu orden ${orderNum} para la bicicleta ${bikeInfo} ya se encuentra EN REPARACIÓN en nuestro taller.`;
-      case 'ENTREGADA':
-        return `Hola ${custName}, gracias por confiar en A2Ruedas Taller para el mantenimiento de tu ${bikeInfo}. Si necesitas cualquier ajuste, estamos a tu disposición.`;
-      default:
-        return `Hola ${custName}, te contactamos del taller A2Ruedas referente a tu orden de servicio ${orderNum}.`;
-    }
-  };
-
   // Filtrado reactivo de órdenes
   const filteredOrders = orders.filter((o) => {
     const term = searchTerm.toLowerCase().trim();
@@ -495,9 +485,6 @@ export const WorkOrdersPage: React.FC = () => {
               {filteredOrders.map((order) => {
                 const customer = order.customer;
                 const bike = order.bicycle;
-                const cleanPhone = customer?.phone.replace(/\D/g, '') || '';
-                const waNumber = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone}`;
-                const waText = encodeURIComponent(getWhatsAppMessage(order));
 
                 return (
                   <TableRow key={order.id}>
@@ -519,15 +506,15 @@ export const WorkOrdersPage: React.FC = () => {
                           {customer?.full_name || 'Sin asignar'}
                         </span>
                         {customer?.phone && (
-                          <a
-                            href={`https://wa.me/${waNumber}?text=${waText}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
+                          <button
+                            type="button"
+                            onClick={() => handleOpenWhatsApp(order)}
+                            className="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline font-medium cursor-pointer"
+                            title="Enviar actualización por WhatsApp con bitácora"
                           >
                             <MessageCircle className="w-3 h-3 text-emerald-500" />
                             <span>{customer.phone}</span>
-                          </a>
+                          </button>
                         )}
                       </div>
                     </TableCell>
@@ -585,15 +572,15 @@ export const WorkOrdersPage: React.FC = () => {
                           <RefreshCw className="w-3.5 h-3.5" />
                         </Button>
                         {customer?.phone && (
-                          <a
-                            href={`https://wa.me/${waNumber}?text=${waText}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1 rounded text-slate-500 hover:text-emerald-600 transition-colors"
-                            title="Enviar actualización a WhatsApp"
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleOpenWhatsApp(order)}
+                            className="text-slate-500 hover:text-emerald-600 transition-colors"
+                            title="Enviar actualización a WhatsApp con registro"
                           >
-                            <MessageCircle className="w-3.5 h-3.5" />
-                          </a>
+                            <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                          </Button>
                         )}
                         <Button
                           size="sm"
@@ -988,15 +975,14 @@ export const WorkOrdersPage: React.FC = () => {
                   Tel: {detailOrder.customer?.phone}
                 </span>
                 {detailOrder.customer?.phone && (
-                  <a
-                    href={`https://wa.me/${detailOrder.customer.phone.replace(/\D/g, '').startsWith('57') ? detailOrder.customer.phone.replace(/\D/g, '') : `57${detailOrder.customer.phone.replace(/\D/g, '')}`}?text=${encodeURIComponent(getWhatsAppMessage(detailOrder))}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold hover:underline pt-1"
+                  <button
+                    type="button"
+                    onClick={() => handleOpenWhatsApp(detailOrder)}
+                    className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold hover:underline pt-1 cursor-pointer"
                   >
                     <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />
                     Enviar actualización a WhatsApp
-                  </a>
+                  </button>
                 )}
               </div>
 
@@ -1197,6 +1183,16 @@ export const WorkOrdersPage: React.FC = () => {
         confirmText="Eliminar Orden"
         variant="danger"
         isLoading={isDeleting}
+      />
+
+      {/* Modal de Envío de WhatsApp con Bitácora */}
+      <WhatsAppComposeModal
+        isOpen={whatsappModalOpen}
+        onClose={() => setWhatsappModalOpen(false)}
+        customer={whatsappOrder?.customer}
+        workOrder={whatsappOrder}
+        bicycle={whatsappOrder?.bicycle}
+        defaultTrigger={whatsappOrder?.status}
       />
     </div>
   );
