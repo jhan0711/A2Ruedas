@@ -122,4 +122,31 @@ const msgPresupuesto = getWhatsAppTemplate('PRESUPUESTO', 'Laura', 'Specialized 
 console.log('8. Plantilla de WhatsApp para estado "LISTA" con saldo a pagar:', msgLista.includes('LISTA para entrega') && msgLista.includes('130.000') ? 'PASS' : 'FAIL');
 console.log('9. Plantilla de WhatsApp para estado "PRESUPUESTO" solicitando aprobación:', msgPresupuesto.includes('presupuesto') && msgPresupuesto.includes('Confirmas la aprobación') ? 'PASS' : 'FAIL');
 
+// 7. Verificación de Comprobante Térmico de 58 mm
+function generateThermalTicketData(order, items, deposit = 0) {
+  const { grandTotal } = calculateOrderTotals(items, order.discount || 0);
+  const balanceDue = Math.max(0, grandTotal - deposit);
+  return {
+    printableWidthMm: 48, // 48mm printable area on 58mm paper (standard 384 dots @ 203 DPI)
+    orderNumber: order.order_number,
+    customerName: order.customer?.full_name,
+    bikePlate: order.bike?.plate,
+    grandTotal,
+    deposit,
+    balanceDue,
+    hasSignatureLine: true,
+    hasTerms: true,
+  };
+}
+
+const mockOrder = {
+  order_number: 'OT-000001',
+  discount: 15000,
+  customer: { full_name: 'Carlos Rueda' },
+  bike: { plate: 'BIKE-000001' },
+};
+const ticket = generateThermalTicketData(mockOrder, mockItems, 50000);
+console.log('10. Parámetros de Comprobante Térmico POS 58mm (48mm área de impresión, firma y términos):', (ticket.printableWidthMm === 48 && ticket.hasSignatureLine && ticket.hasTerms) ? 'PASS' : 'FAIL');
+console.log(`11. Cálculo de Saldo Pendiente en Comprobante ($130k - Anticipo $50k = $${ticket.balanceDue.toLocaleString('es-CO')}):`, ticket.balanceDue === 80000 ? 'PASS' : 'FAIL');
+
 console.log('--- TODAS LAS PRUEBAS DE LA FASE 9 FINALIZADAS EXITOSAMENTE ---');

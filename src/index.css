@@ -32,18 +32,31 @@
     padding: 0 !important;
   }
 
-  .no-print {
-    display: none !important;
+  body * {
+    visibility: hidden;
   }
 
-  .printable-receipt {
+  #printable-thermal-ticket,
+  #printable-thermal-ticket * {
+    visibility: visible;
+  }
+
+  #printable-thermal-ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
     width: 48mm !important;
     max-width: 48mm !important;
-    margin: 0 auto !important;
-    padding: 2mm 0 !important;
-    font-size: 11px !important;
+    margin: 0 !important;
+    padding: 2mm !important;
+    font-size: 10px !important;
     line-height: 1.25 !important;
-    font-family: ui-monospace, Menlo, Monaco, Consolas, monospace !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
     color: #000000 !important;
+    background: #ffffff !important;
+  }
+
+  .no-print {
+    display: none !important;
   }
 }

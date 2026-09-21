@@ -11,7 +11,9 @@ import {
   RefreshCw,
   X,
   History,
+  Printer,
 } from 'lucide-react';
+import { WorkOrderTicketModal } from '../../components/receipts/WorkOrderTicketModal';
 import { workOrderService } from '../../services/workOrderService';
 import { customerService } from '../../services/customerService';
 import { bicycleService } from '../../services/bicycleService';
@@ -107,6 +109,10 @@ export const WorkOrdersPage: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<WorkOrder | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Modal Imprimir Ticket Térmico
+  const [ticketModalOpen, setTicketModalOpen] = useState(false);
+  const [ticketOrder, setTicketOrder] = useState<WorkOrder | null>(null);
 
   useEffect(() => {
     loadData();
@@ -292,6 +298,11 @@ export const WorkOrdersPage: React.FC = () => {
     } finally {
       setIsLoadingHistory(false);
     }
+  };
+
+  const openTicketModal = (order: WorkOrder) => {
+    setTicketOrder(order);
+    setTicketModalOpen(true);
   };
 
   const confirmDelete = (order: WorkOrder) => {
@@ -568,6 +579,14 @@ export const WorkOrdersPage: React.FC = () => {
                             <MessageCircle className="w-3.5 h-3.5" />
                           </a>
                         )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openTicketModal(order)}
+                          title="Imprimir Comprobante (58 mm)"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                        </Button>
                         <Button
                           size="sm"
                           variant="ghost"
@@ -911,9 +930,19 @@ export const WorkOrdersPage: React.FC = () => {
           title={`Ficha de Orden: ${detailOrder.order_number}`}
           maxWidth="lg"
           footer={
-            <Button size="sm" variant="secondary" onClick={() => setDetailModalOpen(false)}>
-              Cerrar Ficha
-            </Button>
+            <div className="flex items-center justify-between w-full">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => openTicketModal(detailOrder)}
+                leftIcon={<Printer className="w-3.5 h-3.5" />}
+              >
+                Imprimir Comprobante (58 mm)
+              </Button>
+              <Button size="sm" variant="secondary" onClick={() => setDetailModalOpen(false)}>
+                Cerrar Ficha
+              </Button>
+            </div>
           }
         >
           <div className="space-y-5">
@@ -1068,6 +1097,13 @@ export const WorkOrdersPage: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      {/* Comprobante Térmico Imprimible (58 mm) */}
+      <WorkOrderTicketModal
+        isOpen={ticketModalOpen}
+        onClose={() => setTicketModalOpen(false)}
+        order={ticketOrder}
+      />
 
       {/* Confirmación de Eliminación (Regla 44) */}
       <ConfirmModal
