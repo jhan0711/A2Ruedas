@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 8 — Módulo de Inventario y Kardex
+Fase actual: FASE 9 — Módulo de Órdenes de Trabajo (OT)
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -14,9 +14,9 @@ Estado: COMPLETADA
 - [x] FASE 6 — Módulo de Clientes (CRUD, búsqueda y vinculación)
 - [x] FASE 7 — Módulo de Bicicletas (Registro, serial, fotos de inspección, QR)
 - [x] FASE 8 — Módulo de Inventario (Productos, stock, Kardex, alertas)
+- [x] FASE 9 — Módulo de Órdenes de Trabajo (OT-000001, estados, repuestos)
 
 ## Fases pendientes:
-- [ ] FASE 9 — Módulo de Órdenes de Trabajo (OT-000001, estados, repuestos)
 - [ ] FASE 10 — Recepción de Bicicleta + Firma Digital Táctil
 - [ ] FASE 11 — Agenda y Calendario de Mantenimientos
 - [ ] FASE 12 — Historial Completo y Timeline de Bicicleta
@@ -86,30 +86,43 @@ Estado: COMPLETADA
   * Prevención estricta de stock negativo.
   * Suite de pruebas automatizadas en `tests/inventory.test.mjs`.
 
+- **Módulo de Órdenes de Trabajo (Fase 9)**:
+  * Generación y control de correlativo estricto `OT-000001` (6 dígitos secuenciales).
+  * Soporte completo para el ciclo de 9 estados del taller (`RECIBIDA`, `DIAGNOSTICO`, `PRESUPUESTO`, `APROBADA`, `EN_REPARACION`, `ESPERANDO_REPUESTO`, `LISTA`, `ENTREGADA`, `CANCELADA`) con badges cromáticos.
+  * Articulación relacional dinámica: Selector de cliente que filtra automáticamente sus bicicletas vinculadas.
+  * Desglose de ítems con mano de obra y repuestos de inventario.
+  * Descuento automático de existencias en Kardex al asignar repuestos a la orden (`inventory_movements` con referencia `Uso en OT-XXXXXX`).
+  * Modal de cambio de estado con auditoría inmutable en `work_order_status_history`.
+  * Modal Dossier técnico con desglose financiero, línea de tiempo de auditoría y notificaciones directas a WhatsApp contextualizadas.
+  * Eliminación con modal de confirmación `ConfirmModal` (Regla 44).
+  * Suite de pruebas automatizadas en `tests/workOrders.test.mjs`.
+
 ## Funcionalidades pendientes:
-- Módulo de Órdenes de Trabajo (OT-000001, estados, repuestos) (Fase 9).
-- Recepción de Bicicleta + Firma Digital Táctil (Fase 10).
+- Recepción de Bicicleta + Firma Digital Táctil en pantalla (Fase 10).
+- Agenda y Calendario de Mantenimientos (Fase 11).
 
 ## Errores conocidos:
 - Ninguno. Compilación limpia y pruebas ejecutadas exitosamente al 100%.
 
 ## Pruebas ejecutadas:
 - Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (0 errores).
-- Prueba matemática obligatoria de Kardex ($0 + 10 - 2 = 8$): PASS.
-- Consistencia de stock intermedio y final en Kardex: PASS.
-- Prevención estricta de stock negativo (Bloqueo cuando cantidad > stock disponible): PASS.
-- Disparo de alerta de stock crítico ($stock \le min\_stock$): PASS.
-- Cálculo automático de margen de rentabilidad comercial: PASS.
-- Búsqueda reactiva por SKU, nombre y ubicación en taller: PASS.
+- Validación de formato correlativo de OT (`^OT-\d{6}$`): PASS.
+- Secuencia correlativa automática a partir de lista o vacío: PASS.
+- Soporte para el ciclo completo de 9 estados del taller: PASS.
+- Consistencia del balance financiero ($Labor + Parts - Discount = Total$): PASS.
+- Descuento automático en Kardex al agregar repuestos: PASS.
+- Auditoría de movimiento de salida vinculado a la OT: PASS.
+- Plantillas de WhatsApp contextuales para estados `LISTA` y `PRESUPUESTO`: PASS.
 
 ## Pruebas pendientes:
-- Pruebas E2E de ciclo de Órdenes de Trabajo (Fase 9).
+- Pruebas E2E de firma digital en canvas táctil (Fase 10).
 
 ## Decisiones técnicas:
-- **Auditoría Inmutable de Kardex**: Cada alteración física de existencias genera obligatoriamente una fila en `inventory_movements` con stock anterior y resultante para evitar desajustes o pérdidas.
-- **Doble Persistencia con Supabase**: Catálogo y movimientos se sincronizan con las tablas `products` e `inventory_movements` preservando resiliencia offline/local.
+- **Correlativo Inquebrantable**: El número de orden se determina evaluando el número correlativo más alto registrado y formateándolo con 6 dígitos (`OT-000001`), evitando duplicados.
+- **Sincronización Transaccional Taller-Almacén**: La selección de piezas en una orden de trabajo descuenta de inmediato el stock físico en el almacén para evitar ventas cruzadas de repuestos comprometidos.
 
 ## Próximo paso:
-Iniciar **FASE 9 — MÓDULO DE ÓRDENES DE TRABAJO (OT)**: Creación de órdenes con correlativo estricto `OT-000001`, ciclo completo de 9 estados, vinculación de bicicleta/cliente, adición de repuestos desde inventario con descuento automático en Kardex, y cálculo de mano de obra.
+Iniciar **FASE 10 — RECEPCIÓN DE BICICLETA Y FIRMA DIGITAL**: Formulario especializado de recepción con diagrama de daños / inspección inicial visual y lienzo interactivo de firma digital táctil del cliente en pantalla.
+
 
 

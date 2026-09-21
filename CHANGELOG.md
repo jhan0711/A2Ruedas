@@ -9,7 +9,22 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
-## [0.8.0] - 2026-09-20
+## [0.9.0] - 2026-09-20
+
+### Agregado
+- **Fase 9 — Módulo de Órdenes de Trabajo (OT)**:
+  - Implementación de la vista completa `WorkOrdersPage` en `/admin/ordenes`.
+  - Generación correlativa estricta con formato estándar `OT-000001` (6 dígitos secuenciales).
+  - Ciclo completo de los 9 estados del taller (`RECIBIDA`, `DIAGNOSTICO`, `PRESUPUESTO`, `APROBADA`, `EN_REPARACION`, `ESPERANDO_REPUESTO`, `LISTA`, `ENTREGADA`, `CANCELADA`) con badges semánticos de alta densidad visual.
+  - Articulación relacional: Selección de cliente con filtrado automático de sus bicicletas registradas.
+  - Desglose dinámico de costos con formulación automática: $(ManoDeObra + Repuestos) - Descuento = GranTotal$.
+  - Conexión e integración directa con Kardex: Descuento automático de existencias físicas en `inventory_movements` al añadir repuestos a la orden de trabajo.
+  - Modal de transición de estado con registro de auditoría inmutable en `work_order_status_history`.
+  - Modal Dossier / Ficha completa de la orden con trazabilidad histórica y botón de WhatsApp con mensaje contextualizado según la etapa de reparación.
+  - Modal de confirmación para eliminación con `ConfirmModal` (Regla 44).
+  - Suite de pruebas automatizadas en `tests/workOrders.test.mjs` con 9 aserciones exitosas.
+
+---
 
 ### Agregado
 - **Fase 8 — Módulo de Inventario y Kardex**:

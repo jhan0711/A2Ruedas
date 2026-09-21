@@ -12,6 +12,7 @@ import { CustomersPage } from '../pages/admin/CustomersPage';
 import { BicyclesPage } from '../pages/admin/BicyclesPage';
 import { InventoryPage } from '../pages/admin/InventoryPage';
 import { ProductsAdminPage } from '../pages/admin/ProductsAdminPage';
+import { WorkOrdersPage } from '../pages/admin/WorkOrdersPage';
 import { ModulePlaceholder } from '../pages/admin/ModulePlaceholder';
 
 export const router = createBrowserRouter([
@@ -58,13 +59,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'ordenes',
-            element: (
-              <ModulePlaceholder
-                title="Órdenes de Trabajo (OT)"
-                phase="Fase 9"
-                description="Ciclo completo de reparaciones, repuestos y cambio de estados."
-              />
-            ),
+            element: <WorkOrdersPage />,
           },
           {
             path: 'ordenes/nueva',
