@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 18 — Catálogo Público de Productos (/productos, vitrina digital sin login, inventario sincronizado, galería de fotos, deep links y bolsa de cotización por WhatsApp)
+Fase actual: FASE 19 — Configuración PWA (Web App Manifest, Service Worker, Instalación en Móviles y Soporte Offline)
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -24,9 +24,9 @@ Estado: COMPLETADA
 - [x] FASE 16 — Facturación y Recibos Internos (Emisión de comprobantes, numeración FAC-000001, sincronización de caja y tirilla 58mm)
 - [x] FASE 17 — Impresión Térmica de 58 mm (Centro de Impresión Térmica, plantillas continuas, marbetes de bicicleta con QR, comprobantes de recepción/custodia, liquidación de órdenes, facturas, arqueos de caja y calibración de hardware)
 - [x] FASE 18 — Catálogo Público de Productos (/productos, sin login)
+- [x] FASE 19 — Configuración PWA (Manifest, Service Worker, Instalación, Offline)
 
 ## Fases pendientes:
-- [ ] FASE 19 — Configuración PWA (Manifest, Service Worker, Instalación, Offline)
 - [ ] FASE 20 — Auditoría de Seguridad (RLS, Sanitización, Protección de Rutas)
 - [ ] FASE 21 — QA Completo (Unitarias, Integración, E2E, Responsive)
 - [ ] FASE 22 — Prueba Completa de Negocio Extremo a Extremo
@@ -236,15 +236,30 @@ Estado: COMPLETADA
   * Resolución de deep-link por ID o SKU (?p=ID / ?sku=SKU) para compartir en redes: PASS.
   * Construcción de enlace de WhatsApp con formato nacional (+57), cotización calculada y desglose: PASS.
 - Regresión completa de las 18 fases del proyecto (15 suites de prueba): PASS (100%).
+- Configuración PWA (Manifest, Service Worker, Instalación, Offline) (12 pruebas automatizadas): PASS (100%).
+  * Especificación W3C de Manifest Web App (name, short_name, standalone, colores de tema): PASS.
+  * Iconos de aplicación adaptables de alta definición (192px, 512px y maskable safe-zone): PASS.
+  * Accesos directos para pantalla de inicio móvil (Nueva OT, Catálogo, Escanear QR, Caja): PASS.
+  * Integridad de activos vectoriales en public/icons/: PASS.
+  * Plantilla de respaldo offline corporativa con diagnóstico y botón de recarga (offline.html): PASS.
+  * Ciclo de vida y estrategias de caché del Service Worker (Install, Activate, Fetch, Message): PASS.
+  * Metadatos PWA para iOS Safari, Android y navegadores de escritorio en index.html: PASS.
+  * Detección precisa de iOS para instrucciones personalizadas de instalación en Safari: PASS.
+  * Detección reactiva de modo Standalone en Android, iOS y Desktop: PASS.
+  * Máquina de estados de conectividad reactiva (Online -> Offline -> Conexión restaurada): PASS.
+  * Paridad de manifest.json para compatibilidad con navegadores legacy: PASS.
+  * Presencia de todos los artefactos PWA en el bundle de producción (dist/): PASS.
+- Regresión total de las 19 fases del proyecto (16 suites de prueba): PASS (100%).
 
 ## Pruebas pendientes:
-- Pruebas para la Configuración PWA (Manifest, Service Worker, Instalación, Offline) (Fase 19).
+- Pruebas para la Auditoría de Seguridad (RLS, Sanitización, Protección de Rutas) (Fase 20).
 
 ## Decisiones técnicas:
 - **Sanitización de Datos Comerciales Sensibles (`sanitizePublicProduct`)**: Para evitar fugas de información estratégica y proteger los márgenes del taller, el servicio público filtra rigurosamente el precio de costo (`cost_price`), el stock mínimo (`min_stock`), la ubicación física en el taller (`location`) y notas privadas antes de servir cualquier dato a la vista pública.
 - **Bolsa de Cotización y Deep-Link de WhatsApp en vez de Pasarela**: Al ser un taller de bicicletas enfocado en servicio técnico, instalación y retiro físico, los clientes prefieren consultar disponibilidad o asesoría técnica antes de pagar en línea. La bolsa flotante permite acumular repuestos y generar un mensaje instantáneo a WhatsApp con el formato comercial colombiano (+57), detalle de productos y cálculo estimado en pesos colombianos ($ COP).
-- **Deep-Links Compartibles (`?p=ID` / `?sku=SKU`)**: Se incorporó soporte de parámetros URL para que el taller pueda compartir enlaces directos a repuestos específicos en redes sociales (Instagram, WhatsApp, Facebook). Al ingresar, la vista abre automáticamente la galería interactiva del producto.
-- **Galería Multi-Foto Accesible**: Modal con carrusel de fotografías, navegación por teclado (flechas y tecla Escape) y soporte de miniaturas con fallback a imagen ciclista de alta definición.
+- **Service Worker con Estrategia Mixta (Network First + Cache First + Offline Fallback)**: Para la navegación entre vistas del taller y del catálogo público se utiliza *Network First* garantizando que los datos más recientes siempre se descarguen si hay conexión; en caso de fallo de red, se sirve la versión cacheada o la pantalla de contingencia `offline.html`. Para activos estáticos (iconos, fuentes, scripts empaquetados con hash) se emplea *Cache First* con actualización en segundo plano para una carga instantánea.
+- **Instalación Multi-Plataforma con Guía Nativa para iOS Safari**: Debido a que Safari en iOS no soporta el evento nativo `beforeinstallprompt`, el sistema detecta dispositivos Apple y presenta instrucciones visuales con los íconos de "Compartir" -> "Agregar a pantalla de inicio" (+), mientras que en Android y Desktop lanza directamente la solicitud de instalación del navegador.
+- **Gestión Reactiva de Conectividad (`PWAContext`)**: Se implementó una máquina de estados con auto-ocultado de la alerta verde de "Conexión restaurada" y un banner persistente en modo desconectado para tranquilizar al usuario de que la app sigue operable localmente.
 
 ## Próximo paso:
-Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 19 — CONFIGURACIÓN PWA (Manifest, Service Worker, Instalación, Offline)**.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 20 — AUDITORÍA DE SEGURIDAD (RLS, Sanitización, Protección de Rutas)**.

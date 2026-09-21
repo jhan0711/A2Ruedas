@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Menu, Sun, Moon, ExternalLink, ShieldCheck, LogOut, QrCode } from 'lucide-react';
+import { Menu, Sun, Moon, ExternalLink, ShieldCheck, LogOut, QrCode, Download } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../hooks/useAuth';
+import { usePWA } from '../../context/PWAContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { ConfirmModal } from '../ui';
 import { QRScannerModal } from '../qr/QRScannerModal';
@@ -13,6 +14,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const { theme, toggleTheme } = useTheme();
   const { profile, user, logout } = useAuth();
+  const { isInstalled, setShowInstallModal } = usePWA();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   const navigate = useNavigate();
@@ -68,6 +70,19 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
           <QrCode className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
           <span className="hidden sm:inline">Escanear QR</span>
         </button>
+
+        {/* Botón Instalar App */}
+        {!isInstalled && (
+          <button
+            type="button"
+            onClick={() => setShowInstallModal(true)}
+            className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/50 dark:hover:bg-blue-900/60 px-2.5 py-1.5 rounded-md border border-blue-200 dark:border-blue-800 transition-colors shadow-xs"
+            title="Instalar A2Ruedas en tu dispositivo"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Instalar App</span>
+          </button>
+        )}
 
         <Link
           to="/productos"

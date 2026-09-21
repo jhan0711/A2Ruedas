@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGradMaskable" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1329" />
+      <stop offset="50%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <linearGradient id="bikeGradMaskable" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#60a5fa" />
+      <stop offset="100%" stop-color="#ffffff" />
+    </linearGradient>
+    <filter id="glowMaskable" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#0284c7" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Full Bleed Square Background (no rounded corners for maskable spec) -->
+  <rect width="512" height="512" fill="url(#bgGradMaskable)" />
+
+  <!-- Safe Zone Graphic Area (Fits within center 80% circle, radius 200) -->
+  <g transform="translate(108, 110) scale(3.1)" filter="url(#glowMaskable)">
+    <!-- Wheels -->
+    <circle cx="20" cy="62" r="15" fill="none" stroke="url(#bikeGradMaskable)" stroke-width="4.5"/>
+    <circle cx="20" cy="62" r="4" fill="#38bdf8"/>
+    <circle cx="76" cy="62" r="15" fill="none" stroke="url(#bikeGradMaskable)" stroke-width="4.5"/>
+    <circle cx="76" cy="62" r="4" fill="#38bdf8"/>
+
+    <!-- Frame Geometry -->
+    <path d="M20 62 L42 62 L58 36 L34 36 Z" fill="none" stroke="url(#bikeGradMaskable)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M42 62 L48 24" fill="none" stroke="url(#bikeGradMaskable)" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M76 62 L60 22" fill="none" stroke="url(#bikeGradMaskable)" stroke-width="4.5" stroke-linecap="round"/>
+
+    <!-- Handlebars & Seat -->
+    <path d="M54 22 L66 22 L70 28" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M42 24 L54 24" fill="none" stroke="#38bdf8" stroke-width="5" stroke-linecap="round"/>
+
+    <!-- Bottom Bracket / Chainring -->
+    <circle cx="42" cy="62" r="6" fill="#0f172a" stroke="#38bdf8" stroke-width="3"/>
+  </g>
+
+  <!-- Typography Brand within safe area -->
+  <text x="256" y="390" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="900" fill="#ffffff" letter-spacing="3">A2RUEDAS</text>
+  <text x="256" y="416" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#38bdf8" letter-spacing="4">TALLER</text>
+</svg>

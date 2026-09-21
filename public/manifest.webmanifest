@@ -1,0 +1,85 @@
+{
+  "id": "/",
+  "name": "A2Ruedas — Taller de Bicicletas",
+  "short_name": "A2Ruedas",
+  "description": "Sistema profesional de gestión de taller de bicicletas, servicio técnico, inventario y catálogo de repuestos",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "es-CO",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nueva Orden de Trabajo",
+      "short_name": "Nueva OT",
+      "description": "Recepción técnica y apertura de orden",
+      "url": "/admin/ordenes/nueva",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.svg",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Catálogo de Repuestos",
+      "short_name": "Catálogo",
+      "description": "Explorar vitrina pública de productos",
+      "url": "/productos",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.svg",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Escanear Código QR",
+      "short_name": "Escanear QR",
+      "description": "Identificar bicicleta o historial técnico",
+      "url": "/admin/qr",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.svg",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Arqueo y Caja Diaria",
+      "short_name": "Caja",
+      "description": "Consultar saldo y registrar movimientos",
+      "url": "/admin/caja",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.svg",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

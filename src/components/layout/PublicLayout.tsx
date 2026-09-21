@@ -1,10 +1,12 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Bike, Sun, Moon, MapPin, Clock, MessageCircle } from 'lucide-react';
+import { Bike, Sun, Moon, MapPin, Clock, MessageCircle, Download } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
+import { usePWA } from '../../context/PWAContext';
 
 export const PublicLayout: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
+  const { isInstalled, setShowInstallModal } = usePWA();
   const location = useLocation();
 
   return (
@@ -74,6 +76,19 @@ export const PublicLayout: React.FC = () => {
             >
               Repuestos y Accesorios
             </Link>
+
+            {/* Botón Instalar App */}
+            {!isInstalled && (
+              <button
+                type="button"
+                onClick={() => setShowInstallModal(true)}
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800 transition-colors"
+                title="Instalar A2Ruedas en tu dispositivo"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Instalar App</span>
+              </button>
+            )}
 
             {/* Switch de Modo Claro / Modo Oscuro */}
             <button
