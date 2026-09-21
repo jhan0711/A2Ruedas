@@ -404,22 +404,23 @@ export const AppointmentsPage: React.FC = () => {
   return (
     <div className="space-y-5 max-w-7xl mx-auto pb-12">
       {/* Encabezado Principal */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
             <CalendarIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            Agenda y Calendario de Mantenimientos
+            Agenda y Mantenimientos
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Control de citas de taller, aforo diario (máx. {DEFAULT_DAILY_CAPACITY} bicis) y asignación técnica.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
           <Button
             size="sm"
+            className="w-full sm:w-auto justify-center"
             onClick={() => {
-              setNewDate(new Date().toISOString().slice(0, 10));
+              setNewDate(selectedDay || new Date().toISOString().slice(0, 10));
               setNewModalOpen(true);
             }}
             leftIcon={<Plus className="w-3.5 h-3.5" />}
@@ -440,28 +441,28 @@ export const AppointmentsPage: React.FC = () => {
         </Alert>
       )}
 
-      {/* Barra de 4 Indicadores Clave (KPIs de Agenda) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card className="p-3.5">
-          <span className="text-[10px] uppercase font-bold text-slate-500 block">CITAS DE HOY</span>
-          <div className="text-xl font-black text-slate-900 dark:text-white mt-0.5">
-            {metrics.todayCount} <span className="text-xs font-normal text-slate-400">servicios</span>
+      {/* Barra de 4 Indicadores Clave (KPIs de Agenda) - Compactos en Móvil */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+        <Card className="p-2.5 sm:p-3.5">
+          <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-500 block truncate">CITAS DE HOY</span>
+          <div className="text-base sm:text-xl font-black text-slate-900 dark:text-white mt-0.5">
+            {metrics.todayCount} <span className="text-[10px] sm:text-xs font-normal text-slate-400">servicios</span>
           </div>
-          <span className="text-[10px] text-blue-600 font-semibold block mt-0.5">
+          <span className="text-[9px] sm:text-[10px] text-blue-600 font-semibold block mt-0.5 truncate">
             {DEFAULT_DAILY_CAPACITY - metrics.todayCount > 0
               ? `${DEFAULT_DAILY_CAPACITY - metrics.todayCount} cupos libres`
               : 'Aforo completo'}
           </span>
         </Card>
 
-        <Card className="p-3.5">
-          <span className="text-[10px] uppercase font-bold text-slate-500 block">AFORO TALLER HOY</span>
+        <Card className="p-2.5 sm:p-3.5">
+          <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-500 block truncate">AFORO TALLER HOY</span>
           <div className="flex items-center justify-between mt-0.5">
-            <span className="text-xl font-black text-slate-900 dark:text-white">
+            <span className="text-base sm:text-xl font-black text-slate-900 dark:text-white">
               {metrics.todayCapacityPercent}%
             </span>
             <Gauge
-              className={`w-4 h-4 ${
+              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
                 metrics.todayCapacityPercent >= 100
                   ? 'text-red-500'
                   : metrics.todayCapacityPercent >= 70
@@ -484,30 +485,30 @@ export const AppointmentsPage: React.FC = () => {
           </div>
         </Card>
 
-        <Card className="p-3.5">
-          <span className="text-[10px] uppercase font-bold text-slate-500 block">TOTAL EN EL MES</span>
-          <div className="text-xl font-black text-slate-900 dark:text-white mt-0.5">
-            {metrics.monthCount} <span className="text-xs font-normal text-slate-400">citas</span>
+        <Card className="p-2.5 sm:p-3.5">
+          <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-500 block truncate">TOTAL EN EL MES</span>
+          <div className="text-base sm:text-xl font-black text-slate-900 dark:text-white mt-0.5">
+            {metrics.monthCount} <span className="text-[10px] sm:text-xs font-normal text-slate-400">citas</span>
           </div>
-          <span className="text-[10px] text-slate-400 block mt-0.5">Programadas y atendidas</span>
+          <span className="text-[9px] sm:text-[10px] text-slate-400 block mt-0.5 truncate">Programadas / taller</span>
         </Card>
 
-        <Card className="p-3.5">
-          <span className="text-[10px] uppercase font-bold text-slate-500 block">COMPLETADAS</span>
-          <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+        <Card className="p-2.5 sm:p-3.5">
+          <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-500 block truncate">COMPLETADAS</span>
+          <div className="text-base sm:text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
             {metrics.completedMonth}
           </div>
-          <span className="text-[10px] text-emerald-600 font-semibold block mt-0.5">
+          <span className="text-[9px] sm:text-[10px] text-emerald-600 font-semibold block mt-0.5 truncate">
             Servicios entregados ✓
           </span>
         </Card>
       </div>
 
       {/* Barra de Control de Navegación y Vistas */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white dark:bg-slate-900 p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
         {/* Controles de Fechas */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center border border-slate-300 dark:border-slate-700 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-950">
+        <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+          <div className="flex items-center border border-slate-300 dark:border-slate-700 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-950 shrink-0">
             <button
               onClick={handlePrev}
               title="Anterior"
@@ -530,18 +531,18 @@ export const AppointmentsPage: React.FC = () => {
             </button>
           </div>
 
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white capitalize">
+          <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white capitalize truncate text-right sm:text-left">
             {periodTitle}
           </h2>
         </div>
 
-        {/* Selector de Vistas */}
-        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-lg text-xs font-semibold">
+        {/* Selector de Vistas como Segmented Control */}
+        <div className="grid grid-cols-3 sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-lg text-xs font-semibold w-full sm:w-auto">
           <button
             onClick={() => setCurrentView('month')}
-            className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 ${
+            className={`py-1.5 px-3 rounded-md transition-colors flex items-center justify-center gap-1.5 ${
               currentView === 'month'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs font-bold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
@@ -550,9 +551,9 @@ export const AppointmentsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setCurrentView('day')}
-            className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 ${
+            className={`py-1.5 px-3 rounded-md transition-colors flex items-center justify-center gap-1.5 ${
               currentView === 'day'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs font-bold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
@@ -561,9 +562,9 @@ export const AppointmentsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setCurrentView('list')}
-            className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 ${
+            className={`py-1.5 px-3 rounded-md transition-colors flex items-center justify-center gap-1.5 ${
               currentView === 'list'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs font-bold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
@@ -575,18 +576,18 @@ export const AppointmentsPage: React.FC = () => {
 
       {/* 1. VISTA DE MES */}
       {currentView === 'month' && (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Cuadrícula de Calendario Mensual */}
-          <Card className="lg:col-span-3 p-3 overflow-x-auto">
+          <Card className="lg:col-span-3 p-2 sm:p-4">
             {/* Cabecera de días de la semana */}
-            <div className="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-500 mb-2">
-              <div>Lun</div>
-              <div>Mar</div>
-              <div>Mié</div>
-              <div>Jue</div>
-              <div>Vie</div>
-              <div>Sáb</div>
-              <div>Dom</div>
+            <div className="grid grid-cols-7 gap-1 text-center font-bold text-[11px] sm:text-xs text-slate-500 mb-2">
+              <div><span className="sm:hidden">L</span><span className="hidden sm:inline">Lun</span></div>
+              <div><span className="sm:hidden">M</span><span className="hidden sm:inline">Mar</span></div>
+              <div><span className="sm:hidden">M</span><span className="hidden sm:inline">Mié</span></div>
+              <div><span className="sm:hidden">J</span><span className="hidden sm:inline">Jue</span></div>
+              <div><span className="sm:hidden">V</span><span className="hidden sm:inline">Vie</span></div>
+              <div><span className="sm:hidden">S</span><span className="hidden sm:inline">Sáb</span></div>
+              <div><span className="sm:hidden">D</span><span className="hidden sm:inline">Dom</span></div>
             </div>
 
             {/* Días del Mes */}
@@ -603,31 +604,33 @@ export const AppointmentsPage: React.FC = () => {
                   <div
                     key={dayItem.dateString}
                     onClick={() => setSelectedDay(dayItem.dateString)}
-                    className={`min-h-[92px] p-1.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    className={`min-h-[46px] sm:min-h-[92px] p-1 sm:p-1.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-between ${
                       isSelected
-                        ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 ring-1 ring-blue-500'
+                        ? 'border-blue-600 bg-blue-50/90 dark:bg-blue-950/60 ring-2 ring-blue-500 shadow-xs'
                         : isToday
                           ? 'border-amber-400 bg-amber-50/30 dark:bg-amber-950/20'
                           : dayItem.isCurrentMonth
                             ? 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300'
-                            : 'border-slate-100 dark:border-slate-900/60 bg-slate-50/50 dark:bg-slate-950/50 opacity-40'
+                            : 'border-slate-100 dark:border-slate-900/60 bg-slate-50/50 dark:bg-slate-950/50 opacity-30'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between w-full">
                       <span
-                        className={`text-xs font-bold ${
+                        className={`text-[11px] sm:text-xs font-bold transition-all ${
                           isToday
                             ? 'w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-mono text-[10px]'
-                            : 'text-slate-800 dark:text-slate-200'
+                            : isSelected
+                              ? 'text-blue-700 dark:text-blue-300 font-extrabold'
+                              : 'text-slate-800 dark:text-slate-200'
                         }`}
                       >
                         {dayItem.date.getDate()}
                       </span>
 
-                      {/* Mini indicador de aforo */}
+                      {/* Mini indicador de aforo: solo visible en pantallas grandes */}
                       {dayItem.isCurrentMonth && (
                         <span
-                          className={`text-[9px] font-mono px-1 rounded ${
+                          className={`hidden sm:inline-block text-[9px] font-mono px-1 rounded ${
                             isFull
                               ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'
                               : activeApts.length > 0
@@ -640,8 +643,36 @@ export const AppointmentsPage: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Badges de citas del día */}
-                    <div className="space-y-1 mt-1 overflow-hidden">
+                    {/* EN MÓVIL: Indicadores compactos de puntos de actividad (Estilo Google / Apple Calendar) */}
+                    <div className="sm:hidden flex items-center justify-center gap-0.5 mt-0.5 min-h-[8px]">
+                      {activeApts.length > 0 && (
+                        <div className="flex items-center gap-0.5">
+                          {activeApts.slice(0, 3).map((apt, idx) => (
+                            <span
+                              key={idx}
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                apt.status === 'IN_PROGRESS'
+                                  ? 'bg-amber-500'
+                                  : apt.status === 'COMPLETED'
+                                    ? 'bg-emerald-500'
+                                    : 'bg-blue-600'
+                              }`}
+                            />
+                          ))}
+                          {activeApts.length > 3 && (
+                            <span className="text-[8px] font-bold text-slate-500 leading-none">
+                              +{activeApts.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {isFull && activeApts.length === 0 && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                      )}
+                    </div>
+
+                    {/* EN DESKTOP: Badges con texto completo de la cita */}
+                    <div className="hidden sm:block space-y-1 mt-1 overflow-hidden">
                       {activeApts.slice(0, 2).map((apt) => (
                         <div
                           key={apt.id}
@@ -678,15 +709,22 @@ export const AppointmentsPage: React.FC = () => {
             </div>
           </Card>
 
-          {/* Panel Lateral: Citas del Día Seleccionado */}
+          {/* Panel Lateral: Citas del Día Seleccionado (visible abajo en móvil y al lado en desktop) */}
           <div className="space-y-3">
-            <Card className="p-4 space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+            <Card className="p-3.5 sm:p-4 space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
-                    DÍA SELECCIONADO
-                  </span>
-                  <h3 className="text-xs font-bold text-slate-900 dark:text-white capitalize">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                      DÍA SELECCIONADO
+                    </span>
+                    {selectedDayAppointments.filter((a) => a.status !== 'CANCELLED').length > 0 && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+                        {selectedDayAppointments.filter((a) => a.status !== 'CANCELLED').length}/{DEFAULT_DAILY_CAPACITY} cupos
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white capitalize">
                     {new Date(`${selectedDay}T12:00:00`).toLocaleDateString('es-CO', {
                       weekday: 'long',
                       day: 'numeric',
@@ -711,8 +749,8 @@ export const AppointmentsPage: React.FC = () => {
 
               {/* Lista de citas del día */}
               {selectedDayAppointments.length === 0 ? (
-                <div className="py-8 text-center text-xs text-slate-400 space-y-2">
-                  <CalendarIcon className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-700" />
+                <div className="py-6 sm:py-8 text-center text-xs text-slate-400 space-y-2">
+                  <CalendarIcon className="w-7 h-7 sm:w-8 sm:h-8 mx-auto text-slate-300 dark:text-slate-700" />
                   <p>No hay citas programadas para este día.</p>
                   <Button
                     size="sm"
@@ -721,13 +759,13 @@ export const AppointmentsPage: React.FC = () => {
                       setNewDate(selectedDay);
                       setNewModalOpen(true);
                     }}
-                    className="text-xs text-blue-600"
+                    className="text-xs text-blue-600 font-semibold"
                   >
                     + Programar servicio técnico
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
                   {selectedDayAppointments.map((apt) => (
                     <div
                       key={apt.id}
@@ -735,18 +773,21 @@ export const AppointmentsPage: React.FC = () => {
                         setSelectedAppointment(apt);
                         setDetailModalOpen(true);
                       }}
-                      className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 hover:border-blue-400 transition-colors cursor-pointer space-y-1"
+                      className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 hover:border-blue-400 transition-colors cursor-pointer space-y-2"
                     >
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-mono font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
+                          <Clock className="w-3.5 h-3.5" />
                           {new Date(apt.scheduled_at).toLocaleTimeString('es-CO', {
                             hour: '2-digit',
                             minute: '2-digit',
-                          })}
+                          })}{' '}
+                          <span className="text-[10px] text-slate-400 font-normal">
+                            ({apt.estimated_duration_min}m)
+                          </span>
                         </span>
                         <span
-                          className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase ${
+                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${
                             apt.status === 'SCHEDULED'
                               ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
                               : apt.status === 'IN_PROGRESS'
@@ -760,16 +801,44 @@ export const AppointmentsPage: React.FC = () => {
                         </span>
                       </div>
 
-                      <div className="text-xs font-semibold text-slate-900 dark:text-white">
-                        {apt.customer?.full_name || 'Cliente sin asignar'}
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center justify-between">
+                          <span>{apt.customer?.full_name || 'Cliente sin asignar'}</span>
+                          {apt.customer?.phone && (
+                            <a
+                              href={appointmentService.getWhatsAppConfirmationUrl(apt)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-emerald-600 p-1 hover:bg-emerald-50 dark:hover:bg-emerald-950 rounded transition-colors"
+                              title="WhatsApp"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                          🚲 {apt.bicycle ? `${apt.bicycle.brand} ${apt.bicycle.model}` : 'Bicicleta en espera'}
+                        </div>
                       </div>
 
-                      <div className="text-[11px] text-slate-600 dark:text-slate-400">
-                        {apt.bicycle ? `${apt.bicycle.brand} ${apt.bicycle.model}` : 'Bicicleta en espera'}
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800 text-[10px] text-slate-500">
+                        <span>🔧 {apt.service_name || 'Mantenimiento General'}</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">
+                          👨‍🔧 {apt.mechanic_name?.split(' ')[0] || 'Taller'}
+                        </span>
                       </div>
 
-                      <div className="text-[10px] text-slate-500 font-medium">
-                        🔧 {apt.service_name || 'Mantenimiento General'} • {apt.estimated_duration_min} min
+                      {/* Botón rápido para recibir bici en móvil */}
+                      <div className="pt-1 flex items-center gap-1.5 sm:hidden" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          size="sm"
+                          className="w-full text-[11px] py-1 h-7"
+                          onClick={() => handleStartReception(apt)}
+                          leftIcon={<ClipboardCheck className="w-3 h-3" />}
+                        >
+                          Recibir en Taller
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -860,7 +929,7 @@ export const AppointmentsPage: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 self-end sm:self-center">
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 self-stretch sm:self-center justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
                     {apt.customer?.phone && (
                       <a
                         href={appointmentService.getWhatsAppConfirmationUrl(apt)}
@@ -876,6 +945,7 @@ export const AppointmentsPage: React.FC = () => {
                     <Button
                       size="sm"
                       variant="outline"
+                      className="flex-1 sm:flex-initial text-xs"
                       onClick={() => {
                         setSelectedAppointment(apt);
                         setDetailModalOpen(true);
@@ -886,6 +956,7 @@ export const AppointmentsPage: React.FC = () => {
 
                     <Button
                       size="sm"
+                      className="flex-1 sm:flex-initial text-xs"
                       onClick={() => handleStartReception(apt)}
                       leftIcon={<ClipboardCheck className="w-3.5 h-3.5" />}
                     >
@@ -901,7 +972,7 @@ export const AppointmentsPage: React.FC = () => {
 
       {/* 3. VISTA DE LISTA */}
       {currentView === 'list' && (
-        <Card className="p-4 space-y-4">
+        <Card className="p-3 sm:p-4 space-y-4">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -929,7 +1000,102 @@ export const AppointmentsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* VISTA EN TARJETAS PARA MÓVILES */}
+          <div className="sm:hidden space-y-2.5">
+            {filteredListAppointments.length === 0 ? (
+              <div className="py-8 text-center text-xs text-slate-400">
+                No se encontraron citas con los filtros aplicados.
+              </div>
+            ) : (
+              filteredListAppointments.map((apt) => (
+                <div
+                  key={apt.id}
+                  onClick={() => {
+                    setSelectedAppointment(apt);
+                    setDetailModalOpen(true);
+                  }}
+                  className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-2 cursor-pointer"
+                >
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
+                      {new Date(apt.scheduled_at).toLocaleDateString('es-CO', {
+                        day: '2-digit',
+                        month: 'short',
+                      })}{' '}
+                      •{' '}
+                      {new Date(apt.scheduled_at).toLocaleTimeString('es-CO', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                    <span
+                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${
+                        apt.status === 'SCHEDULED'
+                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                          : apt.status === 'IN_PROGRESS'
+                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                            : apt.status === 'COMPLETED'
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                              : 'bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {apt.status}
+                    </span>
+                  </div>
+
+                  <div>
+                    <div className="font-bold text-xs text-slate-900 dark:text-white">
+                      {apt.customer?.full_name}
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      🚲 {apt.bicycle ? `${apt.bicycle.brand} ${apt.bicycle.model}` : 'Bicicleta no especificada'}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800">
+                    <span>🔧 {apt.service_name}</span>
+                    <span>👨‍🔧 {apt.mechanic_name || 'Taller'}</span>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+                    {apt.customer?.phone && (
+                      <a
+                        href={appointmentService.getWhatsAppConfirmationUrl(apt)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 hover:bg-emerald-100 transition-colors"
+                        title="WhatsApp"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </a>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs h-7"
+                      onClick={() => {
+                        setSelectedAppointment(apt);
+                        setDetailModalOpen(true);
+                      }}
+                    >
+                      Gestionar
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => handleStartReception(apt)}
+                      leftIcon={<ClipboardCheck className="w-3 h-3" />}
+                    >
+                      Recibir
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* TABLA EJECUTIVA PARA PANTALLAS SM EN ADELANTE */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold">
@@ -1238,11 +1404,11 @@ export const AppointmentsPage: React.FC = () => {
           title="Gestión de Cita de Mantenimiento"
           maxWidth="md"
           footer={
-            <div className="flex items-center justify-between w-full">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between w-full gap-2">
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-red-600 hover:text-red-700"
+                className="text-red-600 hover:text-red-700 justify-center"
                 onClick={() => {
                   setAppointmentToDelete(selectedAppointment);
                   setDeleteModalOpen(true);
@@ -1252,7 +1418,7 @@ export const AppointmentsPage: React.FC = () => {
                 Eliminar Cita
               </Button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 justify-end">
                 <Button variant="outline" size="sm" onClick={() => setDetailModalOpen(false)}>
                   Cerrar
                 </Button>
@@ -1303,7 +1469,7 @@ export const AppointmentsPage: React.FC = () => {
             </div>
 
             {/* Datos del Cliente y Bicicleta */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 space-y-1">
                 <span className="font-bold text-slate-400 text-[10px] uppercase block">CLIENTE</span>
                 <div className="font-semibold text-slate-900 dark:text-white">
