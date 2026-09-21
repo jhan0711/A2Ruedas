@@ -15,6 +15,7 @@ import { ProductsAdminPage } from '../pages/admin/ProductsAdminPage';
 import { WorkOrdersPage } from '../pages/admin/WorkOrdersPage';
 import { ReceptionPage } from '../pages/admin/ReceptionPage';
 import { AppointmentsPage } from '../pages/admin/AppointmentsPage';
+import { QRCodesPage } from '../pages/admin/QRCodesPage';
 import { ModulePlaceholder } from '../pages/admin/ModulePlaceholder';
 
 export const router = createBrowserRouter([
@@ -95,13 +96,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'qr',
-            element: (
-              <ModulePlaceholder
-                title="Generación y Escaneo de QR"
-                phase="Fase 13"
-                description="Emisión de adhesivos para bicicletas y escáner integrado con cámara."
-              />
-            ),
+            element: <QRCodesPage />,
           },
           {
             path: 'impresion',

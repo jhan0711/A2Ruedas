@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 12 — Historial Completo y Timeline de Bicicleta
+Fase actual: FASE 13 — Módulo de Códigos QR y Etiquetas Adhesivas
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -18,9 +18,9 @@ Estado: COMPLETADA
 - [x] FASE 10 — Recepción de Bicicleta + Firma Digital Táctil
 - [x] FASE 11 — Agenda y Calendario de Mantenimientos
 - [x] FASE 12 — Historial Completo y Timeline de Bicicleta
+- [x] FASE 13 — Módulo de Códigos QR (Generación, descarga, escaneo por cámara)
 
 ## Fases pendientes:
-- [ ] FASE 13 — Módulo de Códigos QR (Generación, descarga, escaneo por cámara)
 - [ ] FASE 14 — Módulo de Comunicación por WhatsApp (Deep links dinámicos)
 - [ ] FASE 15 — Módulo de Flujo de Caja (Apertura, ingresos, egresos, cierre)
 - [ ] FASE 16 — Facturación y Recibos Internos
@@ -123,28 +123,42 @@ Estado: COMPLETADA
     4. Odómetro acumulado en tiempo real, recomendaciones de mantenimiento y enlace directo a WhatsApp para agendar servicio.
   * Preselección relacional en `/admin/ordenes/nueva` al hacer clic en "Crear Nueva Orden" desde la ficha de cualquier bicicleta.
   * Suite de pruebas automatizadas en `tests/bicycleTimeline.test.mjs`.
+- **Módulo de Códigos QR y Etiquetas Adhesivas (Fase 13)**:
+  * Motor de Códigos QR de alta densidad usando `qrcode` con nivel de recuperación 'H' (30% de tolerancia ante manchas de grasa, barro, agua y raspaduras físicas en taller).
+  * Generador de Etiquetas Adhesivas de Taller (50mm x 30mm / 600x360 px Canvas) con branding A2Ruedas, código QR de alta resolución, badge alfanumérico destacado `BIKE-XXXXXX`, especificaciones del cuadro, sello de garantía y guías perimetrales de corte.
+  * Centro de Códigos QR en `/admin/qr`:
+    1. KPIs en vivo: QRs Asignados, Bicicletas Identificadas, Etiquetas Seleccionadas y Red 100% Verificada.
+    2. Filtrado y búsqueda reactiva por marca, modelo, cliente, serial y código QR.
+    3. Selección múltiple e impresión masiva de pliegos (2 columnas por fila en tamaño Carta/A4 con saltos automáticos de página) o etiquetas individuales continuas.
+    4. Descarga directa en archivo PNG de alta resolución para rotulación física.
+  * Modal de Previsualización e Impresión de Sticker `StickerPreviewModal` con copia rápida de enlace público, descarga de imagen PNG y guía de colocación recomendada en el cuadro (tubo inferior, debajo de caja de centro o vaina trasera).
+  * Escáner Universal por Cámara `QRScannerModal` con motor dual: `BarcodeDetector` nativo acelerado por hardware + fallback universal con `jsQR`, alternador de cámara (frontal/trasera en móviles), interruptor de linterna (flashlight), retícula animada, sonido suave Web Audio + vibración háptica, pestaña de ingreso manual por teclado y ficha emergente interactiva de resultados con botones de acción directa ("Iniciar Recepción", "Ver Dossier Técnico", "Ver Perfil Público").
+  * Botón global "Escanear QR" en la cabecera `Header.tsx` para acceso instantáneo desde cualquier pantalla del panel.
+  * Botón de escaneo express en el Paso 1 de Recepción de Bicicleta (`ReceptionPage.tsx`) que autocompleta el cliente y la bicicleta en 1 clic.
+  * Suite de pruebas automatizadas en `tests/qrCodes.test.mjs` (16 pruebas con 100% PASS).
 
 ## Errores conocidos:
 - Ninguno. Compilación limpia y pruebas ejecutadas exitosamente al 100%.
 
 ## Pruebas ejecutadas:
 - Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (0 errores).
-- Búsqueda y resolución de timeline por QR (`BIKE-8F3A92` -> Trek Marlin 7): PASS.
-- Protección estricta de privacidad (CERO datos personales/PII expuestos al público): PASS.
-- Cálculo de odómetro actual acumulado (Mayor valor registrado: 1.250 km): PASS.
-- Orden cronológico descendente y repuestos públicos (4 repuestos en timeline): PASS.
-- Recomendaciones inteligentes según tipo (MTB) y kilometraje (>1000 km): PASS.
-- Manejo seguro de código QR inexistente (retorna null sin error): PASS.
-- Dossier administrativo con cálculo total gastado ($220.000 COP) y 4 repuestos: PASS.
-- Regresión completa de las 11 fases previas (9 suites de prueba): PASS (100%).
+- Normalización y extracción de códigos QR (directo, minúsculas, URL pública, URL local con params, hex suelto): PASS.
+- Rechazo estricto de URLs externas o textos ajenos: PASS.
+- Generación y validación regex de códigos QR (`^BIKE-[0-9A-F]{6}$`): PASS.
+- Construcción de enlace público para el payload del QR (`https://.../bike/BIKE-XXXXXX`): PASS.
+- Especificación técnica de sticker adhesivo (600x360 px, Corrección H): PASS.
+- Búsqueda y filtrado multicriterio en el Centro de QRs (marca, serial, QR, cliente): PASS.
+- Filtrado y generación de pliego masivo para impresión: PASS.
+- Autocompletado de recepción al escanear QR y detección de QR libre: PASS.
+- Regresión completa de las 12 fases previas (10 suites de prueba): PASS (100%).
 
 ## Pruebas pendientes:
-- Pruebas E2E de escaneo de códigos QR con cámara web y móvil (Fase 13).
+- Pruebas E2E de mensajería con WhatsApp Web / API (Fase 14).
 
 ## Decisiones técnicas:
-- **Protección Estricta de Privacidad (CERO PII en vista pública)**: La función de servicio `getPublicBicycleTimeline(code)` y la página `/bike/:code` filtran expresamente cualquier dato privado del cliente (teléfono, documento de identidad, nombre completo). Solo se exponen datos mecánicos de la bicicleta, odómetro y mantenimientos realizados.
-- **Dossier Técnico con Acceso Directo a Comprobantes**: El modal de la bicicleta en `/admin/bicicletas` incorpora `WorkOrderTicketModal` para permitir la reimpresión o consulta del comprobante de cualquier orden pasada sin tener que salir al módulo de órdenes.
-- **Rastreo Evolutivo de Odómetro**: Se calcula el odómetro vigente tomando el valor más alto registrado en las órdenes de trabajo no canceladas, permitiendo visibilizar la progresión de kilometraje y emitir alertas preventivas automáticas cuando se superan los 1.000 km.
+- **Nivel de Corrección de Error 'H' (30% de recuperación)**: Las bicicletas en el taller están expuestas a aceite, barro, detergentes y desgaste físico del cuadro. Usar `errorCorrectionLevel: 'H'` garantiza que el código QR siga siendo perfectamente legible incluso si un tercio de la etiqueta resulta dañada o manchada.
+- **Motor de Escaneo Dual (`BarcodeDetector` + `jsQR`)**: Prioriza el decodificador nativo de la GPU/SO donde esté disponible (Android Chrome, etc.) para latencia casi cero, y conmuta silenciosamente al decodificador por Canvas de `jsQR` en navegadores de escritorio (Safari, Firefox, Chrome Windows).
+- **Normalización Agresiva de Texto Escaneado**: El taller puede utilizar cámaras de celular, cámaras web de computador o pistolas lectoras 2D tipo teclado USB. La función `extractQRCodeFromText` extrae y normaliza el ID tanto si la pistola envía la URL completa (`https://a2ruedas.app/bike/BIKE-D1CBB0`), el código formateado (`BIKE-D1CBB0`) o los 6 caracteres hexadecimales limpios (`d1cbb0`).
 
 ## Próximo paso:
-Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 13 — MÓDULO DE CÓDIGOS QR (Generación, descarga, escaneo por cámara)**.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 14 — MÓDULO DE COMUNICACIÓN POR WHATSAPP (Deep links dinámicos, plantillas y trazabilidad)**.

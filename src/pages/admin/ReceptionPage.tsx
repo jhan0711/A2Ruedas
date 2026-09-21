@@ -15,6 +15,7 @@ import {
   Search,
   DollarSign,
   FileCheck,
+  QrCode,
 } from 'lucide-react';
 import { Customer, Bicycle, WorkOrder } from '../../types/database';
 import { customerService } from '../../services/customerService';
@@ -25,6 +26,7 @@ import { TouchSignaturePad } from '../../components/signature/TouchSignaturePad'
 import { BicycleDamageDiagram, DamagePoint } from '../../components/inspection/BicycleDamageDiagram';
 import { AccessoriesChecklist } from '../../components/inspection/AccessoriesChecklist';
 import { WorkOrderTicketModal } from '../../components/receipts/WorkOrderTicketModal';
+import { QRScannerModal } from '../../components/qr/QRScannerModal';
 
 type Step = 'client_bike' | 'inspection' | 'services' | 'signature' | 'success';
 
@@ -80,6 +82,13 @@ export const ReceptionPage: React.FC = () => {
   const [createdOrder, setCreatedOrder] = useState<WorkOrder | null>(null);
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+
+  const handleScanSelectBike = (bike: Bicycle) => {
+    setSelectedCustomerId(bike.customer_id);
+    setSelectedBikeId(bike.id);
+    setScannerOpen(false);
+  };
 
   // Cargar clientes iniciales y preseleccionar si se recibe desde otra pantalla
   useEffect(() => {
@@ -403,6 +412,32 @@ export const ReceptionPage: React.FC = () => {
       {/* PASO 1: SELECCIÓN DE CLIENTE Y BICICLETA */}
       {currentStep === 'client_bike' && (
         <div className="space-y-4">
+          {/* Tarjeta de Reconocimiento Rápido por Código QR */}
+          <div className="p-3.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shrink-0 shadow-xs">
+                <QrCode className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white">
+                  ¿La bicicleta ya tiene código QR del taller?
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Escanea el sticker adhesivo con la cámara o código para autocompletar cliente y bicicleta en 1 segundo.
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => setScannerOpen(true)}
+              leftIcon={<QrCode className="w-3.5 h-3.5" />}
+              className="shrink-0"
+            >
+              Escanear QR de Bicicleta
+            </Button>
+          </div>
+
           <Card className="p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
@@ -1104,6 +1139,13 @@ export const ReceptionPage: React.FC = () => {
         isOpen={ticketModalOpen}
         onClose={() => setTicketModalOpen(false)}
         order={createdOrder}
+      />
+
+      {/* Modal de Escaneo de QR para Selección Automática */}
+      <QRScannerModal
+        isOpen={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onSelectBicycle={handleScanSelectBike}
       />
     </div>
   );

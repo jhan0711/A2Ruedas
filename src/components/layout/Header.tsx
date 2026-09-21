@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Menu, Sun, Moon, ExternalLink, ShieldCheck, LogOut } from 'lucide-react';
+import { Menu, Sun, Moon, ExternalLink, ShieldCheck, LogOut, QrCode } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
 import { ConfirmModal } from '../ui';
+import { QRScannerModal } from '../qr/QRScannerModal';
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
@@ -13,6 +14,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const { theme, toggleTheme } = useTheme();
   const { profile, user, logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleConfirmLogout = async () => {
@@ -56,6 +58,17 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
       </div>
 
       <div className="flex items-center gap-2">
+        {/* Botón Escanear QR con Cámara o Teclado */}
+        <button
+          type="button"
+          onClick={() => setScannerOpen(true)}
+          className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 transition-colors shadow-xs"
+          title="Escanear código QR de bicicleta"
+        >
+          <QrCode className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+          <span className="hidden sm:inline">Escanear QR</span>
+        </button>
+
         <Link
           to="/productos"
           target="_blank"
@@ -118,6 +131,12 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         message="Saldrás del panel administrativo de A2Ruedas. Para volver a gestionar órdenes y caja deberás ingresar tus credenciales nuevamente."
         confirmText="Cerrar Sesión"
         variant="warning"
+      />
+
+      {/* Modal global de escaneo de QR */}
+      <QRScannerModal
+        isOpen={scannerOpen}
+        onClose={() => setScannerOpen(false)}
       />
     </header>
   );
