@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Printer, QrCode, PenTool, FileText, Receipt, CheckCircle2 } from 'lucide-react';
 import { WorkOrder, Signature } from '../../types/database';
 import { workOrderService } from '../../services/workOrderService';
-import { printIsolatedElement } from '../../utils/printUtils';
+import { printWorkOrderDocument } from '../../utils/printUtils';
 import { Button, Modal } from '../ui';
 
 interface WorkOrderTicketModalProps {
@@ -43,11 +43,7 @@ export const WorkOrderTicketModal: React.FC<WorkOrderTicketModalProps> = ({
   if (!order) return null;
 
   const handlePrint = () => {
-    const elementId = format === 'letter' ? 'printable-formal-sheet' : 'printable-thermal-ticket';
-    printIsolatedElement(elementId, {
-      paperSize: format,
-      pageTitle: `Orden_${order.order_number}_A2Ruedas`,
-    });
+    printWorkOrderDocument(order, signature, format);
   };
 
   const customer = order.customer;
