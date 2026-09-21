@@ -249,11 +249,16 @@ export interface Appointment {
   bicycle_id?: string | null;
   service_id?: string | null;
   technician_id?: string | null;
+  mechanic_name?: string | null;
+  service_name?: string | null;
   scheduled_at: string;
   estimated_duration_min: number;
   status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   notes?: string | null;
   created_at: string;
-  customer?: Customer;
-  bicycle?: Bicycle;
+  customer?: Customer | null;
+  bicycle?: Bicycle | null;
 }
+
+export type AppointmentInsert = Omit<Appointment, 'id' | 'created_at' | 'customer' | 'bicycle'>;
+export type AppointmentUpdate = Partial<AppointmentInsert>;

@@ -14,6 +14,7 @@ import { InventoryPage } from '../pages/admin/InventoryPage';
 import { ProductsAdminPage } from '../pages/admin/ProductsAdminPage';
 import { WorkOrdersPage } from '../pages/admin/WorkOrdersPage';
 import { ReceptionPage } from '../pages/admin/ReceptionPage';
+import { AppointmentsPage } from '../pages/admin/AppointmentsPage';
 import { ModulePlaceholder } from '../pages/admin/ModulePlaceholder';
 
 export const router = createBrowserRouter([
@@ -46,13 +47,7 @@ export const router = createBrowserRouter([
           { path: 'design-system', element: <DesignSystemPage /> },
           {
             path: 'agenda',
-            element: (
-              <ModulePlaceholder
-                title="Agenda y Calendario"
-                phase="Fase 11"
-                description="Programación de citas y control de carga horaria de mecánicos."
-              />
-            ),
+            element: <AppointmentsPage />,
           },
           {
             path: 'bicicletas',

@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 9 — Módulo de Órdenes de Trabajo (OT)
+Fase actual: FASE 11 — Agenda y Calendario de Mantenimientos
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -16,9 +16,9 @@ Estado: COMPLETADA
 - [x] FASE 8 — Módulo de Inventario (Productos, stock, Kardex, alertas)
 - [x] FASE 9 — Módulo de Órdenes de Trabajo (OT-000001, estados, repuestos)
 - [x] FASE 10 — Recepción de Bicicleta + Firma Digital Táctil
+- [x] FASE 11 — Agenda y Calendario de Mantenimientos
 
 ## Fases pendientes:
-- [ ] FASE 11 — Agenda y Calendario de Mantenimientos
 - [ ] FASE 12 — Historial Completo y Timeline de Bicicleta
 - [ ] FASE 13 — Módulo de Códigos QR (Generación, descarga, escaneo por cámara)
 - [ ] FASE 14 — Módulo de Comunicación por WhatsApp (Deep links dinámicos)
@@ -58,7 +58,7 @@ Estado: COMPLETADA
 - Función RPC de seguridad en base de datos `get_bike_public_timeline(p_qr_code)` para consultar el historial de mantenimiento por QR sin exponer información personal sensible de clientes.
 - Políticas de seguridad Row Level Security (RLS) habilitadas en las 20 tablas, con lectura anónima limitada a productos activos y acceso total restringido a administradores autenticados.
 - Tipos de TypeScript sincronizados en `src/types/database.ts`.
-- Capa de servicios desacoplada en `src/services/` (`customerService`, `bicycleService`, `inventoryService`, `workOrderService`, `cashService`) con persistencia dual (Supabase + resiliencia local).
+- Capa de servicios desacoplada en `src/services/` (`customerService`, `bicycleService`, `inventoryService`, `workOrderService`, `cashService`, `appointmentService`) con persistencia dual (Supabase + resiliencia local).
 - Suite de pruebas de base de datos en `tests/database.test.mjs`.
 - **Módulo de Clientes (Fase 6)**:
   * Directorio visual con tabla B2B, avatares monocromáticos y badges.
@@ -85,7 +85,6 @@ Estado: COMPLETADA
   * Validación matemática estricta de Kardex con prueba obligatoria ($0 + 10 - 2 = 8$).
   * Prevención estricta de stock negativo.
   * Suite de pruebas automatizadas en `tests/inventory.test.mjs`.
-
 - **Módulo de Órdenes de Trabajo (Fase 9)**:
   * Generación y control de correlativo estricto `OT-000001` (6 dígitos secuenciales).
   * Soporte completo para el ciclo de 9 estados del taller (`RECIBIDA`, `DIAGNOSTICO`, `PRESUPUESTO`, `APROBADA`, `EN_REPARACION`, `ESPERANDO_REPUESTO`, `LISTA`, `ENTREGADA`, `CANCELADA`) con badges cromáticos.
@@ -96,34 +95,43 @@ Estado: COMPLETADA
   * Modal Dossier técnico con desglose financiero, línea de tiempo de auditoría y notificaciones directas a WhatsApp contextualizadas.
   * Eliminación con modal de confirmación `ConfirmModal` (Regla 44).
   * Suite de pruebas automatizadas en `tests/workOrders.test.mjs`.
-
-## Funcionalidades pendientes:
-- Agenda y Calendario de Mantenimientos (Fase 11).
-- Historial Completo y Timeline de Bicicleta (Fase 12).
+- **Módulo de Recepción y Firma Digital Táctil (Fase 10)**:
+  * Pantalla especializada en `/admin/ordenes/nueva` con flujo de 4 pasos para ingreso de bicicletas.
+  * Lienzo táctil HTML5 Canvas para firma digital del cliente con calibración DPI y prevención de scroll táctil.
+  * Diagrama anatómico vectorial SVG con marcado de daños por coordenadas porcentuales y detección anatómica.
+  * Lista de verificación de accesorios en custodia del cliente (10 ítems comunes + campo libre).
+  * Emisión de orden en estado `RECIBIDA` con correlativo secuencial e incrustación de firma en comprobante POS 58 mm y formato carta A4.
+  * Suite de pruebas automatizadas en `tests/reception.test.mjs`.
+- **Módulo de Agenda y Calendario de Mantenimientos (Fase 11)**:
+  * Calendario interactivo en `/admin/agenda` con visualizaciones por Mes, Día y Lista cronológica.
+  * Control en tiempo real de capacidad diaria (aforo máximo configurable por día, por defecto 6 cupos) con semáforo verde/amarillo/rojo.
+  * Asignación de mecánico responsable y estimación de tiempo de servicio.
+  * Ciclo de vida de 4 estados para citas (`SCHEDULED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`).
+  * Generador de Deep Links de WhatsApp para confirmación inmediata de citas.
+  * Integración con módulo de recepción para transferir cliente y bicicleta con un solo clic.
+  * Suite de pruebas automatizadas en `tests/appointments.test.mjs`.
 
 ## Errores conocidos:
 - Ninguno. Compilación limpia y pruebas ejecutadas exitosamente al 100%.
 
 ## Pruebas ejecutadas:
 - Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (0 errores).
-- Validación de formato Base64 PNG para firma digital táctil: PASS.
-- Registro de firma de recepción con metadatos inmutables (tipo, firmante, cédula, fecha): PASS.
-- Detección anatómica en diagrama SVG interactivo de bicicleta (5 zonas clave): PASS.
-- Serialización inmutable de daños preexistentes para protección legal del taller: PASS.
-- Consolidación de inventario de accesorios en custodia del cliente: PASS.
-- Simulación completa de flujo de recepción y emisión de orden OT con estado `RECIBIDA`: PASS.
-- Integración de firma digital y accesorios en comprobante térmico POS 58 mm: PASS.
+- Validación de creación de citas con mecánico y tiempo estimado: PASS.
+- Cálculo de aforo diario (4 de 6 cupos = 67% ocupación): PASS.
+- Exclusión estricta de citas CANCELLED para liberación de cupos en agenda: PASS.
+- Alerta visual de aforo completo cuando se alcanzan 6 de 6 cupos (100% ocupado): PASS.
+- Ciclo de 4 estados de citas en agenda: PASS.
+- Generación de enlace directo a WhatsApp para confirmación de turnos: PASS.
+- Transferencia reactiva de datos de cita a módulo de recepción formal: PASS.
+- Regresión completa de las 10 fases previas (8 suites de prueba): PASS (100%).
 
 ## Pruebas pendientes:
-- Pruebas E2E de calendario y asignación de mecánicos (Fase 11).
+- Pruebas E2E de historial cronológico de bicicleta y consulta pública por QR (Fase 12).
 
 ## Decisiones técnicas:
-- **Lienzo Táctil HTML5 Canvas**: Se implementó manejo explícito de `touchstart`, `touchmove`, `touchend` con `touch-action: none` y compensación de `devicePixelRatio` para evitar el desplazamiento de la página y garantizar trazos hipernítidos en pantallas móviles y tablets.
-- **Diagrama Anatómico Vectorial**: La inspección visual sitúa los marcadores en porcentajes relativos $(x\%, y\%)$ sobre una silueta SVG técnica, lo cual permite un renderizado responsivo perfecto en cualquier resolución de pantalla y serializa los daños en la auditoría interna.
-- **Comprobante Térmico con Firma**: La tirilla de 58 mm consume directamente la firma digital en Base64 para imprimir el comprobante con la rúbrica del cliente ya incrustada.
+- **Aforo y Cupos en Tiempo Real**: El aforo diario se computa dinámicamente sumando todas las citas no canceladas asignadas a una fecha determinada, comparándolas contra la capacidad máxima diaria del taller (`DEFAULT_DAILY_CAPACITY = 6`). Esto previene la sobrecarga de los mecánicos antes de admitir nuevas reservas.
+- **Traspaso Fluido Cita -> Recepción**: Al pulsar *"Iniciar Recepción"* en una cita, el sistema navega a `/admin/ordenes/nueva` inyectando en `location.state` el cliente y la bicicleta para preseleccionar ambos registros automáticamente.
+- **Generación de Enlaces de WhatsApp**: Se codifican los parámetros de la cita (nombre, fecha, hora, mecánico y servicio) en una plantilla URL estandarizada (`https://wa.me/...`) para que el recepcionista envíe confirmaciones sin escribir manualmente.
 
 ## Próximo paso:
-Iniciar **FASE 11 — AGENDA Y CALENDARIO DE MANTENIMIENTOS**: Vista de calendario interactivo para agendar turnos de servicio técnico, capacidad diaria del taller, asignación de mecánicos y reprogramación de citas.
-
-
-
+Iniciar **FASE 12 — HISTORIAL COMPLETO Y TIMELINE DE BICICLETA**: Registro cronológico de mantenimientos, trazabilidad por código QR público, repuestos cambiados y odómetro/kilometraje.
