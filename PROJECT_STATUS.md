@@ -1,6 +1,6 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 14 — Módulo de Comunicación por WhatsApp (Deep links dinámicos, plantillas y trazabilidad)
+Fase actual: FASE 15 — Módulo de Flujo de Caja (Apertura, ingresos, egresos, anticipos, medios de pago y arqueo de cierre)
 Estado: COMPLETADA
 Última actualización: 2026-09-20
 
@@ -20,9 +20,9 @@ Estado: COMPLETADA
 - [x] FASE 12 — Historial Completo y Timeline de Bicicleta
 - [x] FASE 13 — Módulo de Códigos QR (Generación, descarga, escaneo por cámara)
 - [x] FASE 14 — Módulo de Comunicación por WhatsApp (Deep links dinámicos, plantillas automáticas y bitácora)
+- [x] FASE 15 — Módulo de Flujo de Caja (Apertura, ingresos, egresos, anticipos, medios de pago y arqueo de cierre)
 
 ## Fases pendientes:
-- [ ] FASE 15 — Módulo de Flujo de Caja (Apertura, ingresos, egresos, cierre)
 - [ ] FASE 16 — Facturación y Recibos Internos
 - [ ] FASE 17 — Impresión Térmica de 58 mm (Órdenes y Facturas)
 - [ ] FASE 18 — Catálogo Público de Productos (/productos, sin login)
@@ -152,9 +152,33 @@ Estado: COMPLETADA
   * Integración en el flujo de trabajo del taller:
     1. Paso 4 de Recepción de Bicicleta (`ReceptionPage.tsx`) con apertura automática tras crear la orden.
     2. Tabla de Órdenes de Trabajo (`WorkOrdersPage.tsx`) con clic directo en el número de teléfono del cliente y botón de acción en fila.
-    3. Modal Dossier Técnico (`WorkOrdersPage.tsx`) con notificación contextualizada a WhatsApp.
+     3. Modal Dossier Técnico (`WorkOrdersPage.tsx`) con notificación contextualizada a WhatsApp.
   * Trazabilidad y persistencia dual en tabla `whatsapp_messages` y almacenamiento local (`localStorage`) para resiliencia sin conexión.
   * Suite de pruebas automatizadas en `tests/whatsapp.test.mjs` (13 pruebas con 100% PASS).
+- **Módulo de Flujo de Caja y Arqueo Diario (Fase 15)**:
+  * Modelo completo de sesiones de caja en `cash_registers` y movimientos en `cash_movements`.
+  * Apertura de caja formal mediante `OpenCashModal` con registro de base inicial en efectivo ($150.000 COP sugerido por defecto), atajos rápidos ($100k, $150k, $200k, $300k) y notas operativas.
+  * Registro de ingresos y egresos mediante `CashMovementModal` con discriminación por medio de pago (Efectivo, Nequi / Bancolombia, Datáfono / Tarjeta, Otro), categorías de taller y vinculación a órdenes OT.
+  * Panel administrativo en tiempo real en `/admin/caja` con tarjetas KPI:
+    1. Base Inicial en Efectivo.
+    2. Efectivo Físico en Gaveta (`Base + Entradas_Efectivo - Salidas_Efectivo`).
+    3. Transferencias Nequi / Bancos (segregadas de la gaveta física).
+    4. Pagos por Datáfono / Tarjetas.
+    5. Total de Egresos de la Jornada.
+    6. Balance Neto Total Consolidado.
+  * Tabla de movimientos de la jornada con búsqueda instantánea por concepto, categoría o número de OT, y filtros por tipo y medio de pago.
+  * Modal de Arqueo y Cierre Diario `CloseCashModal`:
+    1. Comparador en vivo: Efectivo Esperado en Gaveta vs. Efectivo Físico Contado.
+    2. Calculadora interactiva por denominaciones de billetes colombianos ($100k, $50k, $20k, $10k, $5k, $2k y monedas) con botón para prellenar el valor esperado.
+    3. Opción de ingreso manual directo del total contado.
+    4. Detección automática y visual del resultado del arqueo: Caja Cuadrada ($0, verde), Sobrante (+$, azul), Faltante (-$, rojo con justificación obligatoria).
+  * Comprobante Térmico POS de 58 mm (`CashTicketModal`):
+    1. Formato `@page { size: 58mm auto; margin: 0; }` con 50 mm útiles.
+    2. Encabezado de taller, fecha/hora de apertura y cierre, cajero responsable.
+    3. Desglose detallado de efectivo, canales digitales, balance neto, arqueo contado y diferencia.
+    4. Desglose opcional de billetes contados y espacio para firma física del cajero.
+  * Pestaña de Histórico de Cajas Cerradas con tabla de auditoría permanente y botón para reimprimir cualquier comprobante previo.
+  * Suite de pruebas automatizadas en `tests/cash.test.mjs` (14 pruebas con 100% PASS).
 
 ## Errores conocidos:
 - Ninguno. Compilación limpia y pruebas ejecutadas exitosamente al 100%.
@@ -162,22 +186,26 @@ Estado: COMPLETADA
 ## Pruebas ejecutadas:
 - Compilación de TypeScript y empaquetado de Vite (`npm run build`): PASS (0 errores).
 - Normalización y extracción de códigos QR y sticker adhesivo: PASS (19/19).
-- Normalización telefónica (+57, 10 dígitos, limpieza de caracteres no numéricos): PASS.
-- Deep Links wa.me con codificación URL de emojis y saltos de línea: PASS.
-- Catálogo de 10 plantillas oficiales de taller: PASS.
-- Interpolación dinámica de datos (cliente, bici, orden, totales y saldo pendiente): PASS.
-- Mapeo de estados de taller a plantillas sugeridas: PASS.
-- Bitácora de auditoría y búsqueda reactiva multicriterio: PASS.
-- Cálculo de métricas y KPIs de WhatsApp: PASS.
-- Regresión completa de las 14 fases previas (11 suites de prueba): PASS (100%).
+- Mensajería con WhatsApp, plantillas oficiales y Deep links wa.me: PASS (13/13).
+- Apertura formal de caja con base inicial en efectivo ($150.000 COP): PASS.
+- Bloqueo estricto de apertura con monto inicial negativo: PASS.
+- Registro de ingresos en efectivo, transferencias digitales y datáfono: PASS.
+- Registro de egresos / salidas de taller en efectivo: PASS.
+- Cálculo matemático exacto de efectivo en gaveta (`Base + Entradas - Salidas`): PASS.
+- Segregación estricta de transferencias y tarjetas sin alterar gaveta física: PASS.
+- Balance neto total de la jornada (`Total Ingresos - Total Egresos`): PASS.
+- Calculadora de denominaciones de billetes colombianos: PASS.
+- Detección de Caja Cuadrada ($0), Sobrante (+$) y Faltante (-$): PASS.
+- Cierre formal de caja y consolidación en histórico: PASS.
+- Regresión completa de las 15 fases del proyecto (12 suites de prueba): PASS (100%).
 
 ## Pruebas pendientes:
-- Pruebas de integración para el Módulo de Flujo de Caja (Fase 15).
+- Pruebas de integración para el Módulo de Facturación y Recibos Internos (Fase 16).
 
 ## Decisiones técnicas:
-- **Enfoque de Deep Links Oficiales (`wa.me`) sin intermediarios de pago**: Para una PWA ágil y sin costos mensuales recurrentes de la API oficial de WhatsApp Cloud o Twilio, se utilizaron Deep Links de WhatsApp Web / App directa. Esto permite al mecánico o administrador disparar el mensaje en 1 clic desde su propio WhatsApp personal o empresarial del taller en cualquier dispositivo (PC, tablet o smartphone), registrando simultáneamente la auditoría en la base de datos `whatsapp_messages`.
-- **Cálculo de Saldo Pendiente en Plantillas de Cobro**: En la plantilla `BICICLETA_LISTA`, el sistema extrae automáticamente los abonos o anticipos previos y muestra al cliente exactamente el saldo que debe cancelar al momento de retirar su bicicleta, eliminando confusiones de caja en el mostrador.
-- **Simulador Fotorrealista de Chat WhatsApp**: Permite al recepcionista o mecánico leer con anticipación exactamente cómo verá el cliente el mensaje en la pantalla de su celular antes de enviarlo, evitando errores ortográficos o montos incorrectos.
+- **Segregación Estricta de Dinero Digital vs. Efectivo Físico**: En los talleres mecánicos de bicicletas en Colombia, los clientes pagan frecuentemente con Nequi, Daviplata o transferencias bancarias directas. El sistema diferencia con precisión matemática qué dinero ingresó a la cuenta bancaria y qué dinero físico está realmente en la gaveta del mostrador. De este modo, el arqueo de efectivo físico no se contamina con pagos digitales.
+- **Calculadora Táctil de Billetes Colombianos**: Para evitar que el cajero deba usar una calculadora externa o cometa errores manuales al sumar billetes de $100.000, $50.000, $20.000, etc., el modal de cierre incluye campos directos por denominación nacional, calculando el total exacto en tiempo real.
+- **Tirilla Térmica de 58 mm Especializada para Caja**: Se reutilizó la especificación `@page { size: 58mm auto; margin: 0; }` desarrollada en las fases anteriores para permitir al cajero imprimir el comprobante de cierre diario en la impresora térmica de recibos del mostrador, archivándolo junto al dinero del cierre.
 
 ## Próximo paso:
-Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 15 — MÓDULO DE FLUJO DE CAJA (Apertura de caja, ingresos, egresos, medios de pago y arqueo de cierre)**.
+Esperar la confirmación explícita del usuario ("confirmo") para iniciar **FASE 16 — FACTURACIÓN Y RECIBOS INTERNOS (Emisión de comprobantes internos, numeración FAC-000001 y detalle de cobros)**.

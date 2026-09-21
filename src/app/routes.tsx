@@ -17,6 +17,7 @@ import { ReceptionPage } from '../pages/admin/ReceptionPage';
 import { AppointmentsPage } from '../pages/admin/AppointmentsPage';
 import { QRCodesPage } from '../pages/admin/QRCodesPage';
 import { WhatsAppPage } from '../pages/admin/WhatsAppPage';
+import { CashPage } from '../pages/admin/CashPage';
 import { ModulePlaceholder } from '../pages/admin/ModulePlaceholder';
 
 export const router = createBrowserRouter([
@@ -77,13 +78,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'caja',
-            element: (
-              <ModulePlaceholder
-                title="Flujo de Caja Diario"
-                phase="Fase 15"
-                description="Apertura, ingresos, egresos, anticipos y arqueo de caja diario."
-              />
-            ),
+            element: <CashPage />,
           },
           {
             path: 'facturas',

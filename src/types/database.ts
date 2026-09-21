@@ -186,6 +186,41 @@ export interface Signature {
 }
 
 // 12. Sesiones de Caja
+export type CashPaymentMethod = 'CASH' | 'TRANSFER' | 'CARD' | 'OTHER';
+export type CashMovementType = 'INCOME' | 'EXPENSE';
+export type CashCategory =
+  | 'ORDER_PAYMENT'
+  | 'ORDER_DEPOSIT'
+  | 'COUNTER_SALE'
+  | 'PART_PURCHASE'
+  | 'OPERATING_EXPENSE'
+  | 'WITHDRAWAL'
+  | 'OTHER';
+
+export interface CashDenominations {
+  bill100k: number;
+  bill50k: number;
+  bill20k: number;
+  bill10k: number;
+  bill5k: number;
+  bill2k: number;
+  coins: number;
+}
+
+export interface CashRegisterSummary {
+  initialAmount: number;
+  totalCashIncome: number;
+  totalCashExpense: number;
+  expectedCashInDrawer: number;
+  totalTransferIncome: number;
+  totalCardIncome: number;
+  totalOtherIncome: number;
+  totalIncome: number;
+  totalExpense: number;
+  netBalance: number;
+  movementsCount: number;
+}
+
 export interface CashRegister {
   id: string;
   opened_by: string;
@@ -198,16 +233,18 @@ export interface CashRegister {
   difference?: number | null;
   status: 'OPEN' | 'CLOSED';
   notes?: string | null;
+  denominations?: CashDenominations | null;
 }
 
 // 13. Movimientos de Caja
 export interface CashMovement {
   id: string;
   cash_register_id: string;
-  type: 'INCOME' | 'EXPENSE';
+  type: CashMovementType;
   concept: string;
   amount: number;
-  payment_method: 'CASH' | 'TRANSFER' | 'CARD' | 'OTHER';
+  payment_method: CashPaymentMethod;
+  category?: CashCategory | string;
   reference_type?: 'WORK_ORDER' | 'INVOICE' | 'MANUAL' | null;
   reference_id?: string | null;
   user_id: string;
