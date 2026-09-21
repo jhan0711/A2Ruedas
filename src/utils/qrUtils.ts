@@ -326,3 +326,225 @@ export function printStickersWindow(
 
   printWindow.document.close();
 }
+
+/**
+ * Dispara la ventana de impresión optimizada para rollo continuo de IMPRESORA TÉRMICA (58 mm).
+ * Se ajusta a los 50mm de ancho imprimible real sin márgenes de hoja carta, ideal para adherir
+ * con cinta transparente o papel adhesivo térmico directamente al marco de la bicicleta.
+ */
+export async function printThermalStickersWindow(
+  items: Array<{ bike: Bicycle; qrCode: string }>
+): Promise<void> {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('Por favor habilita las ventanas emergentes (pop-ups) para imprimir en la impresora térmica.');
+    return;
+  }
+
+  // Generar DataURLs de QR de alto contraste para cada bicicleta
+  const renderedItems = await Promise.all(
+    items.map(async ({ bike, qrCode }) => {
+      const publicUrl = buildPublicBikeUrl(qrCode);
+      const qrDataUrl = await generateQRDataURL(publicUrl, {
+        width: 240,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#ffffff',
+        },
+      });
+      return { bike, qrCode, publicUrl, qrDataUrl };
+    })
+  );
+
+  const stickersHtml = renderedItems
+    .map(
+      ({ bike, qrCode, publicUrl, qrDataUrl }) => `
+      <div class="thermal-item">
+        <div class="brand-title">A2RUEDAS TALLER</div>
+        <div class="brand-sub">IDENTIFICACIÓN DE BICICLETA</div>
+        <div class="divider"></div>
+
+        <div class="qr-container">
+          <img src="${qrDataUrl}" class="qr-img" alt="${qrCode}" />
+        </div>
+
+        <div class="qr-badge">${qrCode}</div>
+
+        <div class="bike-title">${bike.brand} ${bike.model}</div>
+        <div class="bike-meta">${bike.bike_type} • Color: ${bike.color}</div>
+        ${
+          bike.serial_number
+            ? `<div class="bike-serial">Serial: <strong>${bike.serial_number}</strong></div>`
+            : ''
+        }
+        ${
+          bike.customer?.full_name
+            ? `<div class="bike-owner">Prop: ${bike.customer.full_name}</div>`
+            : ''
+        }
+
+        <div class="divider"></div>
+        <div class="seal">✓ HISTORIAL CERTIFICADO A2RUEDAS</div>
+        <div class="cta">
+          Escanea con la cámara de tu celular para consultar el historial completo, repuestos y mantenimientos.
+        </div>
+        <div class="url">${publicUrl.replace(/^https?:\/\//, '')}</div>
+        <div class="cut-guide">- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</div>
+      </div>
+    `
+    )
+    .join('');
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Sticker Térmico 58mm A2Ruedas</title>
+      <style>
+        @page {
+          size: 58mm auto;
+          margin: 0;
+        }
+        * {
+          box-sizing: border-box;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        body {
+          margin: 0;
+          padding: 2mm 3mm;
+          width: 50mm;
+          max-width: 50mm;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace, sans-serif;
+          color: #000000;
+          background: #ffffff;
+          font-size: 9px;
+          line-height: 1.25;
+        }
+        .header-print {
+          text-align: center;
+          margin-bottom: 8px;
+          padding-bottom: 6px;
+          border-bottom: 1px dashed #000;
+        }
+        .header-print button {
+          margin-top: 4px;
+          padding: 4px 10px;
+          font-size: 10px;
+          font-weight: bold;
+          cursor: pointer;
+        }
+        .thermal-item {
+          text-align: center;
+          page-break-after: always;
+          padding-bottom: 3mm;
+        }
+        .thermal-item:last-child {
+          page-break-after: auto;
+        }
+        .brand-title {
+          font-size: 13px;
+          font-weight: 900;
+          letter-spacing: 0.5px;
+        }
+        .brand-sub {
+          font-size: 8px;
+          font-weight: 600;
+          color: #222;
+          margin-top: 1px;
+        }
+        .divider {
+          border-bottom: 1px dashed #000000;
+          margin: 3px 0;
+        }
+        .qr-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin: 3px 0;
+        }
+        .qr-img {
+          width: 140px;
+          height: 140px;
+          display: block;
+          image-rendering: pixelated;
+          margin: 0 auto;
+        }
+        .qr-badge {
+          display: inline-block;
+          font-family: monospace;
+          font-size: 13px;
+          font-weight: 900;
+          letter-spacing: 1px;
+          border: 1.5px solid #000;
+          padding: 2px 6px;
+          margin: 2px auto 4px auto;
+        }
+        .bike-title {
+          font-size: 11px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+        .bike-meta {
+          font-size: 8.5px;
+          margin-top: 1px;
+        }
+        .bike-serial {
+          font-size: 8.5px;
+          font-family: monospace;
+          margin-top: 1px;
+        }
+        .bike-owner {
+          font-size: 8px;
+          margin-top: 1px;
+        }
+        .seal {
+          font-size: 8.5px;
+          font-weight: 800;
+        }
+        .cta {
+          font-size: 7.5px;
+          line-height: 1.2;
+          margin-top: 2px;
+        }
+        .url {
+          font-size: 7px;
+          font-family: monospace;
+          margin-top: 2px;
+          word-break: break-all;
+        }
+        .cut-guide {
+          font-size: 7px;
+          margin-top: 3mm;
+          color: #444;
+        }
+        @media print {
+          .no-print { display: none; }
+          body { padding: 2mm 3mm; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header-print no-print">
+        <strong>Tirilla Térmica POS 58mm</strong>
+        <br />
+        <button onclick="window.print()">🖨️ Imprimir Térmica</button>
+      </div>
+
+      ${stickersHtml}
+
+      <script>
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+          }, 300);
+        };
+      </script>
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+}

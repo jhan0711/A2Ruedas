@@ -11,6 +11,7 @@ import {
   Layers,
   Copy,
   Check,
+  Receipt,
 } from 'lucide-react';
 import { bicycleService } from '../../services/bicycleService';
 import { Bicycle, BikeQRCode } from '../../types/database';
@@ -33,6 +34,7 @@ import { StickerPreviewModal } from '../../components/qr/StickerPreviewModal';
 import {
   generateBikeStickerCanvas,
   printStickersWindow,
+  printThermalStickersWindow,
   buildPublicBikeUrl,
 } from '../../utils/qrUtils';
 
@@ -54,7 +56,10 @@ export const QRCodesPage: React.FC = () => {
   const [filterType, setFilterType] = useState('ALL');
   const [selectedBikeIds, setSelectedBikeIds] = useState<string[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [alertMessage, setAlertMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [alertMessage, setAlertMessage] = useState<{
+    type: 'success' | 'error' | 'warning' | 'info';
+    text: string;
+  } | null>(null);
 
   // Estados de Modales
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -137,7 +142,40 @@ export const QRCodesPage: React.FC = () => {
     setTimeout(() => setCopiedId(null), 1800);
   };
 
-  // Impresión en lote (Batch Print) de Stickers seleccionados o todos
+  // Impresión masiva en rollo continuo de IMPRESORA TÉRMICA (58 mm)
+  const handleBatchPrintThermal = async (targetBikes: Bicycle[]) => {
+    if (targetBikes.length === 0) return;
+    setIsBatchPrinting(true);
+
+    try {
+      const items = targetBikes
+        .map((bike) => {
+          const qr = qrCodes[bike.id];
+          return qr ? { bike, qrCode: qr.qr_code } : null;
+        })
+        .filter(Boolean) as Array<{ bike: Bicycle; qrCode: string }>;
+
+      if (items.length === 0) {
+        setAlertMessage({
+          type: 'warning',
+          text: 'No hay códigos QR asociados a las bicicletas seleccionadas.',
+        });
+        return;
+      }
+
+      await printThermalStickersWindow(items);
+    } catch (err) {
+      console.error('Error al generar impresión térmica:', err);
+      setAlertMessage({
+        type: 'error',
+        text: 'Ocurrió un error al preparar la impresión térmica.',
+      });
+    } finally {
+      setIsBatchPrinting(false);
+    }
+  };
+
+  // Impresión en lote (Batch Print) de Stickers en Hoja Carta / A4
   const handleBatchPrint = async (targetBikes: Bicycle[]) => {
     if (targetBikes.length === 0) return;
     setIsBatchPrinting(true);
@@ -188,30 +226,53 @@ export const QRCodesPage: React.FC = () => {
             Centro de Códigos QR y Etiquetas
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Generación de stickers adhesivos para cuadros de bicicleta, descarga en alta resolución y escáner con cámara.
+            Generación de stickers para marco, rollo de impresora térmica de 58 mm y escáner por cámara.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleBatchPrint(selectedBikesList.length > 0 ? selectedBikesList : bicycles)}
-            isLoading={isBatchPrinting}
-            leftIcon={<Printer className="w-4 h-4" />}
-          >
-            {selectedBikesList.length > 0
-              ? `Imprimir Pliego (${selectedBikesList.length})`
-              : 'Imprimir Todas las Etiquetas'}
-          </Button>
-
+          {/* Botón de Impresión Térmica Directa (58 mm) */}
           <Button
             size="sm"
             variant="primary"
+            onClick={() =>
+              handleBatchPrintThermal(
+                selectedBikesList.length > 0 ? selectedBikesList : bicycles
+              )
+            }
+            isLoading={isBatchPrinting}
+            leftIcon={<Receipt className="w-4 h-4" />}
+            title="Imprimir en rollo continuo de impresora térmica de 58 mm (sin márgenes)"
+          >
+            {selectedBikesList.length > 0
+              ? `Imprimir Térmica (${selectedBikesList.length})`
+              : 'Imprimir Todas en Térmica'}
+          </Button>
+
+          {/* Botón de Pliego en Hoja Carta / A4 */}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              handleBatchPrint(selectedBikesList.length > 0 ? selectedBikesList : bicycles)
+            }
+            isLoading={isBatchPrinting}
+            leftIcon={<Printer className="w-4 h-4" />}
+            title="Imprimir pliego en hoja adhesiva tamaño Carta o A4"
+          >
+            {selectedBikesList.length > 0
+              ? `Pliego Carta (${selectedBikesList.length})`
+              : 'Pliego Carta Completo'}
+          </Button>
+
+          {/* Botón de Escáner por Cámara */}
+          <Button
+            size="sm"
+            variant="secondary"
             onClick={() => setScannerOpen(true)}
             leftIcon={<Camera className="w-4 h-4" />}
           >
-            Escanear QR con Cámara
+            Escanear QR
           </Button>
         </div>
       </div>
@@ -445,11 +506,27 @@ export const QRCodesPage: React.FC = () => {
                     {/* Acciones */}
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        {qr && (
+                          <Button
+                            size="sm"
+                            variant="primary"
+                            onClick={() =>
+                              printThermalStickersWindow([
+                                { bike, qrCode: qr.qr_code },
+                              ])
+                            }
+                            title="Imprimir directamente en rollo de impresora térmica de 58 mm"
+                            leftIcon={<Receipt className="w-3.5 h-3.5" />}
+                          >
+                            Térmica (58mm)
+                          </Button>
+                        )}
+
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => openStickerModal(bike)}
-                          title="Previsualizar e imprimir sticker para el cuadro"
+                          title="Previsualizar opciones de sticker o descargar PNG"
                           leftIcon={<Printer className="w-3.5 h-3.5" />}
                         >
                           Sticker

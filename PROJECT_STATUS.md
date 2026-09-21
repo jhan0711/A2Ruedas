@@ -125,17 +125,23 @@ Estado: COMPLETADA
   * Suite de pruebas automatizadas en `tests/bicycleTimeline.test.mjs`.
 - **Módulo de Códigos QR y Etiquetas Adhesivas (Fase 13)**:
   * Motor de Códigos QR de alta densidad usando `qrcode` con nivel de recuperación 'H' (30% de tolerancia ante manchas de grasa, barro, agua y raspaduras físicas en taller).
-  * Generador de Etiquetas Adhesivas de Taller (50mm x 30mm / 600x360 px Canvas) con branding A2Ruedas, código QR de alta resolución, badge alfanumérico destacado `BIKE-XXXXXX`, especificaciones del cuadro, sello de garantía y guías perimetrales de corte.
+  * Soporte Dual de Formatos de Impresión:
+    1. **Tirilla Térmica POS (58 mm)**: Especialmente diseñada para impresoras térmicas de taller y rollo continuo (`@page { size: 58mm auto; margin: 0; }`, sin márgenes de hoja carta, ancho imprimible de 50 mm, alto contraste monocromático, QR nítido, código `BIKE-XXXXXX`, ficha técnica de la bicicleta, sello de verificación y guía de corte). Ideal para fijar al marco con cinta transparente protectora.
+    2. **Sticker Gráfico Horizontal (50mm x 30mm / 600x360 px Canvas)**: Diseñado para pliegos de hoja adhesiva tamaño Carta / A4 o descarga en archivo PNG de alta resolución.
   * Centro de Códigos QR en `/admin/qr`:
     1. KPIs en vivo: QRs Asignados, Bicicletas Identificadas, Etiquetas Seleccionadas y Red 100% Verificada.
     2. Filtrado y búsqueda reactiva por marca, modelo, cliente, serial y código QR.
-    3. Selección múltiple e impresión masiva de pliegos (2 columnas por fila en tamaño Carta/A4 con saltos automáticos de página) o etiquetas individuales continuas.
-    4. Descarga directa en archivo PNG de alta resolución para rotulación física.
-  * Modal de Previsualización e Impresión de Sticker `StickerPreviewModal` con copia rápida de enlace público, descarga de imagen PNG y guía de colocación recomendada en el cuadro (tubo inferior, debajo de caja de centro o vaina trasera).
+    3. Impresión masiva por lote tanto en rollo térmico continuo de 58 mm como en pliego de hoja Carta/A4.
+    4. Botón directo por cada fila para enviar a la impresora térmica en 1 clic.
+  * Modal de Previsualización e Impresión `StickerPreviewModal`:
+    1. Pestañas de alternancia entre formato **Tirilla Térmica (58 mm)** y **Sticker Gráfico (Carta / A4)**.
+    2. Previsualización fotorrealista de la tirilla térmica y del sticker horizontal.
+    3. Botón para imprimir en térmica, imprimir en pliego carta o descargar PNG.
+    4. Copia rápida del enlace público y recomendaciones de instalación en el marco.
   * Escáner Universal por Cámara `QRScannerModal` con motor dual: `BarcodeDetector` nativo acelerado por hardware + fallback universal con `jsQR`, alternador de cámara (frontal/trasera en móviles), interruptor de linterna (flashlight), retícula animada, sonido suave Web Audio + vibración háptica, pestaña de ingreso manual por teclado y ficha emergente interactiva de resultados con botones de acción directa ("Iniciar Recepción", "Ver Dossier Técnico", "Ver Perfil Público").
   * Botón global "Escanear QR" en la cabecera `Header.tsx` para acceso instantáneo desde cualquier pantalla del panel.
   * Botón de escaneo express en el Paso 1 de Recepción de Bicicleta (`ReceptionPage.tsx`) que autocompleta el cliente y la bicicleta en 1 clic.
-  * Suite de pruebas automatizadas en `tests/qrCodes.test.mjs` (16 pruebas con 100% PASS).
+  * Suite de pruebas automatizadas en `tests/qrCodes.test.mjs` (19 pruebas con 100% PASS).
 
 ## Errores conocidos:
 - Ninguno. Compilación limpia y pruebas ejecutadas exitosamente al 100%.
@@ -148,7 +154,9 @@ Estado: COMPLETADA
 - Construcción de enlace público para el payload del QR (`https://.../bike/BIKE-XXXXXX`): PASS.
 - Especificación técnica de sticker adhesivo (600x360 px, Corrección H): PASS.
 - Búsqueda y filtrado multicriterio en el Centro de QRs (marca, serial, QR, cliente): PASS.
-- Filtrado y generación de pliego masivo para impresión: PASS.
+- Filtrado y generación de pliego masivo para impresión Carta / A4: PASS.
+- Especificación CSS y formateo para rollo térmico de 58 mm (sin márgenes de hoja carta): PASS.
+- Generación de tirilla térmica 58mm con metadatos técnicos y marcas de corte continuo: PASS.
 - Autocompletado de recepción al escanear QR y detección de QR libre: PASS.
 - Regresión completa de las 12 fases previas (10 suites de prueba): PASS (100%).
 
@@ -156,6 +164,7 @@ Estado: COMPLETADA
 - Pruebas E2E de mensajería con WhatsApp Web / API (Fase 14).
 
 ## Decisiones técnicas:
+- **Formato Especializado para Impresoras Térmicas de 58 mm**: Para evitar que las impresoras térmicas de recibos muestren márgenes gigantescos de hoja carta (como ocurre por defecto en navegadores), se implementó la regla `@page { size: 58mm auto; margin: 0; }` con ancho de 50 mm, tipografía monocromática y QR de alto contraste. Esto permite a los mecánicos imprimir la etiqueta directamente en la impresora de recibos del mostrador y adherirla al marco de la bici protegida con cinta adhesiva transparente.
 - **Nivel de Corrección de Error 'H' (30% de recuperación)**: Las bicicletas en el taller están expuestas a aceite, barro, detergentes y desgaste físico del cuadro. Usar `errorCorrectionLevel: 'H'` garantiza que el código QR siga siendo perfectamente legible incluso si un tercio de la etiqueta resulta dañada o manchada.
 - **Motor de Escaneo Dual (`BarcodeDetector` + `jsQR`)**: Prioriza el decodificador nativo de la GPU/SO donde esté disponible (Android Chrome, etc.) para latencia casi cero, y conmuta silenciosamente al decodificador por Canvas de `jsQR` en navegadores de escritorio (Safari, Firefox, Chrome Windows).
 - **Normalización Agresiva de Texto Escaneado**: El taller puede utilizar cámaras de celular, cámaras web de computador o pistolas lectoras 2D tipo teclado USB. La función `extractQRCodeFromText` extrae y normaliza el ID tanto si la pistola envía la URL completa (`https://a2ruedas.app/bike/BIKE-D1CBB0`), el código formateado (`BIKE-D1CBB0`) o los 6 caracteres hexadecimales limpios (`d1cbb0`).

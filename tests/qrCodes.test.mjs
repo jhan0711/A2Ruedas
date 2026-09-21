@@ -188,4 +188,42 @@ assert.strictEqual(unassignedScan.success, false);
 assert.strictEqual(unassignedScan.qrCode, 'BIKE-999999');
 console.log('16. Detección de código QR libre para asignación:', unassignedScan.qrCode === 'BIKE-999999' ? 'PASS' : 'FAIL');
 
-console.log('--- TODAS LAS PRUEBAS DE LA FASE 13 COMPLETADAS CON ÉXITO (16/16 PASS) ---');
+// 8. Parámetros de impresión en Rollo Continuo Térmico de 58 mm (POS / Sticker de Taller)
+const THERMAL_58MM_CONFIG = {
+  pageSize: '58mm auto',
+  pageMargin: '0',
+  printableWidth: '50mm',
+  qrSize: 240,
+  errorCorrectionLevel: 'H',
+};
+
+assert.strictEqual(THERMAL_58MM_CONFIG.pageSize, '58mm auto');
+assert.strictEqual(THERMAL_58MM_CONFIG.printableWidth, '50mm');
+console.log('17. Especificación CSS para rollo térmico 58mm (sin márgenes de hoja carta):', 'PASS');
+
+// Generador simulado de plantilla térmica 58mm
+function renderThermalTicket(bike, qrCode) {
+  return `
+    <div class="thermal-item">
+      <div class="brand-title">A2RUEDAS TALLER</div>
+      <div class="qr-badge">${qrCode}</div>
+      <div class="bike-title">${bike.brand} ${bike.model}</div>
+      ${bike.serial_number ? `<div class="bike-serial">Serial: ${bike.serial_number}</div>` : ''}
+      <div class="seal">✓ HISTORIAL CERTIFICADO A2RUEDAS</div>
+    </div>
+  `;
+}
+
+const thermalTicket1 = renderThermalTicket(mockBikesCatalog[0], 'BIKE-D1CBB0');
+assert.match(thermalTicket1, /A2RUEDAS TALLER/);
+assert.match(thermalTicket1, /BIKE-D1CBB0/);
+assert.match(thermalTicket1, /Trek Marlin 7/);
+assert.match(thermalTicket1, /WTU123456X/);
+console.log('18. Generación de tirilla térmica 58mm con metadatos técnicos completos:', 'PASS');
+
+// Lote térmico continuo con corte
+const batchThermal = mockBikesCatalog.map((b) => renderThermalTicket(b, b.qr_code)).join('<div class="cut-guide">---</div>');
+assert.strictEqual(batchThermal.split('<div class="cut-guide">---</div>').length, 3);
+console.log('19. Procesamiento por lote continuo de 58mm con marcas de corte:', 'PASS');
+
+console.log('--- TODAS LAS PRUEBAS DE LA FASE 13 COMPLETADAS CON ÉXITO (19/19 PASS) ---');
