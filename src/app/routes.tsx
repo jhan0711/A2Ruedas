@@ -61,9 +61,10 @@ const InvoicesPage = lazy(() =>
 const ThermalPrintPage = lazy(() =>
   import('../pages/admin/ThermalPrintPage').then((m) => ({ default: m.ThermalPrintPage }))
 );
-const ModulePlaceholder = lazy(() =>
-  import('../pages/admin/ModulePlaceholder').then((m) => ({ default: m.ModulePlaceholder }))
+const SettingsPage = lazy(() =>
+  import('../pages/admin/SettingsPage').then((m) => ({ default: m.SettingsPage }))
 );
+
 
 export const router = createBrowserRouter([
   // Experiencia Pública (Clientes del taller, sin login)
@@ -146,15 +147,10 @@ export const router = createBrowserRouter([
           },
           {
             path: 'configuracion',
-            element: (
-              <ModulePlaceholder
-                title="Configuración del Taller"
-                phase="Fase 20"
-                description="Datos del establecimiento, usuarios técnicos, parámetros de impresión y seguridad."
-              />
-            ),
+            element: <SettingsPage />,
           },
         ],
+
       },
     ],
   },
