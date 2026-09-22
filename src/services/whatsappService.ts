@@ -107,49 +107,8 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
   },
 ];
 
-// Semilla inicial de mensajes para demostrar trazabilidad
-const INITIAL_LOGS: WhatsAppMessage[] = [
-  {
-    id: 'wa-001',
-    customer_id: 'c-001',
-    work_order_id: 'wo-001',
-    phone_number: '573104567890',
-    message_content:
-      '¡Hola Carlos Mendoza! 👋 Te confirmamos que tu bicicleta Trek Marlin 7 ha sido RECIBIDA exitosamente en A2Ruedas Taller con la Orden N° OT-000001. Diagnóstico técnico en curso.',
-    status_trigger: 'RECIBIDA',
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'wa-002',
-    customer_id: 'c-001',
-    work_order_id: 'wo-001',
-    phone_number: '573104567890',
-    message_content:
-      '¡Hola Carlos Mendoza! 🔧 Tenemos listo el diagnóstico y presupuesto técnico para tu bicicleta Trek Marlin 7 (Orden N° OT-000001). El valor total estimado es de $145.000.',
-    status_trigger: 'PRESUPUESTO',
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'wa-003',
-    customer_id: 'c-001',
-    work_order_id: 'wo-001',
-    phone_number: '573104567890',
-    message_content:
-      '¡Buenas noticias Carlos Mendoza! 🎉 Tu bicicleta Trek Marlin 7 está 100% LISTA para entrega en A2Ruedas Taller (Orden N° OT-000001). Saldo pendiente: $145.000.',
-    status_trigger: 'LISTA',
-    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'wa-004',
-    customer_id: 'c-002',
-    work_order_id: 'wo-002',
-    phone_number: '573157890123',
-    message_content:
-      '¡Hola Mariana Gómez! 🌟 Tu bicicleta Specialized Allez ha sido ENTREGADA con éxito (Orden N° OT-000002). Garantía de taller activa. Puedes consultar el historial en: https://a2ruedas.app/bike/BIKE-4C6310',
-    status_trigger: 'ENTREGADA',
-    created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-  },
-];
+// En producción la bitácora de envíos de WhatsApp inicia limpia
+const INITIAL_LOGS: WhatsAppMessage[] = [];
 
 function getLocalLogs(): WhatsAppMessage[] {
   if (typeof window === 'undefined') return INITIAL_LOGS;

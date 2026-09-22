@@ -14,7 +14,6 @@ import {
   MessageSquare,
   Printer,
   Settings,
-  Palette,
   X,
 } from 'lucide-react';
 
@@ -45,7 +44,6 @@ const navItems: NavItem[] = [
   { name: 'WhatsApp', path: '/admin/whatsapp', icon: MessageSquare, badge: 'Hub', badgeColor: 'emerald' },
   { name: 'Impresión 58mm', path: '/admin/impresion', icon: Printer },
   { name: 'Configuración', path: '/admin/configuracion', icon: Settings },
-  { name: 'Design System', path: '/admin/design-system', icon: Palette, badge: 'UI' },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {

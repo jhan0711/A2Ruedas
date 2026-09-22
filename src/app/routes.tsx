@@ -25,9 +25,6 @@ const LoginPage = lazy(() =>
 const DashboardPage = lazy(() =>
   import('../pages/admin/DashboardPage').then((m) => ({ default: m.DashboardPage }))
 );
-const DesignSystemPage = lazy(() =>
-  import('../pages/admin/DesignSystemPage').then((m) => ({ default: m.DesignSystemPage }))
-);
 const CustomersPage = lazy(() =>
   import('../pages/admin/CustomersPage').then((m) => ({ default: m.CustomersPage }))
 );
@@ -99,7 +96,6 @@ export const router = createBrowserRouter([
         element: <AdminLayout />,
         children: [
           { index: true, element: <DashboardPage /> },
-          { path: 'design-system', element: <DesignSystemPage /> },
           {
             path: 'agenda',
             element: <AppointmentsPage />,

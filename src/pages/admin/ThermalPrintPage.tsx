@@ -15,8 +15,10 @@ import {
   RefreshCw,
   Copy,
   Check,
+  Sparkles,
 } from 'lucide-react';
 import {
+  Customer,
   WorkOrder,
   Bicycle,
   Invoice,
@@ -64,6 +66,140 @@ type TemplateType =
   | 'INVOICE'
   | 'CASH_REGISTER'
   | 'TEST';
+
+const SAMPLE_CUSTOMER: Customer = {
+  id: 'cust-sample',
+  full_name: 'Carlos Mendoza (Cliente Muestra)',
+  document_id: '1.020.345.678',
+  phone: '3104567890',
+  email: 'cliente@ejemplo.com',
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
+const SAMPLE_BICYCLE: Bicycle = {
+  id: 'sample-bike-001',
+  customer_id: 'cust-sample',
+  customer: SAMPLE_CUSTOMER,
+  brand: 'Trek',
+  model: 'Marlin 7',
+  color: 'Rojo / Negro',
+  bike_type: 'MTB',
+  serial_number: 'WTU1234567M',
+  qr_code: 'BIKE-8F3A92',
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
+const SAMPLE_WORK_ORDER: WorkOrder = {
+  id: 'sample-wo-001',
+  order_number: 'OT-000001',
+  customer_id: 'cust-sample',
+  customer: SAMPLE_CUSTOMER,
+  bicycle_id: 'sample-bike-001',
+  bicycle: SAMPLE_BICYCLE,
+  status: 'EN_REPARACION',
+  reported_issues: 'Cambios saltan al pedalear en subida. Ruido metálico en tensor.',
+  accessories_received: 'Ciclocomputador Cateye, soporte de termo',
+  entry_mileage_km: 1250,
+  estimated_delivery_at: new Date(Date.now() + 86400000).toISOString(),
+  total_labor: 55000,
+  total_parts: 60000,
+  discount: 5000,
+  grand_total: 110000,
+  internal_notes: 'Bicicleta en banco de trabajo.',
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  items: [
+    {
+      id: 'woi-1',
+      work_order_id: 'sample-wo-001',
+      item_type: 'service',
+      description: 'Mantenimiento General y Calibración',
+      quantity: 1,
+      unit_price: 55000,
+      total_price: 55000,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'woi-2',
+      work_order_id: 'sample-wo-001',
+      item_type: 'part',
+      description: 'Cadena Shimano 9V Deore CN-HG53',
+      quantity: 1,
+      unit_price: 60000,
+      total_price: 60000,
+      created_at: new Date().toISOString(),
+    },
+  ],
+};
+
+const SAMPLE_INVOICE: Invoice = {
+  id: 'sample-inv-001',
+  invoice_number: 'FAC-000001',
+  customer_id: 'cust-sample',
+  customer: SAMPLE_CUSTOMER,
+  work_order_id: 'sample-wo-001',
+  payment_method: 'CASH',
+  payment_status: 'PAID',
+  subtotal: 125000,
+  discount: 10000,
+  tax: 0,
+  tax_rate: 0,
+  total: 115000,
+  issued_by: 'Administrador Taller',
+  notes: 'Plantilla de muestra oficial para calibración de ticket térmico 58mm / 80mm.',
+  created_at: new Date().toISOString(),
+  items: [
+    {
+      id: 'inv-item-1',
+      invoice_id: 'sample-inv-001',
+      description: 'Mantenimiento General y Ajuste de Frenos',
+      quantity: 1,
+      unit_price: 65000,
+      total_price: 65000,
+    },
+    {
+      id: 'inv-item-2',
+      invoice_id: 'sample-inv-001',
+      description: 'Pastillas de Freno Shimano B05S Resina',
+      quantity: 1,
+      unit_price: 45000,
+      total_price: 45000,
+    },
+    {
+      id: 'inv-item-3',
+      invoice_id: 'sample-inv-001',
+      description: 'Lubricante Seco Finish Line Teflon',
+      quantity: 1,
+      unit_price: 15000,
+      total_price: 15000,
+    },
+  ],
+};
+
+const SAMPLE_CASH_REGISTER: CashRegister = {
+  id: 'sample-reg-001',
+  opened_by: 'Administrador Taller',
+  opened_at: new Date().toISOString(),
+  initial_amount: 100000,
+  status: 'OPEN',
+  notes: 'Plantilla de muestra para arqueo de caja.',
+};
+
+const SAMPLE_CASH_SUMMARY: CashRegisterSummary = {
+  initialAmount: 100000,
+  totalCashIncome: 250000,
+  totalCashExpense: 30000,
+  expectedCashInDrawer: 320000,
+  totalTransferIncome: 85000,
+  totalCardIncome: 120000,
+  totalOtherIncome: 0,
+  totalIncome: 455000,
+  totalExpense: 30000,
+  netBalance: 425000,
+  movementsCount: 8,
+};
 
 export const ThermalPrintPage: React.FC = () => {
   // Pestaña activa
@@ -163,11 +299,11 @@ export const ThermalPrintPage: React.FC = () => {
       }
       setSignaturesMap(sigs);
 
-      // Asignar selecciones predeterminadas
-      if (enrichedBikes.length > 0) setSelectedBikeId(enrichedBikes[0].id);
-      if (ordersData.length > 0) setSelectedOrderId(ordersData[0].id);
-      if (invoicesData.length > 0) setSelectedInvoiceId(invoicesData[0].id);
-      if (allRegs.length > 0) setSelectedRegisterId(allRegs[0].id);
+      // Asignar selecciones predeterminadas (o muestra para calibración si la BD está limpia)
+      setSelectedBikeId(enrichedBikes.length > 0 ? enrichedBikes[0].id : 'sample');
+      setSelectedOrderId(ordersData.length > 0 ? ordersData[0].id : 'sample');
+      setSelectedInvoiceId(invoicesData.length > 0 ? invoicesData[0].id : 'sample');
+      setSelectedRegisterId(allRegs.length > 0 ? allRegs[0].id : 'sample');
     } catch (err) {
       console.error('Error al cargar datos para el centro de impresión:', err);
       showAlert('error', 'Error al cargar los documentos del taller.');
@@ -195,55 +331,52 @@ export const ThermalPrintPage: React.FC = () => {
         if (selectedTemplate === 'TEST') {
           html = generateTestTicketHtml(settings);
         } else if (selectedTemplate === 'BIKE_TAG') {
-          const bike = bicycles.find((b) => b.id === selectedBikeId) || bicycles[0];
-          if (bike) {
-            const qrCodeValue = bike.qr_code || 'BIKE-000000';
-            const publicUrl = buildPublicBikeUrl(qrCodeValue);
-            const qrDataUrl = await generateQRDataURL(publicUrl, {
-              width: 240,
-              margin: 1,
-              color: { dark: '#000000', light: '#ffffff' },
-            });
-            const relatedOrder = workOrders.find(
+          const bike =
+            (selectedBikeId !== 'sample' && bicycles.find((b) => b.id === selectedBikeId)) ||
+            bicycles[0] ||
+            SAMPLE_BICYCLE;
+          const qrCodeValue = bike.qr_code || 'BIKE-8F3A92';
+          const publicUrl = buildPublicBikeUrl(qrCodeValue);
+          const qrDataUrl = await generateQRDataURL(publicUrl, {
+            width: 240,
+            margin: 1,
+            color: { dark: '#000000', light: '#ffffff' },
+          });
+          const relatedOrder =
+            workOrders.find(
               (o) => o.bicycle_id === bike.id && o.status !== 'ENTREGADA' && o.status !== 'CANCELADA'
-            );
-            html = generateBikeTagThermalHtml(bike, relatedOrder || null, qrDataUrl, settings);
-          } else {
-            html = `<div style="padding:20px; text-align:center; font-family:monospace;">No hay bicicletas registradas en el sistema.</div>`;
-          }
+            ) || SAMPLE_WORK_ORDER;
+          html = generateBikeTagThermalHtml(bike, relatedOrder, qrDataUrl, settings);
         } else if (selectedTemplate === 'RECEPTION') {
-          const order = workOrders.find((o) => o.id === selectedOrderId) || workOrders[0];
-          if (order) {
-            const sig = signaturesMap[order.id] || null;
-            html = generateReceptionTicketHtml(order, sig, settings);
-          } else {
-            html = `<div style="padding:20px; text-align:center; font-family:monospace;">No hay órdenes registradas.</div>`;
-          }
+          const order =
+            (selectedOrderId !== 'sample' && workOrders.find((o) => o.id === selectedOrderId)) ||
+            workOrders[0] ||
+            SAMPLE_WORK_ORDER;
+          const sig = (order.id && signaturesMap[order.id]) || null;
+          html = generateReceptionTicketHtml(order, sig, settings);
         } else if (selectedTemplate === 'WORK_ORDER') {
-          const order = workOrders.find((o) => o.id === selectedOrderId) || workOrders[0];
-          if (order) {
-            const sig = signaturesMap[order.id] || null;
-            html = generateWorkOrderTicketHtml(order, sig, settings);
-          } else {
-            html = `<div style="padding:20px; text-align:center; font-family:monospace;">No hay órdenes registradas.</div>`;
-          }
+          const order =
+            (selectedOrderId !== 'sample' && workOrders.find((o) => o.id === selectedOrderId)) ||
+            workOrders[0] ||
+            SAMPLE_WORK_ORDER;
+          const sig = (order.id && signaturesMap[order.id]) || null;
+          html = generateWorkOrderTicketHtml(order, sig, settings);
         } else if (selectedTemplate === 'INVOICE') {
-          const inv = invoices.find((i) => i.id === selectedInvoiceId) || invoices[0];
-          if (inv) {
-            html = generateInvoiceThermalTicketHtml(inv, settings);
-          } else {
-            html = `<div style="padding:20px; text-align:center; font-family:monospace;">No hay facturas emitidas.</div>`;
-          }
+          const inv =
+            (selectedInvoiceId !== 'sample' && invoices.find((i) => i.id === selectedInvoiceId)) ||
+            invoices[0] ||
+            SAMPLE_INVOICE;
+          html = generateInvoiceThermalTicketHtml(inv, settings);
         } else if (selectedTemplate === 'CASH_REGISTER') {
-          const reg = cashRegisters.find((r) => r.id === selectedRegisterId) || activeRegister || cashRegisters[0];
-          if (reg) {
-            const summary =
-              cashSummaries[reg.id] ||
-              cashService.calculateSummary(reg, []);
-            html = generateCashRegisterTicketHtml(reg, summary, settings);
-          } else {
-            html = `<div style="padding:20px; text-align:center; font-family:monospace;">No hay sesiones de caja registradas.</div>`;
-          }
+          const reg =
+            (selectedRegisterId !== 'sample' && cashRegisters.find((r) => r.id === selectedRegisterId)) ||
+            activeRegister ||
+            cashRegisters[0] ||
+            SAMPLE_CASH_REGISTER;
+          const summary =
+            (reg.id && cashSummaries[reg.id]) ||
+            SAMPLE_CASH_SUMMARY;
+          html = generateCashRegisterTicketHtml(reg, summary, settings);
         }
 
         if (!isCancelled) {
@@ -814,14 +947,24 @@ export const ThermalPrintPage: React.FC = () => {
 
               {selectedTemplate === 'BIKE_TAG' && (
                 <div className="space-y-2">
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                    Bicicleta registrada con Código QR:
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                      Bicicleta registrada con Código QR:
+                    </label>
+                    {bicycles.length === 0 && (
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                        Plantilla de Muestra
+                      </span>
+                    )}
+                  </div>
                   <Select
                     value={selectedBikeId}
                     onChange={(e) => setSelectedBikeId(e.target.value)}
                     className="w-full text-xs"
                   >
+                    <option value="sample">
+                      📄 [Plantilla de Muestra] Trek Marlin 7 • [BIKE-8F3A92] • Carlos Mendoza
+                    </option>
                     {bicycles.map((b) => (
                       <option key={b.id} value={b.id}>
                         {b.brand} {b.model} • [{b.qr_code || 'SIN-QR'}] • Prop:{' '}
@@ -834,14 +977,24 @@ export const ThermalPrintPage: React.FC = () => {
 
               {(selectedTemplate === 'RECEPTION' || selectedTemplate === 'WORK_ORDER') && (
                 <div className="space-y-2">
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                    Orden de Trabajo (OT) del taller:
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                      Orden de Trabajo (OT) del taller:
+                    </label>
+                    {workOrders.length === 0 && (
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                        Plantilla de Muestra
+                      </span>
+                    )}
+                  </div>
                   <Select
                     value={selectedOrderId}
                     onChange={(e) => setSelectedOrderId(e.target.value)}
                     className="w-full text-xs"
                   >
+                    <option value="sample">
+                      📄 [Plantilla de Muestra] OT-000001 • Trek Marlin 7 • Carlos Mendoza • $110.000
+                    </option>
                     {workOrders.map((o) => (
                       <option key={o.id} value={o.id}>
                         {o.order_number} • {o.bicycle?.brand} {o.bicycle?.model} •{' '}
@@ -854,14 +1007,24 @@ export const ThermalPrintPage: React.FC = () => {
 
               {selectedTemplate === 'INVOICE' && (
                 <div className="space-y-2">
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                    Factura de venta emitida:
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                      Factura de venta emitida:
+                    </label>
+                    {invoices.length === 0 && (
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                        Plantilla de Muestra
+                      </span>
+                    )}
+                  </div>
                   <Select
                     value={selectedInvoiceId}
                     onChange={(e) => setSelectedInvoiceId(e.target.value)}
                     className="w-full text-xs"
                   >
+                    <option value="sample">
+                      📄 [Plantilla de Muestra Oficial] FAC-000001 • Carlos Mendoza • $115.000 (Calibración)
+                    </option>
                     {invoices.map((inv) => (
                       <option key={inv.id} value={inv.id}>
                         {inv.invoice_number} • {inv.customer?.full_name || 'Consumidor Final'} • ${inv.total.toLocaleString('es-CO')} • ({inv.payment_status})
@@ -873,14 +1036,24 @@ export const ThermalPrintPage: React.FC = () => {
 
               {selectedTemplate === 'CASH_REGISTER' && (
                 <div className="space-y-2">
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                    Sesión de Caja para Comprobante de Arqueo:
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                      Sesión de Caja para Comprobante de Arqueo:
+                    </label>
+                    {cashRegisters.length === 0 && (
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                        Plantilla de Muestra
+                      </span>
+                    )}
+                  </div>
                   <Select
                     value={selectedRegisterId}
                     onChange={(e) => setSelectedRegisterId(e.target.value)}
                     className="w-full text-xs"
                   >
+                    <option value="sample">
+                      📄 [Plantilla de Muestra] 🟢 SESIÓN EN VIVO • Cierre Diario y Arqueo de Gaveta
+                    </option>
                     {cashRegisters.map((reg) => (
                       <option key={reg.id} value={reg.id}>
                         {reg.status === 'OPEN' ? '🟢 EN VIVO' : '⚪ CERRADA'} • ID:{' '}
@@ -954,6 +1127,15 @@ export const ThermalPrintPage: React.FC = () => {
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
                   Rollo {settings.paper_width}
                 </span>
+                {((selectedTemplate === 'INVOICE' && (invoices.length === 0 || selectedInvoiceId === 'sample')) ||
+                  (selectedTemplate === 'BIKE_TAG' && (bicycles.length === 0 || selectedBikeId === 'sample')) ||
+                  (selectedTemplate === 'RECEPTION' && (workOrders.length === 0 || selectedOrderId === 'sample')) ||
+                  (selectedTemplate === 'WORK_ORDER' && (workOrders.length === 0 || selectedOrderId === 'sample')) ||
+                  (selectedTemplate === 'CASH_REGISTER' && (cashRegisters.length === 0 || selectedRegisterId === 'sample'))) && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-amber-500" /> Plantilla de Muestra
+                  </span>
+                )}
               </div>
               {isGeneratingPreview && (
                 <div className="flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400">

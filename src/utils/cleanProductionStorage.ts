@@ -3,7 +3,7 @@
  * Si un navegador tiene en caché datos demostrativos antiguos (clientes de prueba, órdenes falsas, dinero ficticio),
  * los elimina de forma segura para garantizar que el taller comience con base de datos 100% limpia.
  */
-const CLEAN_PROD_FLAG = 'a2ruedas_production_clean_v3';
+const CLEAN_PROD_FLAG = 'a2ruedas_production_clean_v5';
 
 export function ensureCleanProductionStorage(): void {
   try {
@@ -30,6 +30,7 @@ export function ensureCleanProductionStorage(): void {
       'a2ruedas_appointments_cache',
       'a2ruedas_movements_cache',
       'a2ruedas_products_cache',
+      'a2ruedas_whatsapp_messages_cache',
     ];
 
     legacyDemoKeys.forEach((key) => {
