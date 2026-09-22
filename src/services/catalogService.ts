@@ -1,6 +1,7 @@
 import { inventoryService } from './inventoryService';
-import { printerService } from './printerService';
+import { workshopSettingsService, formatPhoneForWhatsApp } from './workshopSettingsService';
 import { Product } from '../types/database';
+
 
 export interface PublicCatalogProduct {
   id: string;
@@ -168,15 +169,10 @@ export const catalogService = {
   generateWhatsAppInquiryUrl(cartItems: CartItem[]): string {
     if (!cartItems || cartItems.length === 0) return '';
 
-    const settings = printerService.getSettings();
-    const rawPhone = settings.workshop_phone || '3104567890';
-    // Limpieza de número: remover caracteres especiales y asegurar prefijo nacional 57
-    let cleanPhone = rawPhone.replace(/\D/g, '');
-    if (cleanPhone.length === 10) {
-      cleanPhone = `57${cleanPhone}`;
-    }
+    const settings = workshopSettingsService.getSettings();
+    const cleanPhone = formatPhoneForWhatsApp(settings.phone);
+    const workshopName = settings.name || 'A2Ruedas Taller';
 
-    const workshopName = settings.workshop_name || 'A2Ruedas Taller';
 
     let total = 0;
     const itemsList = cartItems

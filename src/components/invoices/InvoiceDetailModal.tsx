@@ -9,8 +9,10 @@ import {
 import { Invoice } from '../../types/database';
 import { invoiceService } from '../../services/invoiceService';
 import { whatsappService } from '../../services/whatsappService';
+import { workshopSettingsService } from '../../services/workshopSettingsService';
 import { printInvoiceDocument } from '../../utils/printUtils';
 import { Button, Modal } from '../ui';
+
 
 interface InvoiceDetailModalProps {
   isOpen: boolean;
@@ -30,7 +32,10 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
   const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
 
+  const workshopSettings = workshopSettingsService.getSettings();
+
   if (!isOpen || !invoice) return null;
+
 
   const items = invoice.items || [];
   const dateFormatted = new Date(invoice.created_at).toLocaleString('es-CO', {
@@ -51,11 +56,12 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
       .map((it) => `• ${it.description} x${it.quantity}: $${it.total_price.toLocaleString('es-CO')}`)
       .join('\n');
 
-    const message = `¡Hola ${invoice.customer?.full_name || 'Cliente'}! 👋 Te compartimos tu comprobante de factura de A2Ruedas Taller:\n\n📄 *Factura N°:* ${invoice.invoice_number}${
+    const workshopName = workshopSettings.name || 'A2Ruedas Taller';
+    const message = `¡Hola ${invoice.customer?.full_name || 'Cliente'}! 👋 Te compartimos tu comprobante de factura de ${workshopName}:\n\n📄 *Factura N°:* ${invoice.invoice_number}${
       invoice.work_order_id ? `\n🚲 *Orden OT:* ${invoice.work_order_id}` : ''
     }\n🗓️ *Fecha:* ${dateFormatted}\n\n*Detalle de Servicios & Repuestos:*\n${itemsSummary}\n\n💰 *Total Cancelado:* $${invoice.total.toLocaleString(
       'es-CO'
-    )} COP\n💳 *Medio de Pago:* ${invoice.payment_method}\n\n¡Gracias por confiar en A2Ruedas Taller! 🚲🔧`;
+    )} COP\n💳 *Medio de Pago:* ${invoice.payment_method}\n\n¡Gracias por confiar en ${workshopName}! 🚲🔧`;
 
     const deepLink = whatsappService.buildWhatsAppDeepLink(cleanPhone, message);
     window.open(deepLink, '_blank');
@@ -170,11 +176,14 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
               >
                 {/* Encabezado */}
                 <div className="text-center space-y-0.5">
-                  <div className="font-bold text-sm tracking-wider">A2RUEDAS TALLER</div>
-                  <div className="text-[10px]">TALLER ESPECIALIZADO DE BICIS</div>
-                  <div className="text-[9px]">NIT: 901.452.879-1</div>
-                  <div className="text-[9px]">PBX: (+57) 310 456 7890</div>
-                  <div className="text-[9px]">Calle 123 # 45-67, Bogotá</div>
+                  <div className="font-bold text-sm tracking-wider uppercase">{workshopSettings.name}</div>
+                  <div className="text-[10px] uppercase">{workshopSettings.header_slogan}</div>
+                  <div className="text-[9px]">NIT: {workshopSettings.nit}</div>
+                  <div className="text-[9px]">PBX: {workshopSettings.phone}</div>
+                  <div className="text-[9px]">
+                    {workshopSettings.address}
+                    {workshopSettings.city ? `, ${workshopSettings.city}` : ''}
+                  </div>
                 </div>
 
                 <div className="border-t border-dashed border-black my-2" />
@@ -300,14 +309,14 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
                   <div>
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center text-sm">
-                        A2
+                        {workshopSettings.name ? workshopSettings.name.substring(0, 2).toUpperCase() : 'A2'}
                       </div>
-                      <h2 className="text-base font-black tracking-tight">A2RUEDAS TALLER</h2>
+                      <h2 className="text-base font-black tracking-tight">{workshopSettings.name}</h2>
                     </div>
                     <div className="text-[11px] text-slate-500 mt-1 space-y-0.5">
-                      <div>NIT: 901.452.879-1 • Régimen Común</div>
-                      <div>Dirección: Calle 123 # 45-67, Bogotá, Colombia</div>
-                      <div>Teléfono / WhatsApp: (+57) 310 456 7890</div>
+                      <div>NIT: {workshopSettings.nit} • Régimen Común</div>
+                      <div>Dirección: {workshopSettings.address}{workshopSettings.city ? `, ${workshopSettings.city}` : ''}</div>
+                      <div>Teléfono / WhatsApp: {workshopSettings.phone}</div>
                     </div>
                   </div>
 
@@ -419,7 +428,7 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
                 {/* Términos y Garantía */}
                 <div className="pt-4 border-t border-slate-200 text-[10px] text-slate-500 space-y-1">
                   <div>
-                    <strong>Términos y Condiciones:</strong> Esta factura de cobro interno certifica los servicios técnicos y repuestos suministrados en A2Ruedas. Garantía técnica de 30 días calendario sobre mano de obra.
+                    <strong>Términos y Condiciones:</strong> Esta factura de cobro interno certifica los servicios técnicos y repuestos suministrados en {workshopSettings.name || 'A2Ruedas'}. Garantía técnica de 30 días calendario sobre mano de obra.
                   </div>
                   {invoice.notes && <div><strong>Notas del Asesor:</strong> {invoice.notes}</div>}
                 </div>

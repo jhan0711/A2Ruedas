@@ -1,10 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bike, Wrench, ShieldCheck, Clock, MapPin, Search, ArrowRight, MessageCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+  workshopSettingsService,
+  WORKSHOP_SETTINGS_EVENT,
+  formatPhoneForWhatsApp,
+} from '../../services/workshopSettingsService';
 
 export const HomePage: React.FC = () => {
   const [qrCodeInput, setQrCodeInput] = useState('');
+  const [settings, setSettings] = useState(() => workshopSettingsService.getSettings());
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setSettings(workshopSettingsService.getSettings());
+    };
+    window.addEventListener(WORKSHOP_SETTINGS_EVENT, handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener(WORKSHOP_SETTINGS_EVENT, handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
+
+  const cleanPhone = formatPhoneForWhatsApp(settings.phone);
+  const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
+    `Hola ${settings.name}, quisiera agendar un mantenimiento para mi bicicleta en el taller.`
+  )}`;
 
   const handleLookupBike = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +43,7 @@ export const HomePage: React.FC = () => {
       <section className="text-center max-w-3xl mx-auto space-y-4">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
           <Bike className="w-3.5 h-3.5" />
-          <span>Taller Profesional de Bicicletas</span>
+          <span>{settings.header_slogan || 'Taller Profesional de Bicicletas'}</span>
         </div>
 
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
@@ -41,7 +64,7 @@ export const HomePage: React.FC = () => {
             <ArrowRight className="w-4 h-4" />
           </Link>
           <a
-            href="https://wa.me/573000000000?text=Hola%20A2Ruedas,%20quisiera%20agendar%20un%20mantenimiento%20para%20mi%20bicicleta"
+            href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 text-emerald-800 dark:text-emerald-300 text-xs sm:text-sm font-semibold transition-colors"
@@ -51,6 +74,7 @@ export const HomePage: React.FC = () => {
           </a>
         </div>
       </section>
+
 
       {/* Caja de consulta de Bicicleta por Código QR */}
       <section className="max-w-lg mx-auto p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
@@ -195,17 +219,19 @@ export const HomePage: React.FC = () => {
       <section className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-900/40 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="space-y-1">
           <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-blue-600" />
-            Visítanos en nuestro taller
+            <MapPin className="w-4 h-4 text-blue-600 shrink-0" />
+            Visítanos en {settings.name}
           </h3>
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            Calle Principal del Taller #12-34 • Atención personalizada para ciclistas de ruta, montaña y urbanos.
+            {settings.address}
+            {settings.city ? ` • ${settings.city}` : ''} • Tel: {settings.phone}
           </p>
         </div>
-        <div className="font-mono text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 px-4 py-2 rounded-md border border-slate-200 dark:border-slate-700">
-          Horario: Lun - Sáb 8:00 AM - 6:30 PM
+        <div className="font-mono text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 px-4 py-2 rounded-md border border-slate-200 dark:border-slate-700 shrink-0 text-center sm:text-left">
+          Horario: {settings.weekday_hours || '08:00 - 18:00'} (Sáb: {settings.saturday_hours || '08:00 - 14:00'})
         </div>
       </section>
     </div>
   );
 };
+

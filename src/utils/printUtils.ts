@@ -7,12 +7,14 @@ import {
   CashRegisterSummary,
   PrinterSettings,
 } from '../types/database';
-import { printerService, DEFAULT_PRINTER_SETTINGS } from '../services/printerService';
+import { printerService } from '../services/printerService';
+import { workshopSettingsService } from '../services/workshopSettingsService';
 
 /**
  * Genera el documento HTML completo y estilizado para Factura / Orden de Trabajo (Carta / A4)
  */
 export function generateFormalInvoiceHtml(order: WorkOrder, signature: Signature | null): string {
+  const workshop = workshopSettingsService.getSettings();
   const customer = order.customer;
   const bike = order.bicycle;
   const items = order.items || [];
@@ -358,12 +360,12 @@ export function generateFormalInvoiceHtml(order: WorkOrder, signature: Signature
         <!-- Encabezado -->
         <div class="header">
           <div>
-            <div class="brand-title">A2RUEDAS</div>
-            <div class="brand-subtitle">TALLER ESPECIALIZADO DE BICICLETAS</div>
+            <div class="brand-title">${workshop.name}</div>
+            <div class="brand-subtitle">${workshop.header_slogan}</div>
             <div class="brand-info">
-              NIT: 901.456.789-0 • Régimen Simplificado<br>
-              Cra 15 #85-20, Bogotá D.C., Colombia<br>
-              Teléfono / WhatsApp: (+57) 310 456 7890 • taller@a2ruedas.com
+              NIT: ${workshop.nit} • Régimen Simplificado<br>
+              ${workshop.address}${workshop.city ? `, ${workshop.city}` : ''}<br>
+              Teléfono / WhatsApp: ${workshop.phone}
             </div>
           </div>
 
@@ -540,6 +542,7 @@ export function generateFormalInvoiceHtml(order: WorkOrder, signature: Signature
  * Genera el documento HTML completo para Tirilla Térmica POS (58 mm)
  */
 export function generateThermalTicketHtml(order: WorkOrder, signature: Signature | null): string {
+  const cfg = printerService.getSettings();
   const customer = order.customer;
   const bike = order.bicycle;
   const items = order.items || [];
@@ -595,10 +598,10 @@ export function generateThermalTicketHtml(order: WorkOrder, signature: Signature
     </head>
     <body>
       <div class="text-center">
-        <div style="font-size: 12px; font-weight: 900; letter-spacing: 0.5px;">A2RUEDAS TALLER</div>
-        <div style="font-size: 9px;">Servicio Técnico Especializado</div>
-        <div style="font-size: 8px;">NIT: 901.456.789-0 • Tel: 310 456 7890</div>
-        <div style="font-size: 8px;">Bogotá D.C., Colombia</div>
+        <div style="font-size: 12px; font-weight: 900; letter-spacing: 0.5px;">${cfg.workshop_name}</div>
+        <div style="font-size: 9px;">${cfg.header_slogan}</div>
+        <div style="font-size: 8px;">NIT: ${cfg.workshop_nit} • Tel: ${cfg.workshop_phone}</div>
+        <div style="font-size: 8px;">${cfg.workshop_address}</div>
       </div>
 
       <div class="divider"></div>
@@ -768,7 +771,7 @@ export function printWorkOrderDocument(
  * Genera el documento HTML completo y estilizado para Tirilla Térmica POS (58 mm) de Factura
  */
 export function generateInvoiceThermalTicketHtml(invoice: Invoice, settings?: PrinterSettings): string {
-  const cfg = settings || DEFAULT_PRINTER_SETTINGS;
+  const cfg = settings || printerService.getSettings();
   const widthMm = printerService.getPrintableWidthMm(cfg.paper_width);
   const fontSizePx = printerService.getFontSizePx(cfg.font_density);
   const customerName = invoice.customer?.full_name || 'Consumidor Final (Venta Rápida)';
@@ -985,6 +988,7 @@ export function generateInvoiceThermalTicketHtml(invoice: Invoice, settings?: Pr
  * Genera el documento HTML comercial tamaño Carta / A4 para Factura
  */
 export function generateInvoiceCommercialHtml(invoice: Invoice): string {
+  const workshop = workshopSettingsService.getSettings();
   const customerName = invoice.customer?.full_name || 'Consumidor Final (Venta Rápida)';
   const customerDoc = invoice.customer?.document_id || '';
   const customerPhone = invoice.customer?.phone || 'No registrado';
@@ -1033,7 +1037,7 @@ export function generateInvoiceCommercialHtml(invoice: Invoice): string {
     <html lang="es">
     <head>
       <meta charset="utf-8">
-      <title>Factura ${invoice.invoice_number} - A2Ruedas</title>
+      <title>Factura ${invoice.invoice_number} - ${workshop.name}</title>
       <style>
         @page {
           size: letter portrait;
@@ -1168,10 +1172,10 @@ export function generateInvoiceCommercialHtml(invoice: Invoice): string {
       <div class="invoice-container">
         <div class="header">
           <div>
-            <div class="brand-title">A2RUEDAS TALLER</div>
-            <div class="brand-subtitle">SERVICIO TÉCNICO ESPECIALIZADO DE BICICLETAS</div>
-            <div class="brand-info">NIT: 901.452.879-1 • Régimen Simplificado / No Responsable de IVA</div>
-            <div class="brand-info">PBX: (+57) 310 456 7890 • Calle 123 # 45-67, Bogotá, Colombia</div>
+            <div class="brand-title">${workshop.name}</div>
+            <div class="brand-subtitle">${workshop.header_slogan}</div>
+            <div class="brand-info">NIT: ${workshop.nit} • Régimen Simplificado / No Responsable de IVA</div>
+            <div class="brand-info">PBX: ${workshop.phone} • ${workshop.address}${workshop.city ? `, ${workshop.city}` : ''}</div>
           </div>
           <div class="doc-box">
             <div class="doc-type">FACTURA DE VENTA / COMPROBANTE</div>
@@ -1332,7 +1336,7 @@ export function generateBikeTagThermalHtml(
   qrDataUrl?: string,
   settings?: PrinterSettings
 ): string {
-  const cfg = settings || DEFAULT_PRINTER_SETTINGS;
+  const cfg = settings || printerService.getSettings();
   const widthMm = printerService.getPrintableWidthMm(cfg.paper_width);
   const fontSizePx = printerService.getFontSizePx(cfg.font_density);
   const qrCodeStr = bike.qr_code || 'BIKE-000000';
@@ -1477,7 +1481,7 @@ export function generateReceptionTicketHtml(
   signature?: Signature | null,
   settings?: PrinterSettings
 ): string {
-  const cfg = settings || DEFAULT_PRINTER_SETTINGS;
+  const cfg = settings || printerService.getSettings();
   const widthMm = printerService.getPrintableWidthMm(cfg.paper_width);
   const fontSizePx = printerService.getFontSizePx(cfg.font_density);
   const dateFormatted = new Date(workOrder.created_at).toLocaleString('es-CO', {
@@ -1644,7 +1648,7 @@ export function generateWorkOrderTicketHtml(
   signature?: Signature | null,
   settings?: PrinterSettings
 ): string {
-  const cfg = settings || DEFAULT_PRINTER_SETTINGS;
+  const cfg = settings || printerService.getSettings();
   const widthMm = printerService.getPrintableWidthMm(cfg.paper_width);
   const fontSizePx = printerService.getFontSizePx(cfg.font_density);
   const items = workOrder.items || [];
@@ -1802,7 +1806,7 @@ export function generateCashRegisterTicketHtml(
   summary: CashRegisterSummary,
   settings?: PrinterSettings
 ): string {
-  const cfg = settings || DEFAULT_PRINTER_SETTINGS;
+  const cfg = settings || printerService.getSettings();
   const widthMm = printerService.getPrintableWidthMm(cfg.paper_width);
   const fontSizePx = printerService.getFontSizePx(cfg.font_density);
   const openedDate = new Date(register.opened_at).toLocaleString('es-CO', {
@@ -1938,7 +1942,7 @@ export function generateCashRegisterTicketHtml(
  * 5. Genera Tirilla de Calibración y Diagnóstico de Hardware (Prueba 58 mm)
  */
 export function generateTestTicketHtml(settings?: PrinterSettings): string {
-  const cfg = settings || DEFAULT_PRINTER_SETTINGS;
+  const cfg = settings || printerService.getSettings();
   const widthMm = printerService.getPrintableWidthMm(cfg.paper_width);
   const fontSizePx = printerService.getFontSizePx(cfg.font_density);
   const now = new Date().toLocaleString('es-CO');

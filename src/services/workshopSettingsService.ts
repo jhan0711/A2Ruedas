@@ -25,6 +25,8 @@ export interface WorkshopGeneralSettings {
   whatsapp_notifications_enabled: boolean;
 }
 
+export const WORKSHOP_SETTINGS_EVENT = 'a2ruedas_workshop_settings_changed';
+
 const LOCAL_STORAGE_WORKSHOP_KEY = 'a2ruedas_workshop_general_settings_v1';
 
 export const DEFAULT_WORKSHOP_SETTINGS: WorkshopGeneralSettings = {
@@ -50,28 +52,30 @@ export const DEFAULT_WORKSHOP_SETTINGS: WorkshopGeneralSettings = {
   whatsapp_notifications_enabled: true,
 };
 
+/**
+ * Limpia y normaliza un número de teléfono para enlaces de WhatsApp de Colombia / internacional
+ */
+export function formatPhoneForWhatsApp(phone: string): string {
+  if (!phone) return '573104567890';
+  let clean = phone.replace(/\D/g, '');
+  if (clean.length === 10) {
+    clean = `57${clean}`;
+  }
+  return clean || '573104567890';
+}
+
 export const workshopSettingsService = {
   /**
-   * Obtiene la configuración general del taller
+   * Obtiene la configuración general del taller (Fuente de Verdad Única)
    */
   getSettings(): WorkshopGeneralSettings {
     try {
       const stored = localStorage.getItem(LOCAL_STORAGE_WORKSHOP_KEY);
-      const printer = printerService.getSettings();
-
       if (stored) {
         const parsed = JSON.parse(stored);
         return {
           ...DEFAULT_WORKSHOP_SETTINGS,
           ...parsed,
-          // Mantener sincronizados los campos compartidos con printerService
-          name: printer.workshop_name || parsed.name || DEFAULT_WORKSHOP_SETTINGS.name,
-          nit: printer.workshop_nit || parsed.nit || DEFAULT_WORKSHOP_SETTINGS.nit,
-          phone: printer.workshop_phone || parsed.phone || DEFAULT_WORKSHOP_SETTINGS.phone,
-          address: printer.workshop_address || parsed.address || DEFAULT_WORKSHOP_SETTINGS.address,
-          header_slogan: printer.header_slogan || parsed.header_slogan || DEFAULT_WORKSHOP_SETTINGS.header_slogan,
-          footer_message: printer.footer_message || parsed.footer_message || DEFAULT_WORKSHOP_SETTINGS.footer_message,
-          warranty_text: printer.warranty_text || parsed.warranty_text || DEFAULT_WORKSHOP_SETTINGS.warranty_text,
         };
       }
     } catch (err) {
@@ -81,7 +85,7 @@ export const workshopSettingsService = {
   },
 
   /**
-   * Guarda las opciones de configuración y sincroniza con los formatos de impresión térmica
+   * Guarda las opciones de configuración y sincroniza con los formatos de impresión térmica y vistas públicas
    */
   saveSettings(newSettings: Partial<WorkshopGeneralSettings>): WorkshopGeneralSettings {
     const current = this.getSettings();
@@ -91,9 +95,10 @@ export const workshopSettingsService = {
     };
 
     try {
+      // 1. Guardar como Fuente de Verdad Primaria
       localStorage.setItem(LOCAL_STORAGE_WORKSHOP_KEY, JSON.stringify(updated));
 
-      // Sincronizar inmediatamente con printerService para que marbetes, facturas y OTs lo reflejen
+      // 2. Sincronizar con el formato de impresión térmica (marbetes, facturas, OTs)
       printerService.saveSettings({
         workshop_name: updated.name,
         workshop_nit: updated.nit,
@@ -103,6 +108,13 @@ export const workshopSettingsService = {
         footer_message: updated.footer_message,
         warranty_text: updated.warranty_text,
       });
+
+      // 3. Notificar a componentes reactivos (Home, Catálogo, Layout)
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent(WORKSHOP_SETTINGS_EVENT, { detail: updated })
+        );
+      }
     } catch (err) {
       console.error('Error al guardar configuración general del taller:', err);
     }
@@ -117,6 +129,12 @@ export const workshopSettingsService = {
     try {
       localStorage.removeItem(LOCAL_STORAGE_WORKSHOP_KEY);
       printerService.resetSettings();
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent(WORKSHOP_SETTINGS_EVENT, { detail: DEFAULT_WORKSHOP_SETTINGS })
+        );
+      }
     } catch (err) {
       console.error('Error al restaurar valores por defecto:', err);
     }

@@ -1,14 +1,38 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Bike, Sun, Moon, MapPin, Clock, MessageCircle, Download } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { usePWA } from '../../context/PWAContext';
 import { SkipToContent, PageLoadingFallback } from '../ui';
+import {
+  workshopSettingsService,
+  WORKSHOP_SETTINGS_EVENT,
+  formatPhoneForWhatsApp,
+} from '../../services/workshopSettingsService';
 
 export const PublicLayout: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { isInstalled, setShowInstallModal } = usePWA();
   const location = useLocation();
+
+  const [settings, setSettings] = useState(() => workshopSettingsService.getSettings());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setSettings(workshopSettingsService.getSettings());
+    };
+    window.addEventListener(WORKSHOP_SETTINGS_EVENT, handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener(WORKSHOP_SETTINGS_EVENT, handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
+
+  const cleanPhone = formatPhoneForWhatsApp(settings.phone);
+  const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
+    `Hola ${settings.name}, quisiera consultar sobre un servicio o agendamiento en el taller.`
+  )}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
@@ -17,28 +41,34 @@ export const PublicLayout: React.FC = () => {
       <div className="bg-slate-900 text-slate-300 text-[11px] py-1.5 px-4 border-b border-slate-800">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3 text-emerald-400" />
-              Lunes a Sábado: 8:00 AM - 6:30 PM
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-3 h-3 text-emerald-400 shrink-0" />
+              <span>
+                {settings.weekday_hours || 'Lun - Vie: 8:00 - 18:00'} • Sáb: {settings.saturday_hours || '8:00 - 14:00'}
+              </span>
             </span>
-            <span className="hidden md:flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-blue-400" />
-              Calle Principal del Taller #12-34
+            <span className="hidden md:flex items-center gap-1.5">
+              <MapPin className="w-3 h-3 text-blue-400 shrink-0" />
+              <span>
+                {settings.address}
+                {settings.city ? `, ${settings.city}` : ''}
+              </span>
             </span>
           </div>
           <div className="flex items-center gap-3">
             <a
-              href="https://wa.me/573000000000?text=Hola%20A2Ruedas,%20quisiera%20consultar%20sobre%20un%20servicio"
+              href={waUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-medium"
+              className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
             >
               <MessageCircle className="w-3 h-3" />
-              <span>WhatsApp Taller</span>
+              <span>WhatsApp: {settings.phone}</span>
             </a>
           </div>
         </div>
       </div>
+
 
       {/* Navegación pública principal */}
       <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs sticky top-0 z-30 px-4 transition-colors">
@@ -128,17 +158,18 @@ export const PublicLayout: React.FC = () => {
       <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-8 px-4 mt-auto transition-colors">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-2">
-            <Bike className="w-4 h-4 text-blue-600" />
-            <span className="font-semibold text-slate-700 dark:text-slate-300">A2Ruedas Taller</span>
-            <span>— Mantenimiento profesional y repuestos de alta gama</span>
+            <Bike className="w-4 h-4 text-blue-600 shrink-0" />
+            <span className="font-semibold text-slate-700 dark:text-slate-300">{settings.name}</span>
+            <span className="hidden sm:inline">— {settings.header_slogan || 'Mantenimiento profesional y repuestos de alta gama'}</span>
           </div>
-          <div className="flex items-center gap-4 font-mono text-[11px]">
-            <span>Atención presencial en taller</span>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 font-mono text-[11px]">
+            <span>{settings.address}</span>
             <span>•</span>
-            <span>Tel: +57 300 000 0000</span>
+            <span>Tel: {settings.phone}</span>
           </div>
         </div>
       </footer>
     </div>
   );
 };
+

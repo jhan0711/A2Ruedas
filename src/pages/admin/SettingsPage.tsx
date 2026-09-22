@@ -110,19 +110,29 @@ export const SettingsPage: React.FC = () => {
   const handleSaveAll = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-    workshopSettingsService.saveSettings(workshopSettings);
-    printerService.saveSettings(printerSettings);
+    // 1. Guardar la configuración general del taller (Fuente de Verdad Única)
+    const saved = workshopSettingsService.saveSettings(workshopSettings);
 
-    setWorkshopSettings(workshopSettingsService.getSettings());
+    // 2. Guardar ÚNICAMENTE los parámetros de hardware de impresión sin tocar los datos del taller
+    printerService.saveSettings({
+      paper_width: printerSettings.paper_width,
+      font_density: printerSettings.font_density,
+      feed_lines: printerSettings.feed_lines,
+      show_qr_code: printerSettings.show_qr_code,
+    });
+
+    // 3. Sincronizar estados locales inmediatamente
+    setWorkshopSettings(saved);
     setPrinterSettings(printerService.getSettings());
 
     setAlertMessage({
       variant: 'success',
       title: 'Configuración guardada',
-      text: 'Los datos del taller y parámetros de impresión han sido actualizados con éxito.',
+      text: 'Los datos del taller han sido guardados exitosamente y aplicados a todo el sistema.',
     });
     setTimeout(() => setAlertMessage(null), 4000);
   };
+
 
   const handleResetToDefaults = () => {
     workshopSettingsService.resetSettings();
