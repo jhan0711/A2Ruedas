@@ -10,7 +10,6 @@ export interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -112,96 +111,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const signUp = async (
-    email: string,
-    password: string,
-    fullName: string,
-  ): Promise<{ success: boolean; error?: string }> => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      if (isSupabaseConfigured) {
-        const { data, error: sbError } = await supabase.auth.signUp({
-          email: email.trim().toLowerCase(),
-          password,
-          options: {
-            data: {
-              full_name: fullName.trim(),
-              role: 'admin',
-            },
-          },
-        });
-
-        if (sbError) {
-          setError(sbError.message);
-          setIsLoading(false);
-          return { success: false, error: sbError.message };
-        }
-
-        if (data.user) {
-          const userProfile: UserProfile = {
-            id: data.user.id,
-            fullName: fullName.trim() || 'Administrador Taller',
-            role: 'admin',
-            isActive: true,
-          };
-          setUser(data.user);
-          setProfile(userProfile);
-          if (data.session) setSession(data.session);
-
-          // Guardar registro seguro
-          localStorage.setItem(
-            LOCAL_STORAGE_AUTH_KEY,
-            JSON.stringify({
-              user: data.user,
-              profile: userProfile,
-              savedEmail: email.trim().toLowerCase(),
-              authSecret: btoa(password),
-            }),
-          );
-
-          setIsLoading(false);
-          return { success: true };
-        }
-      }
-
-      // Registro seguro del primer administrador
-      const newAdminUser: User = {
-        id: `user-${Date.now()}`,
-        app_metadata: {},
-        user_metadata: { full_name: fullName.trim(), role: 'admin' },
-        aud: 'authenticated',
-        created_at: new Date().toISOString(),
-        email: email.trim().toLowerCase(),
-      };
-      const newProfile: UserProfile = {
-        id: newAdminUser.id,
-        fullName: fullName.trim(),
-        role: 'admin',
-        isActive: true,
-      };
-      setUser(newAdminUser);
-      setProfile(newProfile);
-      localStorage.setItem(
-        LOCAL_STORAGE_AUTH_KEY,
-        JSON.stringify({
-          user: newAdminUser,
-          profile: newProfile,
-          savedEmail: email.trim().toLowerCase(),
-          authSecret: btoa(password),
-        }),
-      );
-
-      setIsLoading(false);
-      return { success: true };
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error al registrar la cuenta de administrador.';
-      setError(msg);
-      setIsLoading(false);
-      return { success: false, error: msg };
-    }
-  };
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
@@ -293,7 +202,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         error,
         login,
-        signUp,
         logout,
         isAuthenticated: Boolean(user),
       }}

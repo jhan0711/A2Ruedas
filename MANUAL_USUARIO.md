@@ -52,15 +52,16 @@ A2Ruedas es una **Aplicación Web Progresiva (PWA)**, lo que significa que funci
 
 > **Ventaja de la app instalada:** Funciona a pantalla completa, carga instantáneamente y te permite seguir operando en el taller incluso si hay cortes temporales de internet gracias a su base de datos local sincronizada.
 
-### Acceso y Registro Seguro del Administrador (Primer Ingreso)
+### Acceso Privado y Autenticación del Personal
 1. Ingresa a la pantalla de acceso administrativo (`/login`).
-2. Si es la primera vez que ingresas a tu taller, presiona la opción **"¿No tienes cuenta? Registra tu taller"**.
-3. Ingresa tu **Nombre completo**, tu **Correo electrónico** y tu **Contraseña segura** (mínimo 6 caracteres).
-4. El sistema creará tu perfil de administrador de forma cifrada y segura.
-5. A partir de ese momento, podrás iniciar sesión en cualquier momento ingresando tu correo y contraseña.
+2. El registro público está deshabilitado por seguridad para impedir que personas externas creen cuentas en el sistema.
+3. El ingreso se realiza con el correo electrónico y la contraseña asignados para cada miembro autorizado del equipo.
+4. Las cuentas de acceso de mecánicos y administradores son gestionadas y creadas de forma centralizada por el propietario desde la consola de autenticación en **Supabase** (*Authentication > Users > Add user*).
 
 > [!IMPORTANT]
-> **Base de Datos Limpia para Producción:** El sistema se entrega 100% limpio y libre de datos ficticios de prueba. La lista de clientes, bicicletas, órdenes de trabajo, inventario, facturas y caja menor inician vacías, listas para recibir los datos reales de tu negocio desde el primer día.
+> **Seguridad y Base de Datos Limpia para Producción:**
+> - El acceso al panel administrativo está completamente blindado y restringido al personal autorizado.
+> - La base de datos inicia 100% limpia y libre de registros ficticios de prueba. La lista de clientes, bicicletas, órdenes de trabajo, inventario, facturas y caja menor están vacías, listas para la operación real del taller.
 
 ---
 
