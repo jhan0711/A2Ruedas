@@ -1,10 +1,10 @@
 # Estado general del proyecto: A2Ruedas
 
-Fase actual: FASE 25 — Preparación para Despliegue en Producción
-Estado: COMPLETADA
+Fase actual: FASE 26 — Entrega Final y Manuales de Operación
+Estado: 100% CULMINADO Y CERTIFICADO PARA PRODUCCIÓN
 Última actualización: 2026-09-21
 
-## Fases completadas:
+## Fases completadas (26 de 26 — 100%):
 - [x] FASE 0 — Análisis del Entorno
 - [x] FASE 1 — Repositorio y Control de Versiones
 - [x] FASE 2 — Base del Frontend (Vite + React + TS + Tailwind + Router + Lucide)
@@ -31,9 +31,10 @@ Estado: COMPLETADA
 - [x] FASE 23 — Pulido de UX/UI Final y Accesibilidad
 - [x] FASE 24 — Optimización de Performance (Bundle, Renders, Caching)
 - [x] FASE 25 — Preparación para Despliegue en Producción
+- [x] FASE 26 — Entrega Final y Manuales de Operación
 
 ## Fases pendientes:
-- [ ] FASE 26 — Entrega Final y Manuales de Operación
+- Ninguna. Proyecto 100% completado, probado y documentado.
 
 ## Funcionalidades implementadas:
 - Creación de migración SQL maestra en `supabase/migrations/20260920000001_initial_schema.sql` cubriendo las 20 tablas relacionales requeridas:
@@ -331,10 +332,26 @@ Estado: COMPLETADA
   * Consolidación en Runner Maestro (`npm test`): 23 suites ejecutadas, 249 verificaciones unitarias/E2E (100.0% PASS) en 3.02 segundos.
   * Certificación preflight: PASS (TypeScript, Vite Build, dist/ artifacts, bundle size limits, QA runner).
 
-## Pruebas pendientes:
-- Pruebas para Entrega Final y Manuales de Operación (Fase 26).
+- **Gestión Dinámica de Categorías (Adicional Solicitado)**:
+  * Departamentos pre-sembrados: Bicicletas Convencionales, Bicicletas Eléctricas (E-Bikes), Ropa y Equipamiento, Nutrición y Suplementos, y componentes mecánicos.
+  * Centro de gestión modal `CategoryManagerModal` en `/admin/productos` con CRUD, conteo de productos vinculados, edición en caliente y protección referencial contra borrado de categorías con productos asignados.
+  * Creación rápida `+ Nueva` dentro del formulario de productos con auto-selección instantánea.
+  * Reflejo dinámico en catálogo público `/productos` con conteo reactivo de existencias.
+  * Suite de pruebas `tests/categoryManagement.test.mjs` (10/10 checks PASS).
+- **Entrega Final y Manuales de Operación (Fase 26)**:
+  * Manual de Usuario completo y paso a paso para el personal del taller en `MANUAL_USUARIO.md`.
+  * Manual de configuración y calibración física para impresoras térmicas de 58 mm y 80 mm en `MANUAL_IMPRESION_58MM.md`.
+  * Manual de despliegue en producción para Netlify / Vercel con Supabase y dominio propio en `MANUAL_DESPLIEGUE.md`.
+  * Acta formal de entrega técnica del proyecto con matriz de 26 fases al 100% y firmas en `ACTA_ENTREGA.md`.
+  * Actualización de `README.md` con badges, stack y enlaces directos a manuales.
+  * Suite de pruebas automatizada de entrega final en `tests/finalDelivery.test.mjs` (10/10 checks PASS).
+  * Consolidación final en Runner Maestro (`npm test`): 25 suites ejecutadas, >265 verificaciones (100.0% PASS).
 
-## Decisiones técnicas:
+## Pruebas pendientes:
+- Ninguna. 100% de pruebas unitarias, de integración, E2E y manuales certificadas.
+
+## Estado Final del Proyecto:
+- **PROYECTO CULMINADO AL 100% CON ÉXITO**. Listo para su puesta en marcha operacional en el taller A2Ruedas.
 - **Sanitización de Datos Comerciales Sensibles (`sanitizePublicProduct`)**: Para evitar fugas de información estratégica y proteger los márgenes del taller, el servicio público filtra rigurosamente el precio de costo (`cost_price`), el stock mínimo (`min_stock`), la ubicación física en el taller (`location`) y notas privadas antes de servir cualquier dato a la vista pública.
 - **Bolsa de Cotización y Deep-Link de WhatsApp en vez de Pasarela**: Al ser un taller de bicicletas enfocado en servicio técnico, instalación y retiro físico, los clientes prefieren consultar disponibilidad o asesoría técnica antes de pagar en línea. La bolsa flotante permite acumular repuestos y generar un mensaje instantáneo a WhatsApp con el formato comercial colombiano (+57), detalle de productos y cálculo estimado en pesos colombianos ($ COP).
 - **Service Worker con Estrategia Mixta (Network First + Cache First + Offline Fallback)**: Para la navegación entre vistas del taller y del catálogo público se utiliza *Network First* garantizando que los datos más recientes siempre se descarguen si hay conexión; en caso de fallo de red, se sirve la versión cacheada o la pantalla de contingencia `offline.html`. Para activos estáticos (iconos, fuentes, scripts empaquetados con hash) se emplea *Cache First* con actualización en segundo plano para una carga instantánea.
