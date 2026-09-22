@@ -19,32 +19,8 @@ const LOCAL_STORAGE_BIKES = 'a2ruedas_bicycles_cache';
 const LOCAL_STORAGE_QRS = 'a2ruedas_qrs_cache';
 const LOCAL_STORAGE_PHOTOS = 'a2ruedas_bike_photos_cache';
 
-const initialLocalQRs: Record<string, BikeQRCode> = {
-  'b-001': {
-    id: 'qr-001',
-    bicycle_id: 'b-001',
-    qr_code: 'BIKE-8F3A92',
-    public_token: 'token-b001-8f3a92',
-    is_active: true,
-    created_at: new Date('2026-01-10').toISOString(),
-  },
-  'b-002': {
-    id: 'qr-002',
-    bicycle_id: 'b-002',
-    qr_code: 'BIKE-4C6310',
-    public_token: 'token-b002-4c6310',
-    is_active: true,
-    created_at: new Date('2026-02-15').toISOString(),
-  },
-  'b-003': {
-    id: 'qr-003',
-    bicycle_id: 'b-003',
-    qr_code: 'BIKE-2E91D4',
-    public_token: 'token-b003-2e91d4',
-    is_active: true,
-    created_at: new Date('2026-03-01').toISOString(),
-  },
-};
+// Base de datos limpia de bicicletas, QRs y fotos para producción
+const initialLocalQRs: Record<string, BikeQRCode> = {};
 
 function getLocalQRs(): Record<string, BikeQRCode> {
   const cached = localStorage.getItem(LOCAL_STORAGE_QRS);
@@ -53,100 +29,14 @@ function getLocalQRs(): Record<string, BikeQRCode> {
     return initialLocalQRs;
   }
   try {
-    const parsed = JSON.parse(cached);
-    let modified = false;
-    for (const [bikeId, qr] of Object.entries(initialLocalQRs)) {
-      if (!parsed[bikeId]) {
-        parsed[bikeId] = qr;
-        modified = true;
-      }
-    }
-    if (modified) {
-      localStorage.setItem(LOCAL_STORAGE_QRS, JSON.stringify(parsed));
-    }
-    return parsed;
+    return JSON.parse(cached);
   } catch {
     return initialLocalQRs;
   }
 }
 
-const initialLocalBikes: Bicycle[] = [
-  {
-    id: 'b-001',
-    customer_id: 'c-001',
-    brand: 'Trek',
-    model: 'Marlin 7',
-    bike_type: 'MTB',
-    color: 'Rojo Viper / Negro',
-    frame_size: 'M',
-    wheel_size: '29"',
-    serial_number: 'WTU281C0492S',
-    year: 2024,
-    key_components: 'Shimano Deore 1x10, Frenos Hidráulicos MT200, Horquilla RockShox Judy',
-    observations: 'Rayón superficial en vaina trasera derecha por caída leve.',
-    created_at: new Date('2026-01-10').toISOString(),
-    updated_at: new Date('2026-01-10').toISOString(),
-  },
-  {
-    id: 'b-002',
-    customer_id: 'c-002',
-    brand: 'Specialized',
-    model: 'Allez',
-    bike_type: 'Ruta',
-    color: 'Negro Mate',
-    frame_size: '54 cm',
-    wheel_size: '700c',
-    serial_number: 'WSBC602019284T',
-    year: 2023,
-    key_components: 'Shimano Claris 2x8, Frenos de herradura Tektro, Ruedas Axis Sport',
-    observations: 'Guayas oxidadas, cinta de manubrio con desgaste.',
-    created_at: new Date('2026-02-15').toISOString(),
-    updated_at: new Date('2026-02-15').toISOString(),
-  },
-  {
-    id: 'b-003',
-    customer_id: 'c-001',
-    brand: 'Giant',
-    model: 'Revolt 2',
-    bike_type: 'Gravel',
-    color: 'Verde Oliva',
-    frame_size: 'M/L',
-    wheel_size: '700x38c',
-    serial_number: 'GA29381745K',
-    year: 2025,
-    key_components: 'Shimano Sora 2x9, Frenos de disco mecánicos, Cuadro ALUXX Grade',
-    observations: 'Excelente estado. Primera revisión de 500 km.',
-    created_at: new Date('2026-03-01').toISOString(),
-    updated_at: new Date('2026-03-01').toISOString(),
-  },
-];
-
-const initialLocalPhotos: BicyclePhoto[] = [
-  {
-    id: 'p-001',
-    bicycle_id: 'b-001',
-    photo_url: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=800&q=80',
-    photo_type: 'general',
-    caption: 'Vista lateral completa al ingreso al taller',
-    created_at: new Date('2026-01-10').toISOString(),
-  },
-  {
-    id: 'p-002',
-    bicycle_id: 'b-001',
-    photo_url: 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=800&q=80',
-    photo_type: 'transmision',
-    caption: 'Estado de cassette Deore y cadena (desgaste 0.75)',
-    created_at: new Date('2026-01-10').toISOString(),
-  },
-  {
-    id: 'p-003',
-    bicycle_id: 'b-002',
-    photo_url: 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=800&q=80',
-    photo_type: 'general',
-    caption: 'Inspección de ingreso de ruta Specialized',
-    created_at: new Date('2026-02-15').toISOString(),
-  },
-];
+const initialLocalBikes: Bicycle[] = [];
+const initialLocalPhotos: BicyclePhoto[] = [];
 
 function getLocalBikes(): Bicycle[] {
   const cached = localStorage.getItem(LOCAL_STORAGE_BIKES);

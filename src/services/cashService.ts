@@ -12,7 +12,6 @@ import {
 const LOCAL_STORAGE_CASH_REG = 'a2ruedas_cash_register_active';
 const LOCAL_STORAGE_CASH_MOV = 'a2ruedas_cash_movements';
 const LOCAL_STORAGE_CASH_HISTORY = 'a2ruedas_cash_registers_history';
-const LOCAL_STORAGE_INITIALIZED = 'a2ruedas_cash_is_initialized_v2';
 
 /**
  * Calcula el total en efectivo a partir del conteo de billetes y monedas colombianas
@@ -30,115 +29,10 @@ export function calculateDenominationsTotal(denoms: CashDenominations): number {
 }
 
 /**
- * Inicializa datos demostrativos si es la primera vez que se carga la aplicación
+ * En producción la caja inicia completamente limpia sin datos simulados
  */
 function initializeDemoCashData(): void {
-  if (localStorage.getItem(LOCAL_STORAGE_INITIALIZED)) return;
-
-  const demoActive: CashRegister = {
-    id: 'cash-reg-current',
-    opened_by: 'Administrador / Jefe de Taller',
-    opened_at: new Date(Date.now() - 5 * 3600 * 1000).toISOString(), // Hace 5 horas
-    initial_amount: 150000,
-    status: 'OPEN',
-    notes: 'Apertura de jornada matutina con base estándar para cambios.',
-  };
-
-  const demoMovements: CashMovement[] = [
-    {
-      id: 'mov-001',
-      cash_register_id: 'cash-reg-current',
-      type: 'INCOME',
-      concept: 'Abono 50% por servicio de mantenimiento general (OT-000001)',
-      amount: 65000,
-      payment_method: 'CASH',
-      category: 'ORDER_DEPOSIT',
-      reference_type: 'WORK_ORDER',
-      reference_id: 'OT-000001',
-      user_id: 'admin',
-      created_at: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
-    },
-    {
-      id: 'mov-002',
-      cash_register_id: 'cash-reg-current',
-      type: 'INCOME',
-      concept: 'Pago por Nequi venta de lubricante Squirt Lube 120ml',
-      amount: 45000,
-      payment_method: 'TRANSFER',
-      category: 'COUNTER_SALE',
-      reference_type: 'MANUAL',
-      user_id: 'admin',
-      created_at: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
-    },
-    {
-      id: 'mov-003',
-      cash_register_id: 'cash-reg-current',
-      type: 'EXPENSE',
-      concept: 'Compra urgente de desengrasante cítrico en ferretería vecina',
-      amount: 18000,
-      payment_method: 'CASH',
-      category: 'OPERATING_EXPENSE',
-      reference_type: 'MANUAL',
-      user_id: 'admin',
-      notes: 'Factura física guardada en gaveta',
-      created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-    },
-    {
-      id: 'mov-004',
-      cash_register_id: 'cash-reg-current',
-      type: 'INCOME',
-      concept: 'Liquidación final y entrega de bicicleta Trek Marlin (OT-000002)',
-      amount: 110000,
-      payment_method: 'CARD',
-      category: 'ORDER_PAYMENT',
-      reference_type: 'WORK_ORDER',
-      reference_id: 'OT-000002',
-      user_id: 'admin',
-      created_at: new Date(Date.now() - 1 * 3600 * 1000).toISOString(),
-    },
-    {
-      id: 'mov-005',
-      cash_register_id: 'cash-reg-current',
-      type: 'INCOME',
-      concept: 'Pago en efectivo cambio de pastillas Shimano B05S',
-      amount: 35000,
-      payment_method: 'CASH',
-      category: 'ORDER_PAYMENT',
-      reference_type: 'MANUAL',
-      user_id: 'admin',
-      created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    },
-  ];
-
-  const demoHistory: CashRegister[] = [
-    {
-      id: 'cash-reg-yesterday',
-      opened_by: 'Administrador / Jefe de Taller',
-      opened_at: new Date(Date.now() - 28 * 3600 * 1000).toISOString(),
-      initial_amount: 150000,
-      closed_by: 'Administrador / Jefe de Taller',
-      closed_at: new Date(Date.now() - 20 * 3600 * 1000).toISOString(),
-      final_counted_amount: 380000,
-      system_calculated_amount: 380000,
-      difference: 0,
-      status: 'CLOSED',
-      notes: 'Cierre de turno perfecto sin descuadres.',
-      denominations: {
-        bill100k: 2,
-        bill50k: 3,
-        bill20k: 1,
-        bill10k: 1,
-        bill5k: 0,
-        bill2k: 0,
-        coins: 0,
-      },
-    },
-  ];
-
-  localStorage.setItem(LOCAL_STORAGE_CASH_REG, JSON.stringify(demoActive));
-  localStorage.setItem(LOCAL_STORAGE_CASH_MOV, JSON.stringify(demoMovements));
-  localStorage.setItem(LOCAL_STORAGE_CASH_HISTORY, JSON.stringify(demoHistory));
-  localStorage.setItem(LOCAL_STORAGE_INITIALIZED, 'true');
+  // Base de datos limpia de caja para producción
 }
 
 export const cashService = {

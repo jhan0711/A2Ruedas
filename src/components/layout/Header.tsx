@@ -25,8 +25,8 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
     navigate('/login', { replace: true });
   };
 
-  const displayName = profile?.fullName || user?.email?.split('@')[0] || 'Admin Taller';
-  const displayEmail = user?.email || 'admin@a2ruedas.com';
+  const displayName = profile?.fullName || user?.email?.split('@')[0] || 'Administrador';
+  const displayEmail = user?.email || '';
   const initials = displayName
     .split(' ')
     .map((n) => n[0])

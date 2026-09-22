@@ -3,33 +3,8 @@ import { Customer, CustomerInsert, CustomerUpdate } from '../types/database';
 
 const LOCAL_STORAGE_CUSTOMERS = 'a2ruedas_customers_cache';
 
-// Semilla inicial local para resiliencia inmediata
-const initialLocalCustomers: Customer[] = [
-  {
-    id: 'c-001',
-    full_name: 'Carlos Mendoza',
-    phone: '3104567890',
-    whatsapp: '3104567890',
-    email: 'carlos.mendoza@email.com',
-    document_id: '1020304050',
-    address: 'Cra 15 #85-20',
-    notes: 'Cliente frecuente. Ruta y MTB.',
-    created_at: new Date('2026-01-10').toISOString(),
-    updated_at: new Date('2026-01-10').toISOString(),
-  },
-  {
-    id: 'c-002',
-    full_name: 'Laura Gómez',
-    phone: '3209876543',
-    whatsapp: '3209876543',
-    email: 'laura.gomez@email.com',
-    document_id: '1098765432',
-    address: 'Calle 100 #19-40',
-    notes: 'Bicicleta Specialized Allez.',
-    created_at: new Date('2026-02-15').toISOString(),
-    updated_at: new Date('2026-02-15').toISOString(),
-  },
-];
+// Base de datos limpia de clientes para producción
+const initialLocalCustomers: Customer[] = [];
 
 function getLocalCustomers(): Customer[] {
   const cached = localStorage.getItem(LOCAL_STORAGE_CUSTOMERS);

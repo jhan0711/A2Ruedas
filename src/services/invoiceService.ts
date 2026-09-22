@@ -12,109 +12,12 @@ import { cashService } from './cashService';
 
 const LOCAL_STORAGE_INVOICES = 'a2ruedas_invoices_v1';
 const LOCAL_STORAGE_INVOICE_ITEMS = 'a2ruedas_invoice_items_v1';
-const LOCAL_STORAGE_INITIALIZED = 'a2ruedas_invoices_initialized_v1';
 
 /**
- * Inicializa facturas demostrativas para primera carga
+ * En producción se inicia con facturación limpia
  */
 function initializeDemoInvoices(): void {
-  if (localStorage.getItem(LOCAL_STORAGE_INITIALIZED)) return;
-
-  const demoInvoices: Invoice[] = [
-    {
-      id: 'fac-001',
-      invoice_number: 'FAC-000001',
-      customer_id: 'cust-1',
-      work_order_id: 'OT-000001',
-      subtotal: 110000,
-      discount: 0,
-      tax: 0,
-      tax_rate: 0,
-      total: 110000,
-      payment_method: 'CASH',
-      payment_status: 'PAID',
-      issued_by: 'Administrador / Jefe de Taller',
-      created_at: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
-      notes: 'Mantenimiento preventivo general y cambio de pastillas.',
-      customer: {
-        id: 'cust-1',
-        full_name: 'Ana María Gómez',
-        phone: '3101112233',
-        document_id: '1020304050',
-        email: 'anamaria@example.com',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-    },
-    {
-      id: 'fac-002',
-      invoice_number: 'FAC-000002',
-      customer_id: 'cust-2',
-      work_order_id: null,
-      subtotal: 73000,
-      discount: 3000,
-      tax: 0,
-      tax_rate: 0,
-      total: 70000,
-      payment_method: 'TRANSFER',
-      payment_status: 'PAID',
-      issued_by: 'Administrador / Jefe de Taller',
-      created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-      notes: 'Venta rápida de mostrador. Descuento comercial por pago en Nequi.',
-      customer: {
-        id: 'cust-2',
-        full_name: 'Carlos Andrés Pérez',
-        phone: '3204445566',
-        document_id: '1098765432',
-        email: 'carlos@example.com',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-    },
-  ];
-
-  const demoItems: InvoiceItem[] = [
-    {
-      id: 'item-001',
-      invoice_id: 'fac-001',
-      description: 'Mantenimiento General Completo (Desarme, lavado y engrase)',
-      quantity: 1,
-      unit_price: 75000,
-      total_price: 75000,
-      item_type: 'service',
-    },
-    {
-      id: 'item-002',
-      invoice_id: 'fac-001',
-      description: 'Pastillas de Freno Shimano B05S Resina (Par)',
-      quantity: 1,
-      unit_price: 35000,
-      total_price: 35000,
-      item_type: 'part',
-    },
-    {
-      id: 'item-003',
-      invoice_id: 'fac-002',
-      description: 'Lubricante Seco para Cadena Squirt Lube 120ml',
-      quantity: 1,
-      unit_price: 45000,
-      total_price: 45000,
-      item_type: 'product',
-    },
-    {
-      id: 'item-004',
-      invoice_id: 'fac-002',
-      description: 'Neumático Chaoyang 29 x 2.10 Válvula Presta 48mm',
-      quantity: 1,
-      unit_price: 28000,
-      total_price: 28000,
-      item_type: 'part',
-    },
-  ];
-
-  localStorage.setItem(LOCAL_STORAGE_INVOICES, JSON.stringify(demoInvoices));
-  localStorage.setItem(LOCAL_STORAGE_INVOICE_ITEMS, JSON.stringify(demoItems));
-  localStorage.setItem(LOCAL_STORAGE_INITIALIZED, 'true');
+  // Base de datos limpia de facturación para producción
 }
 
 export const invoiceService = {

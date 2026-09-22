@@ -23,75 +23,9 @@ export const COMMON_SERVICES = [
   { name: 'Diagnóstico Técnico Inicial', duration: 30, price: 15000 },
 ];
 
-// Generar semillas iniciales con fechas dinámicas relativas para una experiencia realista
+// Base de datos limpia de citas para producción
 function generateInitialAppointments(): Appointment[] {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0);
-
-  const appt1Date = new Date(today);
-  appt1Date.setHours(9, 30);
-
-  const appt2Date = new Date(today);
-  appt2Date.setHours(14, 0);
-
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(10, 0);
-
-  const inTwoDays = new Date(today);
-  inTwoDays.setDate(inTwoDays.getDate() + 2);
-  inTwoDays.setHours(11, 30);
-
-  return [
-    {
-      id: 'apt-001',
-      customer_id: 'c-001',
-      bicycle_id: 'b-001',
-      service_name: 'Mantenimiento General Completo',
-      mechanic_name: 'Carlos (Mecánico Senior MTB)',
-      scheduled_at: appt1Date.toISOString(),
-      estimated_duration_min: 120,
-      status: 'SCHEDULED',
-      notes: 'Cliente solicita especial atención en ruido de caja de centro.',
-      created_at: new Date(now.getTime() - 86400000 * 2).toISOString(),
-    },
-    {
-      id: 'apt-002',
-      customer_id: 'c-002',
-      bicycle_id: 'b-002',
-      service_name: 'Ajuste de Frenos y Cambios',
-      mechanic_name: 'David (Mantenimiento Express)',
-      scheduled_at: appt2Date.toISOString(),
-      estimated_duration_min: 60,
-      status: 'IN_PROGRESS',
-      notes: 'Bicicleta Specialized de ruta para competencia este fin de semana.',
-      created_at: new Date(now.getTime() - 86400000).toISOString(),
-    },
-    {
-      id: 'apt-003',
-      customer_id: 'c-001',
-      bicycle_id: 'b-001',
-      service_name: 'Purga de Frenos Hidráulicos',
-      mechanic_name: 'Andrés (Especialista en Suspensiones)',
-      scheduled_at: tomorrow.toISOString(),
-      estimated_duration_min: 60,
-      status: 'SCHEDULED',
-      notes: 'Freno trasero pierde presión en bajadas prolongadas.',
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'apt-004',
-      customer_id: 'c-002',
-      bicycle_id: 'b-002',
-      service_name: 'Lavado, Desengrase y Lubricación Pro',
-      mechanic_name: 'David (Mantenimiento Express)',
-      scheduled_at: inTwoDays.toISOString(),
-      estimated_duration_min: 45,
-      status: 'SCHEDULED',
-      notes: 'Mantenimiento preventivo.',
-      created_at: new Date().toISOString(),
-    },
-  ];
+  return [];
 }
 
 function getLocalAppointments(): Appointment[] {

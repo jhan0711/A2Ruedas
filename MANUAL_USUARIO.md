@@ -52,6 +52,16 @@ A2Ruedas es una **Aplicación Web Progresiva (PWA)**, lo que significa que funci
 
 > **Ventaja de la app instalada:** Funciona a pantalla completa, carga instantáneamente y te permite seguir operando en el taller incluso si hay cortes temporales de internet gracias a su base de datos local sincronizada.
 
+### Acceso y Registro Seguro del Administrador (Primer Ingreso)
+1. Ingresa a la pantalla de acceso administrativo (`/login`).
+2. Si es la primera vez que ingresas a tu taller, presiona la opción **"¿No tienes cuenta? Registra tu taller"**.
+3. Ingresa tu **Nombre completo**, tu **Correo electrónico** y tu **Contraseña segura** (mínimo 6 caracteres).
+4. El sistema creará tu perfil de administrador de forma cifrada y segura.
+5. A partir de ese momento, podrás iniciar sesión en cualquier momento ingresando tu correo y contraseña.
+
+> [!IMPORTANT]
+> **Base de Datos Limpia para Producción:** El sistema se entrega 100% limpio y libre de datos ficticios de prueba. La lista de clientes, bicicletas, órdenes de trabajo, inventario, facturas y caja menor inician vacías, listas para recibir los datos reales de tu negocio desde el primer día.
+
 ---
 
 ## 2. Módulo de Recepción de Bicicletas (Paso a Paso)

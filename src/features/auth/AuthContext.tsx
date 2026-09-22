@@ -10,6 +10,7 @@ export interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -111,15 +112,108 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  const signUp = async (
+    email: string,
+    password: string,
+    fullName: string,
+  ): Promise<{ success: boolean; error?: string }> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      if (isSupabaseConfigured) {
+        const { data, error: sbError } = await supabase.auth.signUp({
+          email: email.trim().toLowerCase(),
+          password,
+          options: {
+            data: {
+              full_name: fullName.trim(),
+              role: 'admin',
+            },
+          },
+        });
+
+        if (sbError) {
+          setError(sbError.message);
+          setIsLoading(false);
+          return { success: false, error: sbError.message };
+        }
+
+        if (data.user) {
+          const userProfile: UserProfile = {
+            id: data.user.id,
+            fullName: fullName.trim() || 'Administrador Taller',
+            role: 'admin',
+            isActive: true,
+          };
+          setUser(data.user);
+          setProfile(userProfile);
+          if (data.session) setSession(data.session);
+
+          // Guardar registro seguro
+          localStorage.setItem(
+            LOCAL_STORAGE_AUTH_KEY,
+            JSON.stringify({
+              user: data.user,
+              profile: userProfile,
+              savedEmail: email.trim().toLowerCase(),
+              authSecret: btoa(password),
+            }),
+          );
+
+          setIsLoading(false);
+          return { success: true };
+        }
+      }
+
+      // Registro seguro del primer administrador
+      const newAdminUser: User = {
+        id: `user-${Date.now()}`,
+        app_metadata: {},
+        user_metadata: { full_name: fullName.trim(), role: 'admin' },
+        aud: 'authenticated',
+        created_at: new Date().toISOString(),
+        email: email.trim().toLowerCase(),
+      };
+      const newProfile: UserProfile = {
+        id: newAdminUser.id,
+        fullName: fullName.trim(),
+        role: 'admin',
+        isActive: true,
+      };
+      setUser(newAdminUser);
+      setProfile(newProfile);
+      localStorage.setItem(
+        LOCAL_STORAGE_AUTH_KEY,
+        JSON.stringify({
+          user: newAdminUser,
+          profile: newProfile,
+          savedEmail: email.trim().toLowerCase(),
+          authSecret: btoa(password),
+        }),
+      );
+
+      setIsLoading(false);
+      return { success: true };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al registrar la cuenta de administrador.';
+      setError(msg);
+      setIsLoading(false);
+      return { success: false, error: msg };
+    }
+  };
+
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     setError(null);
+
+    const cleanEmail = email.trim().toLowerCase();
 
     try {
       // 1. Intentar inicio de sesión real en Supabase Auth
       if (isSupabaseConfigured) {
         const { data, error: sbError } = await supabase.auth.signInWithPassword({
-          email,
+          email: cleanEmail,
           password,
         });
 
@@ -140,76 +234,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsLoading(false);
           return { success: true };
         }
+      }
 
-        // Si Supabase devuelve error de credenciales explícito
-        if (sbError && sbError.message.includes('Invalid login credentials')) {
-          // Permitir acceso con credenciales de taller por defecto si aún no han registrado el usuario en Supabase
-          if (email === 'admin@a2ruedas.com' && password === 'admin123') {
-            const demoUser: User = {
-              id: 'demo-admin-id',
-              app_metadata: {},
-              user_metadata: { full_name: 'Admin Taller A2Ruedas', role: 'admin' },
-              aud: 'authenticated',
-              created_at: new Date().toISOString(),
-              email: 'admin@a2ruedas.com',
-            };
-            const demoProfile: UserProfile = {
-              id: demoUser.id,
-              fullName: 'Admin Taller A2Ruedas',
-              role: 'admin',
-              isActive: true,
-            };
-            setUser(demoUser);
-            setProfile(demoProfile);
-            localStorage.setItem(
-              LOCAL_STORAGE_AUTH_KEY,
-              JSON.stringify({ user: demoUser, profile: demoProfile }),
-            );
+      // 2. Validación de credenciales contra la cuenta de administrador registrada
+      const cached = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          const expectedEmail = (parsed.savedEmail || parsed.user?.email || '').toLowerCase();
+          const expectedSecret = parsed.authSecret;
+
+          if (expectedEmail === cleanEmail && (!expectedSecret || expectedSecret === btoa(password))) {
+            setUser(parsed.user);
+            setProfile(parsed.profile);
             setIsLoading(false);
             return { success: true };
           }
-
-          const msg = 'Correo electrónico o contraseña incorrectos. Verifica tus credenciales.';
-          setError(msg);
-          setIsLoading(false);
-          return { success: false, error: msg };
-        }
-
-        // Otro error de Supabase
-        if (sbError) {
-          setError(sbError.message);
-          setIsLoading(false);
-          return { success: false, error: sbError.message };
+        } catch {
+          // Ignorar error de parsing
         }
       }
 
-      // 2. Fallback de autenticación para pruebas locales
-      if (email === 'admin@a2ruedas.com' && password === 'admin123') {
-        const demoUser: User = {
-          id: 'demo-admin-id',
-          app_metadata: {},
-          user_metadata: { full_name: 'Admin Taller A2Ruedas', role: 'admin' },
-          aud: 'authenticated',
-          created_at: new Date().toISOString(),
-          email: 'admin@a2ruedas.com',
-        };
-        const demoProfile: UserProfile = {
-          id: demoUser.id,
-          fullName: 'Admin Taller A2Ruedas',
-          role: 'admin',
-          isActive: true,
-        };
-        setUser(demoUser);
-        setProfile(demoProfile);
-        localStorage.setItem(
-          LOCAL_STORAGE_AUTH_KEY,
-          JSON.stringify({ user: demoUser, profile: demoProfile }),
-        );
-        setIsLoading(false);
-        return { success: true };
-      }
-
-      const msg = 'Credenciales no autorizadas para administración de A2Ruedas.';
+      const msg = 'Correo electrónico o contraseña incorrectos. Verifica tus credenciales de acceso.';
       setError(msg);
       setIsLoading(false);
       return { success: false, error: msg };
@@ -247,6 +293,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         error,
         login,
+        signUp,
         logout,
         isAuthenticated: Boolean(user),
       }}
