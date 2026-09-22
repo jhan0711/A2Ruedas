@@ -49,6 +49,7 @@ assert.ok(actaContent.includes('ACTA FORMAL DE ENTREGA'));
 assert.ok(actaContent.includes('100% CULMINADO Y CERTIFICADO'));
 assert.ok(actaContent.includes('Matriz de Alcance Ejecutado (26 Fases al 100%)'));
 assert.ok(actaContent.includes('LÍDER TÉCNICO') && actaContent.includes('REPRESENTANTE A2RUEDAS'));
+assert.ok(actaContent.includes('a2ruedas.netlify.app'));
 console.log('4. Acta formal de entrega técnica con matriz de 26 fases y firmas de aceptación:', 'PASS');
 
 // 5. Verificación de Enlaces y Documentación en README.md
@@ -60,6 +61,7 @@ assert.ok(readmeContent.includes('MANUAL_IMPRESION_58MM.md'));
 assert.ok(readmeContent.includes('MANUAL_DESPLIEGUE.md'));
 assert.ok(readmeContent.includes('ACTA_ENTREGA.md'));
 assert.ok(readmeContent.includes('26_de_26'));
+assert.ok(readmeContent.includes('a2ruedas.netlify.app'));
 console.log('5. Actualización completa de README.md con enlaces activos a todos los manuales:', 'PASS');
 
 // 6. Verificación de Matriz de Fases en PROJECT_STATUS.md

@@ -2,11 +2,15 @@
 
 ![A2Ruedas Banner](https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1200&q=80)
 
+[![Producción en Vivo](https://img.shields.io/badge/Producci%C3%B3n-a2ruedas.netlify.app-success.svg)](https://a2ruedas.netlify.app)
 [![Estado del Proyecto](https://img.shields.io/badge/Fases_Completadas-26_de_26_(100%25)-emerald.svg)](./PROJECT_STATUS.md)
 [![Pruebas QA](https://img.shields.io/badge/QA_Suite-25_Suites_|_100%25_PASS-blue.svg)](./tests/qaRunner.mjs)
 [![Preflight Check](https://img.shields.io/badge/Preflight-6_de_6_Aprobadas-success.svg)](./scripts/predeployCheck.mjs)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Tipado_Estricto-informational.svg)]()
 [![PWA](https://img.shields.io/badge/PWA-Instalable_Offline-orange.svg)]()
+
+🌐 **Aplicación Desplegada en Vivo:** [https://a2ruedas.netlify.app](https://a2ruedas.netlify.app)  
+🛒 **Catálogo Público para Clientes:** [https://a2ruedas.netlify.app/productos](https://a2ruedas.netlify.app/productos)
 
 **A2Ruedas** es una plataforma web progresiva (PWA) de nivel empresarial diseñada para la digitalización y gestión integral de talleres mecánicos de bicicletas y tiendas de ciclismo. Centraliza la atención a clientes, fichas técnicas de bicicletas con seriales y fotos, órdenes de trabajo con estados en vivo, inventario multidepartamento (bicicletas convencionales, e-bikes, indumentaria, suplementación y repuestos mecánicos), cotización con firma digital táctil, impresión térmica de tickets en 58 mm y 80 mm, control de caja diaria y vitrina web pública.
 

@@ -4,6 +4,7 @@
 **VERSIÓN:** 1.0.0 — Edición Producción  
 **CLIENTE / BENEFICIARIO:** A2Ruedas Taller y Almacén de Ciclismo  
 **FECHA DE EMISIÓN:** 21 de Septiembre de 2026  
+**URL DE PRODUCCIÓN EN VIVO:** https://a2ruedas.netlify.app  
 **ESTADO DE EJECUCIÓN:** 100% CULMINADO Y CERTIFICADO  
 
 ---
