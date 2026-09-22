@@ -11,14 +11,21 @@ export const LoginPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
 
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const requestedFrom = (location.state as { from?: { pathname: string } })?.from?.pathname;
   const from = isSafeInternalRedirect(requestedFrom) ? (requestedFrom as string) : '/admin';
 
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from]);
+
   const handleSubmit = async (e: React.FormEvent) => {
+
     e.preventDefault();
     setFeedback(null);
 

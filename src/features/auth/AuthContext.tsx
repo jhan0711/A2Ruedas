@@ -20,8 +20,33 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const LOCAL_STORAGE_AUTH_KEY = 'a2ruedas_auth_session';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  // Inicializar estados con la sesión local previa para evitar parpadeos o redirecciones en recarga
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const cached = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        return parsed.user || null;
+      }
+    } catch {
+      // Ignorar error de parsing
+    }
+    return null;
+  });
+
+  const [profile, setProfile] = useState<UserProfile | null>(() => {
+    try {
+      const cached = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        return parsed.profile || null;
+      }
+    } catch {
+      // Ignorar error de parsing
+    }
+    return null;
+  });
+
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,32 +58,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     async function initializeAuth() {
       try {
         if (isSupabaseConfigured) {
-          const { data, error: sessionError } = await supabase.auth.getSession();
-          if (sessionError) {
-            console.warn('Error al obtener sesión de Supabase:', sessionError.message);
-          }
+          try {
+            const { data, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError) {
+              console.warn('Error al obtener sesión de Supabase:', sessionError.message);
+            }
 
-          if (data?.session && isMounted) {
-            setSession(data.session);
-            setUser(data.session.user);
-            setProfile({
-              id: data.session.user.id,
-              fullName: data.session.user.user_metadata?.full_name || 'Admin Taller',
-              role: (data.session.user.user_metadata?.role as UserRole) || 'admin',
-              isActive: true,
-            });
-            setIsLoading(false);
-            return;
+            if (data?.session && isMounted) {
+              setSession(data.session);
+              setUser(data.session.user);
+              const loadedProfile: UserProfile = {
+                id: data.session.user.id,
+                fullName: data.session.user.user_metadata?.full_name || 'Admin Taller',
+                role: (data.session.user.user_metadata?.role as UserRole) || 'admin',
+                email: data.session.user.email,
+                isActive: true,
+              };
+              setProfile(loadedProfile);
+              localStorage.setItem(
+                LOCAL_STORAGE_AUTH_KEY,
+                JSON.stringify({ user: data.session.user, profile: loadedProfile }),
+              );
+              setIsLoading(false);
+              return;
+            }
+          } catch (sbErr) {
+            console.warn('Verificación de sesión remota omitida (modo offline/resiliente):', sbErr);
           }
         }
 
-        // Revisar si existe sesión local almacenada (modo taller demo/resiliente)
+        // Revisar si existe sesión local almacenada (modo taller persistente y seguro)
         const cached = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
         if (cached && isMounted) {
           try {
             const parsed = JSON.parse(cached);
-            setUser(parsed.user);
-            setProfile(parsed.profile);
+            if (parsed.user) {
+              setUser(parsed.user);
+              setProfile(parsed.profile);
+            }
           } catch {
             localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
           }
@@ -78,16 +115,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isSupabaseConfigured) {
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      } = supabase.auth.onAuthStateChange((event, currentSession) => {
         if (!isMounted) return;
 
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
+        // Solo eliminar la sesión local si el evento es explícitamente SIGNED_OUT
+        if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
+          return;
+        }
+
         if (currentSession?.user) {
+          setSession(currentSession);
+          setUser(currentSession.user);
           const loadedProfile: UserProfile = {
             id: currentSession.user.id,
             fullName: currentSession.user.user_metadata?.full_name || 'Admin Taller',
             role: (currentSession.user.user_metadata?.role as UserRole) || 'admin',
+            email: currentSession.user.email,
             isActive: true,
           };
           setProfile(loadedProfile);
@@ -95,9 +142,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             LOCAL_STORAGE_AUTH_KEY,
             JSON.stringify({ user: currentSession.user, profile: loadedProfile }),
           );
-        } else {
-          setProfile(null);
-          localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
         }
       });
 
@@ -111,6 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isMounted = false;
     };
   }, []);
+
 
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {

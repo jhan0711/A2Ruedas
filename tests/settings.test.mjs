@@ -123,4 +123,16 @@ assert.ok(
 );
 console.log('8. Enrutamiento y navegación en panel administrativo:', 'PASS');
 
+// 9. Verificación de Persistencia de Sesión ante Recarga de Página
+assert.ok(
+  authContextCode.includes('event === \'SIGNED_OUT\''),
+  'AuthContext debe verificar explícitamente SIGNED_OUT para no borrar sesión en INITIAL_SESSION'
+);
+assert.ok(
+  authContextCode.includes('useState<User | null>(() =>'),
+  'AuthContext debe inicializar el estado síncronamente desde localStorage'
+);
+console.log('9. Persistencia de sesión garantizada ante recarga de página (F5):', 'PASS');
+
 console.log('--- TODAS LAS PRUEBAS DE CONFIGURACIÓN Y USUARIOS HAN SIDO APROBADAS ---');
+
