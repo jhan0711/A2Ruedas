@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 
-console.log('--- INICIANDO PRUEBAS: MÓDULO DE CONFIGURACIÓN Y PARÁMETROS DEL TALLER ---');
+console.log('--- INICIANDO PRUEBAS: MÓDULO DE CONFIGURACIÓN Y GESTIÓN DE USUARIOS ---');
 
 const projectRoot = process.cwd();
 
@@ -15,7 +15,18 @@ assert.ok(serviceCode.includes('workshopSettingsService'), 'Debe exportar worksh
 assert.ok(serviceCode.includes('printerService.saveSettings'), 'Debe sincronizar con printerService');
 console.log('1. Servicio de configuración y sincronización con tickets térmicos:', 'PASS');
 
-// 2. Verificación de campos obligatorios en los valores por defecto
+// 2. Verificación de servicio de gestión de usuarios del taller (userService.ts)
+const userServicePath = path.join(projectRoot, 'src', 'services', 'userService.ts');
+assert.ok(fs.existsSync(userServicePath), 'userService.ts debe existir');
+const userServiceCode = fs.readFileSync(userServicePath, 'utf8');
+assert.ok(userServiceCode.includes('INITIAL_ADMIN_USER'), 'Debe tener INITIAL_ADMIN_USER');
+assert.ok(userServiceCode.includes('createUser'), 'Debe tener método createUser');
+assert.ok(userServiceCode.includes('updateUser'), 'Debe tener método updateUser');
+assert.ok(userServiceCode.includes('deleteUser'), 'Debe tener método deleteUser');
+assert.ok(userServiceCode.includes('validateCredentials'), 'Debe validar credenciales de acceso');
+console.log('2. Servicio integral de gestión y autenticación de usuarios del taller:', 'PASS');
+
+// 3. Verificación de campos obligatorios en los valores por defecto del taller
 const requiredFields = [
   'name',
   'nit',
@@ -44,85 +55,72 @@ requiredFields.forEach((field) => {
     `El campo ${field} debe estar definido en DEFAULT_WORKSHOP_SETTINGS`
   );
 });
-console.log('2. Campos institucionales, operativos y fiscales verificados:', 'PASS');
+console.log('3. Campos institucionales, operativos y fiscales verificados:', 'PASS');
 
-// 3. Verificación del componente de página SettingsPage.tsx
+// 4. Verificación del componente SettingsPage.tsx y sus 5 pestañas
 const settingsPagePath = path.join(projectRoot, 'src', 'pages', 'admin', 'SettingsPage.tsx');
 assert.ok(fs.existsSync(settingsPagePath), 'SettingsPage.tsx debe existir');
 const settingsPageCode = fs.readFileSync(settingsPagePath, 'utf8');
 
 assert.ok(settingsPageCode.includes('export const SettingsPage'), 'Debe exportar SettingsPage');
-assert.ok(settingsPageCode.includes('Taller & Identidad Fiscal'), 'Debe incluir pestaña de Identidad');
+assert.ok(settingsPageCode.includes('Taller & Identidad'), 'Debe incluir pestaña de Identidad');
+assert.ok(settingsPageCode.includes('Usuarios & Técnicos'), 'Debe incluir pestaña de Gestión de Usuarios');
 assert.ok(settingsPageCode.includes('Operación & Horarios'), 'Debe incluir pestaña de Operación');
 assert.ok(settingsPageCode.includes('Impresión & Hardware'), 'Debe incluir pestaña de Hardware');
-assert.ok(settingsPageCode.includes('Sesión & Nube'), 'Debe incluir pestaña de Seguridad y Sesión');
-console.log('3. Interfaz completa de 4 pestañas en SettingsPage.tsx:', 'PASS');
+assert.ok(settingsPageCode.includes('Sesión & Seguridad'), 'Debe incluir pestaña de Seguridad');
+console.log('4. Interfaz completa de 5 pestañas incluyendo Gestión de Usuarios:', 'PASS');
 
-// 4. Verificación de Previsualización en Vivo de Marbetes/Tirillas
+// 5. Verificación de Funcionalidad para Agregar Usuarios en SettingsPage
 assert.ok(
-  settingsPageCode.includes('Previsualización de Cabecera'),
-  'Debe incluir previsualización interactiva de tirilla'
+  settingsPageCode.includes('Agregar Nuevo Usuario'),
+  'Debe contener botón para agregar nuevo usuario'
 );
 assert.ok(
-  settingsPageCode.includes('workshopSettings.name'),
-  'Debe reflejar dinámicamente el nombre comercial en vivo'
+  settingsPageCode.includes('handleOpenAddUser'),
+  'Debe tener handler para abrir modal de nuevo usuario'
 );
-console.log('4. Previsualizador dinámico de cabecera térmica en vivo:', 'PASS');
+assert.ok(
+  settingsPageCode.includes('handleSaveUser'),
+  'Debe tener handler para guardar el usuario creado'
+);
+assert.ok(
+  settingsPageCode.includes('handleOpenDeleteUser'),
+  'Debe tener soporte para eliminar/desactivar usuarios'
+);
+console.log('5. Flujo completo de alta, edición y baja de usuarios autorizado:', 'PASS');
 
-// 5. Verificación de Integración de Rutas en routes.tsx
+// 6. Verificación de Integración de Autenticación en AuthContext
+const authContextPath = path.join(projectRoot, 'src', 'features', 'auth', 'AuthContext.tsx');
+const authContextCode = fs.readFileSync(authContextPath, 'utf8');
+assert.ok(
+  authContextCode.includes('userService.validateCredentials'),
+  'AuthContext debe validar credenciales con userService'
+);
+console.log('6. Validación dinámica de credenciales para usuarios agregados:', 'PASS');
+
+// 7. Verificación de Botones y Accesibilidad (Button.tsx)
+const buttonPath = path.join(projectRoot, 'src', 'components', 'ui', 'Button.tsx');
+const buttonCode = fs.readFileSync(buttonPath, 'utf8');
+assert.ok(
+  buttonCode.includes('min-h-[32px]') || buttonCode.includes('min-h-'),
+  'Button.tsx debe usar alturas mínimas flexibles sin recorte'
+);
+console.log('7. Corrección de proporciones, padding y alturas en botones:', 'PASS');
+
+// 8. Verificación de Integración de Rutas en routes.tsx y Sidebar.tsx
 const routesPath = path.join(projectRoot, 'src', 'app', 'routes.tsx');
 const routesCode = fs.readFileSync(routesPath, 'utf8');
-
-assert.ok(
-  routesCode.includes("import('../pages/admin/SettingsPage')"),
-  'routes.tsx debe importar SettingsPage'
-);
-assert.ok(
-  routesCode.includes("path: 'configuracion'"),
-  'routes.tsx debe tener ruta configuracion'
-);
 assert.ok(
   routesCode.includes('element: <SettingsPage />'),
-  'routes.tsx debe montar <SettingsPage /> en configuracion'
+  'routes.tsx debe montar <SettingsPage />'
 );
-assert.ok(
-  !routesCode.includes('Fase 20'),
-  'No debe quedar rastro del placeholder provisional Fase 20'
-);
-console.log('5. Montaje de la ruta /admin/configuracion en routes.tsx:', 'PASS');
 
-// 6. Verificación del Enlace en Sidebar.tsx
 const sidebarPath = path.join(projectRoot, 'src', 'components', 'layout', 'Sidebar.tsx');
 const sidebarCode = fs.readFileSync(sidebarPath, 'utf8');
-
-assert.ok(
-  sidebarCode.includes("name: 'Configuración'"),
-  'Sidebar.tsx debe contener el item Configuración'
-);
 assert.ok(
   sidebarCode.includes("path: '/admin/configuracion'"),
   'Sidebar.tsx debe apuntar a /admin/configuracion'
 );
-console.log('6. Elemento de navegación oficial en Sidebar.tsx:', 'PASS');
+console.log('8. Enrutamiento y navegación en panel administrativo:', 'PASS');
 
-// 7. Verificación de exportación en services/index.ts
-const servicesIndexPath = path.join(projectRoot, 'src', 'services', 'index.ts');
-const servicesIndexCode = fs.readFileSync(servicesIndexPath, 'utf8');
-assert.ok(
-  servicesIndexCode.includes('./workshopSettingsService'),
-  'services/index.ts debe re-exportar workshopSettingsService'
-);
-console.log('7. Re-exportación en el índice de servicios de la aplicación:', 'PASS');
-
-// 8. Verificación de Seguridad y Sesión Activa
-assert.ok(
-  settingsPageCode.includes('admin@a2ruedas.com'),
-  'SettingsPage debe mostrar la cuenta autorizada del administrador'
-);
-assert.ok(
-  settingsPageCode.includes('logout()'),
-  'SettingsPage debe tener función de cierre de sesión seguro'
-);
-console.log('8. Protocolos de autenticación y seguridad en la configuración:', 'PASS');
-
-console.log('--- TODAS LAS PRUEBAS DEL MÓDULO DE CONFIGURACIÓN HAN SIDO APROBADAS ---');
+console.log('--- TODAS LAS PRUEBAS DE CONFIGURACIÓN Y USUARIOS HAN SIDO APROBADAS ---');

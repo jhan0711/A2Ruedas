@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { UserProfile, UserRole } from '../../types';
 import type { Session, User } from '@supabase/supabase-js';
+import { userService } from '../../services/userService';
 
 export interface AuthContextType {
   user: User | null;
@@ -145,29 +146,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      // 2. Validación de credenciales autorizadas del administrador
-      if (cleanEmail === 'admin@a2ruedas.com' && password === 'admin123') {
-        const adminUser: User = {
-          id: '7db7dbb6-5d3e-49bf-87d5-851e6d759e5d',
+      // 2. Validación de credenciales en el registro de usuarios autorizados del taller
+      const matchedUser = userService.validateCredentials(cleanEmail, password);
+      if (matchedUser) {
+        const authenticatedUser: User = {
+          id: matchedUser.id,
           app_metadata: { provider: 'email' },
-          user_metadata: { full_name: 'Administrador Taller', role: 'admin' },
+          user_metadata: { full_name: matchedUser.fullName, role: matchedUser.role },
           aud: 'authenticated',
-          created_at: '2026-09-22T00:50:30.405833Z',
-          email: 'admin@a2ruedas.com',
+          created_at: matchedUser.createdAt,
+          email: matchedUser.email,
         };
-        const adminProfile: UserProfile = {
-          id: adminUser.id,
-          fullName: 'Administrador Taller',
-          role: 'admin',
-          isActive: true,
+        const authenticatedProfile: UserProfile = {
+          id: matchedUser.id,
+          fullName: matchedUser.fullName,
+          role: matchedUser.role,
+          email: matchedUser.email,
+          phone: matchedUser.phone,
+          isActive: matchedUser.isActive,
         };
-        setUser(adminUser);
-        setProfile(adminProfile);
+        setUser(authenticatedUser);
+        setProfile(authenticatedProfile);
         localStorage.setItem(
           LOCAL_STORAGE_AUTH_KEY,
           JSON.stringify({
-            user: adminUser,
-            profile: adminProfile,
+            user: authenticatedUser,
+            profile: authenticatedProfile,
             savedEmail: cleanEmail,
             authSecret: btoa(password),
           }),
@@ -175,6 +179,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
         return { success: true };
       }
+
 
       // 3. Validación de sesión previa almacenada en contingencia
       const cached = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);

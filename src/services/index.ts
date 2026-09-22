@@ -9,4 +9,5 @@ export * from './catalogService';
 export * from './whatsappService';
 export * from './printerService';
 export * from './workshopSettingsService';
+export * from './userService';
 
