@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Package,
   Search,
@@ -11,6 +11,7 @@ import {
   Image as ImageIcon,
   CheckCircle2,
   Tags,
+  Upload,
 } from 'lucide-react';
 import { inventoryService } from '../../services/inventoryService';
 import { Product, ProductInsert, ProductCategory } from '../../types/database';
@@ -68,6 +69,59 @@ export const ProductsAdminPage: React.FC = () => {
     is_active: true,
   });
   const [photoInput, setPhotoInput] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith('image/')) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        if (!base64) return;
+
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 800;
+
+          if (width > height && width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          const compressed = canvas.toDataURL('image/jpeg', 0.85);
+
+          setFormData((prev) => {
+            const currentImages = prev.images || [];
+            const updatedImages = [...currentImages, compressed];
+            return {
+              ...prev,
+              images: updatedImages,
+              image_url: updatedImages[0] || '',
+            };
+          });
+        };
+        img.src = base64;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    e.target.value = '';
+  };
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -138,7 +192,10 @@ export const ProductsAdminPage: React.FC = () => {
   };
 
   const handleAddPhoto = () => {
-    if (!photoInput.trim()) return;
+    if (!photoInput.trim()) {
+      fileInputRef.current?.click();
+      return;
+    }
     const currentImages = formData.images || [];
     const updatedImages = [...currentImages, photoInput.trim()];
     setFormData({
@@ -176,8 +233,17 @@ export const ProductsAdminPage: React.FC = () => {
 
     setIsSaving(true);
     try {
+      let resolvedCatId = formData.category_id;
+      const foundCat = categories.find(
+        (c) => c.id === resolvedCatId || c.name.toLowerCase() === resolvedCatId.toLowerCase()
+      );
+      if (foundCat) {
+        resolvedCatId = foundCat.id;
+      }
+
       const dataToSave = {
         ...formData,
+        category_id: resolvedCatId,
         image_url: formData.images && formData.images.length > 0 ? formData.images[0] : formData.image_url,
       };
 
@@ -561,21 +627,19 @@ export const ProductsAdminPage: React.FC = () => {
                   <Plus className="w-3 h-3" /> Nueva
                 </button>
               </div>
-              <input
-                list="products-category-list"
+              <select
                 value={formData.category_id}
                 onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                placeholder="Escribe para buscar categoría..."
                 className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
                 required
-              />
-              <datalist id="products-category-list">
+              >
+                <option value="">-- Seleccionar categoría --</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
                 ))}
-              </datalist>
+              </select>
               {formErrors.category_id && (
                 <span className="text-[11px] text-red-600 block mt-1">{formErrors.category_id}</span>
               )}
@@ -651,36 +715,75 @@ export const ProductsAdminPage: React.FC = () => {
           </div>
 
           {/* Fotografías Múltiples de Producto */}
-          <div className="space-y-2 p-3 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
-            <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
-              Fotografías del Producto (Múltiples fotos para clientes)
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="url"
-                value={photoInput}
-                onChange={(e) => setPhotoInput(e.target.value)}
-                placeholder="Pegar URL de imagen (https://...)"
-                className="flex-1 text-xs px-2.5 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-600"
-              />
-              <Button size="sm" type="button" variant="outline" onClick={handleAddPhoto}>
-                Agregar Foto
+          <div className="space-y-2.5 p-3.5 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <ImageIcon className="w-4 h-4 text-blue-600" />
+                Fotografías del Producto
+              </label>
+              <span className="text-[11px] text-slate-500">
+                {formData.images?.length || 0} foto(s) añadida(s)
+              </span>
+            </div>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                size="sm"
+                type="button"
+                variant="primary"
+                onClick={() => fileInputRef.current?.click()}
+                leftIcon={<Upload className="w-3.5 h-3.5" />}
+                className="w-full sm:w-auto"
+              >
+                Subir Foto desde Dispositivo / Cámara
               </Button>
+
+              <div className="flex-1 flex gap-1.5">
+                <input
+                  type="url"
+                  value={photoInput}
+                  onChange={(e) => setPhotoInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddPhoto();
+                    }
+                  }}
+                  placeholder="O pegar URL de imagen (https://...)"
+                  className="flex-1 text-xs px-2.5 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                />
+                <Button size="sm" type="button" variant="outline" onClick={handleAddPhoto}>
+                  Agregar
+                </Button>
+              </div>
             </div>
 
             {formData.images && formData.images.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto pt-1">
+              <div className="flex gap-2.5 overflow-x-auto pt-2 pb-1">
                 {formData.images.map((img, idx) => (
-                  <div key={idx} className="relative w-16 h-16 rounded-md overflow-hidden border border-slate-200 dark:border-slate-800 group shrink-0">
-                    <img src={img} alt="Foto" className="w-full h-full object-cover" />
+                  <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 group shrink-0 shadow-xs">
+                    <img src={img} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
+                    {idx === 0 && (
+                      <span className="absolute bottom-0 inset-x-0 bg-blue-600 text-[9px] text-white text-center font-bold py-0.5 leading-none">
+                        Principal
+                      </span>
+                    )}
                     <button
                       type="button"
                       onClick={() => handleRemovePhoto(idx)}
-                      className="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                      className="absolute top-1 right-1 bg-red-600/90 text-white rounded-full p-1 opacity-90 hover:opacity-100 transition-opacity"
                       title="Quitar foto"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
                 ))}

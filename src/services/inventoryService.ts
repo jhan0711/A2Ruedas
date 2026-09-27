@@ -100,7 +100,7 @@ export const inventoryService = {
         .replace(/^-+|-+$/g, '');
 
     const newCategory: ProductCategory = {
-      id: `cat-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : '00000000-0000-0000-0000-' + String(Date.now()).padStart(12, '0').slice(-12),
       name: categoryData.name.trim(),
       slug,
       description: categoryData.description?.trim() || null,
