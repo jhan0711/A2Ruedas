@@ -13,15 +13,14 @@ import {
   X,
   History,
   Printer,
-  ClipboardCheck,
   PenTool,
   Receipt,
 } from 'lucide-react';
 import { WorkOrderTicketModal } from '../../components/receipts/WorkOrderTicketModal';
 import { WhatsAppComposeModal } from '../../components/whatsapp/WhatsAppComposeModal';
+import { QuickCustomerModal } from '../../components/customers/QuickCustomerModal';
 import { workOrderService } from '../../services/workOrderService';
 import { customerService } from '../../services/customerService';
-import { bicycleService } from '../../services/bicycleService';
 import { inventoryService } from '../../services/inventoryService';
 import {
   WorkOrder,
@@ -29,7 +28,7 @@ import {
   WorkOrderItem,
   WorkOrderStatusHistory,
   Customer,
-  Bicycle,
+  
   Product,
   Signature,
 } from '../../types/database';
@@ -69,7 +68,7 @@ const STATUS_OPTIONS: { value: WorkOrderStatus; label: string }[] = [
 export const WorkOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<WorkOrder[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [bicycles, setBicycles] = useState<Bicycle[]>([]);
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,13 +77,13 @@ export const WorkOrdersPage: React.FC = () => {
 
   // Modal Crear / Editar Orden
   const [formModalOpen, setFormModalOpen] = useState(false);
+  const [quickCustomerOpen, setQuickCustomerOpen] = useState(false);
   const [nextOrderNumber, setNextOrderNumber] = useState('OT-000001');
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
-  const [selectedBicycleId, setSelectedBicycleId] = useState('');
+  const [bicycleInfo, setBicycleInfo] = useState('');
   const [reportedIssues, setReportedIssues] = useState('');
   const [accessoriesReceived, setAccessoriesReceived] = useState('');
-  const [estimatedDeliveryAt, setEstimatedDeliveryAt] = useState('');
-  const [discount, setDiscount] = useState<number>(0);
+    const [discount, setDiscount] = useState<number | ''>(0);
   const [internalNotes, setInternalNotes] = useState('');
   const [orderItems, setOrderItems] = useState<
     Omit<WorkOrderItem, 'id' | 'work_order_id' | 'created_at'>[]
@@ -94,9 +93,10 @@ export const WorkOrdersPage: React.FC = () => {
 
   // Sub-formulario para agregar ítems
   const [newServiceDesc, setNewServiceDesc] = useState('');
-  const [newServicePrice, setNewServicePrice] = useState<number>(0);
+  const [newServicePrice, setNewServicePrice] = useState<number | ''>(0);
   const [selectedProductId, setSelectedProductId] = useState('');
-  const [productQuantity, setProductQuantity] = useState<number>(1);
+    const [partSearch, setPartSearch] = useState('');
+  const [productQuantity, setProductQuantity] = useState<number | ''>(1);
 
   // Modal Cambiar Estado
   const [statusModalOpen, setStatusModalOpen] = useState(false);
@@ -137,16 +137,16 @@ export const WorkOrdersPage: React.FC = () => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [ords, custs, bikes, prods, nextNum] = await Promise.all([
+      const [ords, custs, prods, nextNum] = await Promise.all([
         workOrderService.getWorkOrders(),
         customerService.getCustomers(),
-        bicycleService.getBicycles(),
+        
         inventoryService.getProducts(),
         workOrderService.getNextOrderNumber(),
       ]);
       setOrders(ords);
       setCustomers(custs);
-      setBicycles(bikes);
+      
       setProducts(prods);
       setNextOrderNumber(nextNum);
     } catch (err) {
@@ -158,16 +158,15 @@ export const WorkOrdersPage: React.FC = () => {
   };
 
   // Bicicletas filtradas por el cliente seleccionado
-  const availableBikes = bicycles.filter((b) => b.customer_id === selectedCustomerId);
-
+  
   const openCreateModal = async () => {
     const nextNum = await workOrderService.getNextOrderNumber();
     setNextOrderNumber(nextNum);
     setSelectedCustomerId(customers.length > 0 ? customers[0].id : '');
-    setSelectedBicycleId('');
+    setBicycleInfo('');
     setReportedIssues('');
     setAccessoriesReceived('');
-    setEstimatedDeliveryAt(new Date(Date.now() + 86400000).toISOString().split('T')[0]);
+    
     setDiscount(0);
     setInternalNotes('');
     setOrderItems([]);
@@ -186,8 +185,8 @@ export const WorkOrdersPage: React.FC = () => {
       item_type: 'service',
       description: newServiceDesc.trim(),
       quantity: 1,
-      unit_price: newServicePrice,
-      total_price: newServicePrice,
+      unit_price: Number(newServicePrice) || 0,
+      total_price: Number(newServicePrice) || 0,
     };
     setOrderItems([...orderItems, item]);
     setNewServiceDesc('');
@@ -198,7 +197,7 @@ export const WorkOrdersPage: React.FC = () => {
   const handleAddPartItem = () => {
     const product = products.find((p) => p.id === selectedProductId);
     if (!product) return;
-    const qty = Math.max(1, productQuantity);
+    const qty = Math.max(1, Number(productQuantity) || 1);
     const item: Omit<WorkOrderItem, 'id' | 'work_order_id' | 'created_at'> = {
       item_type: 'part',
       product_id: product.id,
@@ -224,12 +223,12 @@ export const WorkOrdersPage: React.FC = () => {
     .filter((it) => it.item_type === 'part')
     .reduce((sum, it) => sum + it.total_price, 0);
 
-  const grandTotal = Math.max(0, totalLabor + totalParts - discount);
+  const grandTotal = Math.max(0, totalLabor + totalParts - (Number(discount) || 0));
 
   const validateForm = (): boolean => {
     const errors: { [key: string]: string } = {};
     if (!selectedCustomerId) errors.customer = 'Debes seleccionar un cliente.';
-    if (!selectedBicycleId) errors.bicycle = 'Debes seleccionar una bicicleta.';
+    if (!bicycleInfo.trim()) errors.bicycle = 'Debes ingresar la info de la bicicleta.';
     if (!reportedIssues.trim()) errors.reportedIssues = 'La falla reportada por el cliente es obligatoria.';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -244,14 +243,13 @@ export const WorkOrdersPage: React.FC = () => {
       const orderPayload: WorkOrderInsert = {
         order_number: nextOrderNumber,
         customer_id: selectedCustomerId,
-        bicycle_id: selectedBicycleId,
+        bicycle_info: bicycleInfo.trim(),
         status: 'RECIBIDA',
         reported_issues: reportedIssues.trim(),
         accessories_received: accessoriesReceived.trim() || undefined,
-        estimated_delivery_at: estimatedDeliveryAt ? new Date(estimatedDeliveryAt).toISOString() : undefined,
-        total_labor: totalLabor,
+                total_labor: totalLabor,
         total_parts: totalParts,
-        discount,
+        discount: Number(discount) || 0,
         grand_total: grandTotal,
         internal_notes: internalNotes.trim() || undefined,
       };
@@ -384,11 +382,6 @@ export const WorkOrdersPage: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Link to="/admin/ordenes/nueva">
-            <Button size="sm" variant="primary" leftIcon={<ClipboardCheck className="w-3.5 h-3.5" />}>
-              Recepción con Firma Digital
-            </Button>
-          </Link>
           <Button size="sm" variant="outline" onClick={openCreateModal} leftIcon={<Plus className="w-3.5 h-3.5" />}>
             Orden Rápida
           </Button>
@@ -632,25 +625,32 @@ export const WorkOrdersPage: React.FC = () => {
           {/* Selección de Cliente y Bicicleta */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Cliente Propietario *
-              </label>
-              <select
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Cliente Propietario *
+                </label>
+                <Button type="button" size="sm" variant="outline" onClick={() => setQuickCustomerOpen(true)} className="h-6 text-[10px] px-2 py-0">
+                  + Nuevo
+                </Button>
+              </div>
+              <input
+                list="workorders-customer-list"
+                required
                 value={selectedCustomerId}
                 onChange={(e) => {
                   setSelectedCustomerId(e.target.value);
-                  setSelectedBicycleId('');
+                  setBicycleInfo('');
                 }}
-                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                required
-              >
-                <option value="">Selecciona cliente...</option>
+                placeholder="Buscar por nombre o teléfono..."
+                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
+              />
+              <datalist id="workorders-customer-list">
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.full_name} — {c.phone}
+                    {c.full_name} - {c.phone}
                   </option>
                 ))}
-              </select>
+              </datalist>
               {formErrors.customer && (
                 <span className="text-[11px] text-red-600 block mt-1">{formErrors.customer}</span>
               )}
@@ -658,28 +658,16 @@ export const WorkOrdersPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Bicicleta a Intervenir *
-              </label>
-              <select
-                value={selectedBicycleId}
-                onChange={(e) => setSelectedBicycleId(e.target.value)}
-                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                required
-                disabled={!selectedCustomerId}
-              >
-                <option value="">
-                  {!selectedCustomerId
-                    ? 'Primero selecciona un cliente...'
-                    : availableBikes.length === 0
-                    ? 'Este cliente no tiene bicicletas registradas'
-                    : 'Selecciona la bicicleta...'}
-                </option>
-                {availableBikes.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.brand} {b.model} ({b.bike_type}) — Serial: {b.serial_number || 'N/A'}
-                  </option>
-                ))}
-              </select>
+                  Información de la Bicicleta *
+                </label>
+                <input
+                  type="text"
+                  value={bicycleInfo}
+                  onChange={(e) => setBicycleInfo(e.target.value)}
+                  placeholder="Ej: Trek Marlin 7, Roja"
+                  className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  required
+                />
               {formErrors.bicycle && (
                 <span className="text-[11px] text-red-600 block mt-1">{formErrors.bicycle}</span>
               )}
@@ -712,12 +700,7 @@ export const WorkOrdersPage: React.FC = () => {
               placeholder="Candado, ciclocomputador, portatermo..."
             />
 
-            <Input
-              label="Fecha Estimada de Entrega"
-              type="date"
-              value={estimatedDeliveryAt}
-              onChange={(e) => setEstimatedDeliveryAt(e.target.value)}
-            />
+            
           </div>
 
           {/* Desglose de Repuestos y Mano de Obra */}
@@ -748,9 +731,9 @@ export const WorkOrdersPage: React.FC = () => {
                 />
                 <div className="flex gap-2">
                   <input
-                    type="number"
-                    value={newServicePrice || ''}
-                    onChange={(e) => setNewServicePrice(Number(e.target.value))}
+                    type="number" onFocus={(e) => e.target.select()}
+                    value={newServicePrice === '' ? '' : newServicePrice}
+                    onChange={(e) => setNewServicePrice(e.target.value === '' ? '' : Number(e.target.value))}
                     placeholder="Precio ($)"
                     className="w-28 text-xs p-1.5 font-mono rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                   />
@@ -765,23 +748,35 @@ export const WorkOrdersPage: React.FC = () => {
                 <span className="text-[10px] font-bold uppercase text-slate-500 block">
                   + Agregar Repuesto de Inventario (Kardex)
                 </span>
-                <select
-                  value={selectedProductId}
-                  onChange={(e) => setSelectedProductId(e.target.value)}
-                  className="w-full text-xs p-1.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                >
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} — ${p.sale_price.toLocaleString('es-CO')} (Stock: {p.stock})
-                    </option>
-                  ))}
-                </select>
+                <div className="flex flex-col gap-1 w-full">
+                    <input
+                      type="text"
+                      placeholder="Buscar repuesto..."
+                      value={partSearch}
+                      onChange={(e) => setPartSearch(e.target.value)}
+                      className="w-full text-xs p-1.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                    />
+                    <input
+                      list="workorders-products-list"
+                      value={selectedProductId}
+                      onChange={(e) => setSelectedProductId(e.target.value)}
+                      placeholder="Escribe para buscar..."
+                      className="w-full text-xs p-1.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                    />
+                    <datalist id="workorders-products-list">
+                      {products.filter(p => p.name.toLowerCase().includes(partSearch.toLowerCase())).map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} — ${p.sale_price.toLocaleString('es-CO')} (Stock: {p.stock})
+                        </option>
+                      ))}
+                    </datalist>
+                  </div>
                 <div className="flex gap-2">
                   <input
-                    type="number"
+                    type="number" onFocus={(e) => e.target.select()}
                     min={1}
                     value={productQuantity}
-                    onChange={(e) => setProductQuantity(Math.max(1, Number(e.target.value)))}
+                    onChange={(e) => setProductQuantity(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
                     placeholder="Cant."
                     className="w-20 text-xs p-1.5 font-mono rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                   />
@@ -855,9 +850,9 @@ export const WorkOrdersPage: React.FC = () => {
               <div>
                 <span className="text-[10px] text-slate-400 block">DESCUENTO ($)</span>
                 <input
-                  type="number"
-                  value={discount || ''}
-                  onChange={(e) => setDiscount(Number(e.target.value))}
+                  type="number" onFocus={(e) => e.target.select()}
+                  value={discount === '' ? '' : discount}
+                  onChange={(e) => setDiscount(e.target.value === '' ? '' : Number(e.target.value))}
                   placeholder="0"
                   className="w-full text-xs p-1 font-mono rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
                 />
@@ -1205,6 +1200,14 @@ export const WorkOrdersPage: React.FC = () => {
         workOrder={whatsappOrder}
         bicycle={whatsappOrder?.bicycle}
         defaultTrigger={whatsappOrder?.status}
+      />
+      <QuickCustomerModal
+        isOpen={quickCustomerOpen}
+        onClose={() => setQuickCustomerOpen(false)}
+        onCustomerCreated={(c: Customer) => {
+          setCustomers([...customers, c]);
+          setSelectedCustomerId(c.id);
+        }}
       />
     </div>
   );

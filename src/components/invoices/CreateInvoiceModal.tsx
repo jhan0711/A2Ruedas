@@ -166,8 +166,8 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   };
 
   // Autocompletar ítem desde el catálogo de inventario
-  const handleSelectProduct = (id: string, productId: string) => {
-    const prod = products.find((p) => p.id === productId);
+  const handleSelectProduct = (id: string, searchVal: string) => {
+    const prod = products.find((p) => p.id === searchVal || p.name === searchVal || `${p.name} - $${p.sale_price}` === searchVal);
     if (!prod) return;
 
     setLineItems((prev) =>
@@ -462,7 +462,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 {/* Cantidad */}
                 <div className="col-span-3 sm:col-span-1">
                   <input
-                    type="number"
+                    type="number" onFocus={(e) => e.target.select()}
                     min="1"
                     required
                     value={item.quantity}
@@ -474,7 +474,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 {/* Precio Unitario */}
                 <div className="col-span-4 sm:col-span-2">
                   <input
-                    type="number"
+                    type="number" onFocus={(e) => e.target.select()}
                     min="0"
                     step="500"
                     required
@@ -545,7 +545,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             <div className="flex items-center justify-between gap-2">
               <span className="text-slate-600 dark:text-slate-400">Descuento ($):</span>
               <input
-                type="number"
+                type="number" onFocus={(e) => e.target.select()}
                 min="0"
                 max={subtotal}
                 step="500"
@@ -578,6 +578,13 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
           </div>
         </div>
       </form>
+      <datalist id="invoice-products-datalist">
+        {products.map((p) => (
+          <option key={p.id} value={`${p.name} - $${p.sale_price}`}>
+            Stock: {p.stock}
+          </option>
+        ))}
+      </datalist>
     </Modal>
   );
 };

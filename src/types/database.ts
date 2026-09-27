@@ -40,7 +40,7 @@ export interface Bicycle {
 
 export interface BicyclePhoto {
   id: string;
-  bicycle_id: string;
+  bicycle_info: string;
   photo_url: string;
   photo_type: 'general' | 'danio' | 'transmision' | 'frenos' | 'cuadro';
   caption?: string | null;
@@ -53,7 +53,7 @@ export type BicycleUpdate = Partial<BicycleInsert>;
 // 3. Códigos QR
 export interface BikeQRCode {
   id: string;
-  bicycle_id: string;
+  bicycle_info: string;
   qr_code: string;
   public_token: string;
   is_active: boolean;
@@ -77,7 +77,6 @@ export interface Product {
   name: string;
   brand: string;
   description?: string | null;
-  cost_price: number;
   sale_price: number;
   stock: number;
   min_stock: number;
@@ -125,7 +124,7 @@ export interface WorkOrder {
   id: string;
   order_number: string;
   customer_id: string;
-  bicycle_id: string;
+  bicycle_info: string;
   technician_id?: string | null;
   status: WorkOrderStatus;
   reported_issues: string;
@@ -314,7 +313,7 @@ export interface InvoiceItemInsert {
 export interface Appointment {
   id: string;
   customer_id: string;
-  bicycle_id?: string | null;
+  bicycle_info?: string | null;
   service_id?: string | null;
   technician_id?: string | null;
   mechanic_name?: string | null;

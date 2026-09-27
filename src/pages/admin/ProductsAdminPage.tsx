@@ -8,7 +8,6 @@ import {
   AlertTriangle,
   MapPin,
   DollarSign,
-  TrendingUp,
   Image as ImageIcon,
   CheckCircle2,
   Tags,
@@ -59,7 +58,6 @@ export const ProductsAdminPage: React.FC = () => {
     name: '',
     brand: '',
     description: '',
-    cost_price: 0,
     sale_price: 0,
     stock: 0,
     min_stock: 2,
@@ -103,7 +101,6 @@ export const ProductsAdminPage: React.FC = () => {
       name: '',
       brand: '',
       description: '',
-      cost_price: 0,
       sale_price: 0,
       stock: 0,
       min_stock: 2,
@@ -126,7 +123,6 @@ export const ProductsAdminPage: React.FC = () => {
       name: product.name,
       brand: product.brand,
       description: product.description || '',
-      cost_price: product.cost_price,
       sale_price: product.sale_price,
       stock: product.stock,
       min_stock: product.min_stock,
@@ -170,7 +166,6 @@ export const ProductsAdminPage: React.FC = () => {
     if (!formData.sku.trim()) errors.sku = 'El código SKU es obligatorio.';
     if (!formData.category_id) errors.category_id = 'Debes seleccionar una categoría.';
     if (formData.sale_price < 0) errors.sale_price = 'El precio de venta no puede ser negativo.';
-    if (formData.cost_price < 0) errors.cost_price = 'El costo no puede ser negativo.';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -225,11 +220,7 @@ export const ProductsAdminPage: React.FC = () => {
     }
   };
 
-  // Cálculo de margen comercial
-  const marginPercentage =
-    formData.cost_price > 0
-      ? Math.round(((formData.sale_price - formData.cost_price) / formData.cost_price) * 100)
-      : 0;
+  
 
   // Filtrado reactivo
   const filteredProducts = products.filter((p) => {
@@ -394,11 +385,7 @@ export const ProductsAdminPage: React.FC = () => {
             </TableHeader>
             <TableBody>
               {filteredProducts.map((prod) => {
-                const margin =
-                  prod.cost_price > 0
-                    ? Math.round(((prod.sale_price - prod.cost_price) / prod.cost_price) * 100)
-                    : 0;
-
+                
                 const isLowStock = prod.stock <= prod.min_stock;
                 const isOutOfStock = prod.stock <= 0;
                 const photoCount = prod.images ? prod.images.length : prod.image_url ? 1 : 0;
@@ -441,28 +428,13 @@ export const ProductsAdminPage: React.FC = () => {
                       </div>
                     </TableCell>
 
-                    <TableCell isMono className="text-slate-600 dark:text-slate-400">
-                      ${prod.cost_price.toLocaleString('es-CO')}
-                    </TableCell>
+                    
 
                     <TableCell isMono className="font-bold text-slate-900 dark:text-white">
                       ${prod.sale_price.toLocaleString('es-CO')}
                     </TableCell>
 
-                    <TableCell isMono>
-                      <span
-                        className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                          margin >= 40
-                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400'
-                            : margin >= 20
-                            ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400'
-                            : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400'
-                        }`}
-                      >
-                        <TrendingUp className="w-2.5 h-2.5" />
-                        {margin}%
-                      </span>
-                    </TableCell>
+                    
 
                     <TableCell isMono>
                       {isOutOfStock ? (
@@ -589,19 +561,21 @@ export const ProductsAdminPage: React.FC = () => {
                   <Plus className="w-3 h-3" /> Nueva
                 </button>
               </div>
-              <select
+              <input
+                list="products-category-list"
                 value={formData.category_id}
                 onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                placeholder="Escribe para buscar categoría..."
+                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
                 required
-              >
-                <option value="">Selecciona categoría...</option>
+              />
+              <datalist id="products-category-list">
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
                 ))}
-              </select>
+              </datalist>
               {formErrors.category_id && (
                 <span className="text-[11px] text-red-600 block mt-1">{formErrors.category_id}</span>
               )}
@@ -616,37 +590,18 @@ export const ProductsAdminPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Input
-                label="Costo de Compra (COP) *"
-                type="number"
-                value={formData.cost_price}
-                onChange={(e) => setFormData({ ...formData, cost_price: Number(e.target.value) })}
-                isMono
-                required
-              />
+
 
               <Input
                 label="Precio de Venta (COP) *"
                 type="number"
                 value={formData.sale_price}
-                onChange={(e) => setFormData({ ...formData, sale_price: Number(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, sale_price: e.target.value === '' ? ('' as any) : Number(e.target.value) })}
                 isMono
                 required
               />
 
-              <div className="space-y-1">
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                  Margen Bruto Estimado
-                </label>
-                <div className="h-8 rounded-md bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3 flex items-center justify-between text-xs font-mono">
-                  <span className="text-slate-500">
-                    +${(formData.sale_price - formData.cost_price).toLocaleString('es-CO')}
-                  </span>
-                  <span className={`font-bold ${marginPercentage >= 30 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                    {marginPercentage}%
-                  </span>
-                </div>
-              </div>
+
             </div>
           </div>
 
@@ -656,7 +611,7 @@ export const ProductsAdminPage: React.FC = () => {
               label="Stock Inicial"
               type="number"
               value={formData.stock}
-              onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, stock: e.target.value === '' ? ('' as any) : Number(e.target.value) })}
               isMono
               disabled={Boolean(editingProduct)} // Si ya existe, se ajusta por Kardex
             />
@@ -665,7 +620,7 @@ export const ProductsAdminPage: React.FC = () => {
               label="Stock Mínimo (Alerta) *"
               type="number"
               value={formData.min_stock}
-              onChange={(e) => setFormData({ ...formData, min_stock: Number(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, min_stock: e.target.value === '' ? ('' as any) : Number(e.target.value) })}
               isMono
               required
             />

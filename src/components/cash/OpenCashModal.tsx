@@ -86,7 +86,7 @@ export const OpenCashModal: React.FC<OpenCashModalProps> = ({
           <div className="relative">
             <DollarSign className="w-4 h-4 text-emerald-600 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
-              type="number"
+              type="number" onFocus={(e) => e.target.select()}
               min="0"
               step="1000"
               required

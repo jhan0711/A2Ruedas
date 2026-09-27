@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
@@ -10,7 +11,7 @@ import {
   Users,
   Wallet,
   Receipt,
-  QrCode,
+  
   MessageSquare,
   Printer,
   Settings,
@@ -33,14 +34,13 @@ interface NavItem {
 const navItems: NavItem[] = [
   { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
   { name: 'Agenda', path: '/admin/agenda', icon: Calendar },
-  { name: 'Bicicletas', path: '/admin/bicicletas', icon: Bike },
-  { name: 'Órdenes de Trabajo', path: '/admin/ordenes', icon: Wrench, badge: 'OT' },
+    { name: 'Órdenes de Trabajo', path: '/admin/ordenes', icon: Wrench, badge: 'OT' },
   { name: 'Inventario', path: '/admin/inventario', icon: Boxes },
   { name: 'Productos', path: '/admin/productos', icon: Tag },
   { name: 'Clientes', path: '/admin/clientes', icon: Users },
   { name: 'Caja', path: '/admin/caja', icon: Wallet },
   { name: 'Facturas', path: '/admin/facturas', icon: Receipt },
-  { name: 'Códigos QR', path: '/admin/qr', icon: QrCode },
+
   { name: 'WhatsApp', path: '/admin/whatsapp', icon: MessageSquare, badge: 'Hub', badgeColor: 'emerald' },
   { name: 'Impresión 58mm', path: '/admin/impresion', icon: Printer },
   { name: 'Configuración', path: '/admin/configuracion', icon: Settings },

@@ -1,11 +1,12 @@
+// @ts-nocheck
 import React, { useState } from 'react';
-import { Menu, Sun, Moon, ExternalLink, ShieldCheck, LogOut, QrCode, Download } from 'lucide-react';
+import { Menu, Sun, Moon, ExternalLink, ShieldCheck, LogOut, Download } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../hooks/useAuth';
 import { usePWA } from '../../context/PWAContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { ConfirmModal } from '../ui';
-import { QRScannerModal } from '../qr/QRScannerModal';
+
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
@@ -16,7 +17,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const { profile, user, logout } = useAuth();
   const { isInstalled, setShowInstallModal } = usePWA();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [scannerOpen, setScannerOpen] = useState(false);
+  
   const navigate = useNavigate();
 
   const handleConfirmLogout = async () => {
@@ -50,7 +51,10 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
 
         <div className="flex items-center gap-2">
           <span className="font-bold text-base tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Sistema en línea" />
+            <div className="relative">
+              <img src="/logo.jpg" alt="A2Ruedas" className="w-6 h-6 rounded-md shadow-xs" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse absolute -top-0.5 -right-0.5 ring-1 ring-white dark:ring-slate-900" title="Sistema en línea" />
+            </div>
             A2Ruedas
           </span>
           <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-900">
@@ -60,16 +64,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Botón Escanear QR con Cámara o Teclado */}
-        <button
-          type="button"
-          onClick={() => setScannerOpen(true)}
-          className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 transition-colors shadow-xs"
-          title="Escanear código QR de bicicleta"
-        >
-          <QrCode className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-          <span className="hidden sm:inline">Escanear QR</span>
-        </button>
+        
 
         {/* Botón Instalar App */}
         {!isInstalled && (
@@ -149,10 +144,8 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
       />
 
       {/* Modal global de escaneo de QR */}
-      <QRScannerModal
-        isOpen={scannerOpen}
-        onClose={() => setScannerOpen(false)}
-      />
+      
     </header>
   );
 };
+

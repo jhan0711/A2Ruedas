@@ -10,7 +10,8 @@ import { Invoice } from '../../types/database';
 import { invoiceService } from '../../services/invoiceService';
 import { whatsappService } from '../../services/whatsappService';
 import { workshopSettingsService } from '../../services/workshopSettingsService';
-import { printInvoiceDocument } from '../../utils/printUtils';
+import { printInvoiceDocument, generateInvoiceThermalTicketHtml } from '../../utils/printUtils';
+import { UnifiedTicketViewer } from '../print/UnifiedTicketViewer';
 import { Button, Modal } from '../ui';
 
 
@@ -169,137 +170,14 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
           {/* Cuerpo del Modal con Previsualizaciones */}
           <div className="p-4 overflow-y-auto flex-1 bg-slate-100 dark:bg-slate-950 flex justify-center">
             {viewFormat === 'thermal' ? (
-              /* ================= FORMATO TIRILLA TÉRMICA 58 MM ================= */
-              <div
-                id="invoice-thermal-ticket"
-                className="w-[50mm] bg-white text-black p-3 font-mono text-[11px] shadow-md leading-tight border border-slate-300"
-              >
-                {/* Encabezado */}
-                <div className="text-center space-y-0.5">
-                  <div className="font-bold text-sm tracking-wider uppercase">{workshopSettings.name}</div>
-                  <div className="text-[10px] uppercase">{workshopSettings.header_slogan}</div>
-                  <div className="text-[9px]">NIT: {workshopSettings.nit}</div>
-                  <div className="text-[9px]">PBX: {workshopSettings.phone}</div>
-                  <div className="text-[9px]">
-                    {workshopSettings.address}
-                    {workshopSettings.city ? `, ${workshopSettings.city}` : ''}
-                  </div>
+                <div className="w-full max-w-[340px] mx-auto h-full p-2">
+                  <UnifiedTicketViewer 
+                    htmlContent={generateInvoiceThermalTicketHtml(invoice)} 
+                    hidePrintButton
+                  />
                 </div>
-
-                <div className="border-t border-dashed border-black my-2" />
-
-                <div className="text-center font-bold text-xs uppercase tracking-wide">
-                  COMPROBANTE DE PAGO
-                </div>
-                <div className="text-center font-bold text-sm font-mono">
-                  {invoice.invoice_number}
-                </div>
-
-                <div className="border-t border-dashed border-black my-2" />
-
-                {/* Datos del Cliente y Factura */}
-                <div className="space-y-0.5 text-[10px]">
-                  <div className="flex justify-between">
-                    <span>FECHA:</span>
-                    <span>{dateFormatted}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>CLIENTE:</span>
-                    <span className="truncate max-w-[28mm] font-bold">
-                      {invoice.customer?.full_name || 'Consumidor Final'}
-                    </span>
-                  </div>
-                  {invoice.customer?.document_id && (
-                    <div className="flex justify-between">
-                      <span>C.C./NIT:</span>
-                      <span>{invoice.customer.document_id}</span>
-                    </div>
-                  )}
-                  {invoice.work_order_id && (
-                    <div className="flex justify-between font-bold">
-                      <span>ORDEN OT:</span>
-                      <span>{invoice.work_order_id}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span>MEDIO:</span>
-                    <span className="font-bold">{invoice.payment_method}</span>
-                  </div>
-                </div>
-
-                <div className="border-t border-dashed border-black my-2" />
-
-                {/* Desglose de Ítems */}
-                <div className="space-y-1.5 text-[10px]">
-                  <div className="font-bold text-center mb-1">-- DETALLE DE COBRO --</div>
-                  {items.map((it, idx) => (
-                    <div key={idx} className="space-y-0.5">
-                      <div className="font-bold truncate">{it.description}</div>
-                      <div className="flex justify-between text-[9px] text-slate-700">
-                        <span>
-                          {it.quantity} x ${it.unit_price.toLocaleString('es-CO')}
-                        </span>
-                        <span className="font-bold">${it.total_price.toLocaleString('es-CO')}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="border-t-2 border-black my-2" />
-
-                {/* Totales */}
-                <div className="space-y-0.5 text-[10px]">
-                  <div className="flex justify-between">
-                    <span>SUBTOTAL:</span>
-                    <span>${invoice.subtotal.toLocaleString('es-CO')}</span>
-                  </div>
-                  {invoice.discount > 0 && (
-                    <div className="flex justify-between text-red-600 font-bold">
-                      <span>DESCUENTO:</span>
-                      <span>-${invoice.discount.toLocaleString('es-CO')}</span>
-                    </div>
-                  )}
-                  {invoice.tax > 0 && (
-                    <div className="flex justify-between">
-                      <span>IVA (19%):</span>
-                      <span>${invoice.tax.toLocaleString('es-CO')}</span>
-                    </div>
-                  )}
-                  <div className="border-t border-black pt-1 flex justify-between font-bold text-xs">
-                    <span>TOTAL PAGADO:</span>
-                    <span>${invoice.total.toLocaleString('es-CO')}</span>
-                  </div>
-                </div>
-
-                {invoice.notes && (
-                  <>
-                    <div className="border-t border-dashed border-black my-2" />
-                    <div className="text-[9px] italic">
-                      <span>Nota: {invoice.notes}</span>
-                    </div>
-                  </>
-                )}
-
-                {invoice.payment_status === 'CANCELLED' && (
-                  <div className="border-2 border-dashed border-red-600 p-1 text-center my-2 text-red-600 font-bold text-xs">
-                    *** FACTURA ANULADA ***
-                  </div>
-                )}
-
-                <div className="border-t border-dashed border-black my-3" />
-
-                <div className="text-center text-[9px] space-y-1">
-                  <div>¡Gracias por rodar con nosotros!</div>
-                  <div className="text-[8px] text-slate-600">
-                    Garantía técnica de 30 días en mano de obra.
-                  </div>
-                  <div className="text-[8px] text-slate-500 mt-2">
-                    - - - - - CORTE AQUI - - - - -
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* ================= FORMATO COMERCIAL CARTA / A4 ================= */
+              ) : (
+                /* ================= FORMATO COMERCIAL CARTA / A4 ================= */
               <div
                 id="invoice-commercial-sheet"
                 className="w-full max-w-xl bg-white text-slate-900 p-6 rounded-xl shadow-lg border border-slate-200 text-xs space-y-4"

@@ -274,7 +274,7 @@ export const CloseCashModal: React.FC<CloseCashModalProps> = ({
                   $100.000
                 </span>
                 <input
-                  type="number"
+                  type="number" onFocus={(e) => e.target.select()}
                   min="0"
                   value={denominations.bill100k || ''}
                   onChange={(e) => handleDenomChange('bill100k', Number(e.target.value))}
@@ -292,7 +292,7 @@ export const CloseCashModal: React.FC<CloseCashModalProps> = ({
                   $50.000
                 </span>
                 <input
-                  type="number"
+                  type="number" onFocus={(e) => e.target.select()}
                   min="0"
                   value={denominations.bill50k || ''}
                   onChange={(e) => handleDenomChange('bill50k', Number(e.target.value))}
@@ -310,7 +310,7 @@ export const CloseCashModal: React.FC<CloseCashModalProps> = ({
                   $20.000
                 </span>
                 <input
-                  type="number"
+                  type="number" onFocus={(e) => e.target.select()}
                   min="0"
                   value={denominations.bill20k || ''}
                   onChange={(e) => handleDenomChange('bill20k', Number(e.target.value))}
@@ -328,7 +328,7 @@ export const CloseCashModal: React.FC<CloseCashModalProps> = ({
                   $10.000
                 </span>
                 <input
-                  type="number"
+                  type="number" onFocus={(e) => e.target.select()}
                   min="0"
                   value={denominations.bill10k || ''}
                   onChange={(e) => handleDenomChange('bill10k', Number(e.target.value))}
@@ -346,7 +346,7 @@ export const CloseCashModal: React.FC<CloseCashModalProps> = ({
                   $5.000
                 </span>
                 <input
-                  type="number"
+                  type="number" onFocus={(e) => e.target.select()}
                   min="0"
                   value={denominations.bill5k || ''}
                   onChange={(e) => handleDenomChange('bill5k', Number(e.target.value))}
@@ -364,7 +364,7 @@ export const CloseCashModal: React.FC<CloseCashModalProps> = ({
                   $2.000
                 </span>
                 <input
-                  type="number"
+                  type="number" onFocus={(e) => e.target.select()}
                   min="0"
                   value={denominations.bill2k || ''}
                   onChange={(e) => handleDenomChange('bill2k', Number(e.target.value))}
@@ -383,7 +383,7 @@ export const CloseCashModal: React.FC<CloseCashModalProps> = ({
                   Monedas / Suelto en Efectivo (COP)
                 </span>
                 <input
-                  type="number"
+                  type="number" onFocus={(e) => e.target.select()}
                   min="0"
                   step="50"
                   value={denominations.coins || ''}
@@ -406,7 +406,7 @@ export const CloseCashModal: React.FC<CloseCashModalProps> = ({
             <div className="relative">
               <DollarSign className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
-                type="number"
+                type="number" onFocus={(e) => e.target.select()}
                 min="0"
                 required
                 value={manualCountedAmount}

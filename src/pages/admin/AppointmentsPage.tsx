@@ -15,15 +15,14 @@ import {
   List,
   CalendarDays,
 } from 'lucide-react';
-import { Appointment, Customer, Bicycle } from '../../types/database';
+import { Appointment, Customer } from '../../types/database';
 import {
   appointmentService,
-  AVAILABLE_MECHANICS,
   COMMON_SERVICES,
   DEFAULT_DAILY_CAPACITY,
 } from '../../services/appointmentService';
 import { customerService } from '../../services/customerService';
-import { bicycleService } from '../../services/bicycleService';
+import { QuickCustomerModal } from '../../components/customers/QuickCustomerModal';
 import { Button, Card, Modal, ConfirmModal, Alert, LoadingSpinner } from '../../components/ui';
 
 type CalendarView = 'month' | 'week' | 'day' | 'list';
@@ -34,7 +33,6 @@ export const AppointmentsPage: React.FC = () => {
   // Estados de datos
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [bicycles, setBicycles] = useState<Bicycle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Estados de vista y navegación temporal
@@ -49,13 +47,17 @@ export const AppointmentsPage: React.FC = () => {
   // Modal Nueva Cita
   const [newModalOpen, setNewModalOpen] = useState(false);
   const [newCustomerId, setNewCustomerId] = useState('');
-  const [newBicycleId, setNewBicycleId] = useState('');
+  const [newBicycleInfo, setNewBicycleInfo] = useState('');
   const [newServiceName, setNewServiceName] = useState(COMMON_SERVICES[0].name);
-  const [newDurationMin, setNewDurationMin] = useState(COMMON_SERVICES[0].duration);
+  
   const [newDate, setNewDate] = useState(new Date().toISOString().slice(0, 10));
-  const [newTime, setNewTime] = useState('09:00');
-  const [newMechanic, setNewMechanic] = useState(AVAILABLE_MECHANICS[0]);
+  
+  
   const [newNotes, setNewNotes] = useState('');
+  
+  
+  
+
   const [isSaving, setIsSaving] = useState(false);
   const [dailyCapacityInfo, setDailyCapacityInfo] = useState<{
     booked: number;
@@ -70,6 +72,7 @@ export const AppointmentsPage: React.FC = () => {
 
   // Modal Confirmación de Eliminación (Regla 44)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [quickCustomerOpen, setQuickCustomerOpen] = useState(false);
   const [appointmentToDelete, setAppointmentToDelete] = useState<Appointment | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -82,14 +85,14 @@ export const AppointmentsPage: React.FC = () => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [apts, custs, bikes] = await Promise.all([
+      const [apts, custs] = await Promise.all([
         appointmentService.getAppointments(),
         customerService.getCustomers(),
-        bicycleService.getBicycles(),
+        
       ]);
       setAppointments(apts);
       setCustomers(custs);
-      setBicycles(bikes);
+      
     } catch (err) {
       console.error('Error al cargar agenda:', err);
     } finally {
@@ -112,19 +115,10 @@ export const AppointmentsPage: React.FC = () => {
   }, [newDate, newModalOpen, appointments]);
 
   // Bicicletas filtradas por cliente seleccionado en el modal
-  const customerBicycles = useMemo(() => {
-    if (!newCustomerId) return [];
-    return bicycles.filter((b) => b.customer_id === newCustomerId);
-  }, [newCustomerId, bicycles]);
+  
 
   // Auto-seleccionar primera bicicleta al cambiar de cliente
-  useEffect(() => {
-    if (customerBicycles.length > 0) {
-      setNewBicycleId(customerBicycles[0].id);
-    } else {
-      setNewBicycleId('');
-    }
-  }, [customerBicycles]);
+  
 
   // Navegación temporal (Mes / Semana / Día)
   const handlePrev = () => {
@@ -231,22 +225,22 @@ export const AppointmentsPage: React.FC = () => {
 
     setIsSaving(true);
     try {
-      const scheduledDateTime = new Date(`${newDate}T${newTime}:00`).toISOString();
+      const scheduledDateTime = new Date(`${newDate}T08:00:00`).toISOString();
 
       await appointmentService.createAppointment({
         customer_id: newCustomerId,
-        bicycle_id: newBicycleId || null,
+        bicycle_info: newBicycleInfo || null,
         service_name: newServiceName,
-        mechanic_name: newMechanic,
+        mechanic_name: null,
         scheduled_at: scheduledDateTime,
-        estimated_duration_min: Number(newDurationMin),
+        estimated_duration_min: 60,
         status: 'SCHEDULED',
         notes: newNotes.trim() || null,
       });
 
       setAlertMessage({
         type: 'success',
-        text: `Cita programada con éxito para el ${newDate} a las ${newTime}.`,
+        text: `Cita programada con éxito para el ${newDate}.`,
       });
       setNewModalOpen(false);
       setNewNotes('');
@@ -1248,136 +1242,76 @@ export const AppointmentsPage: React.FC = () => {
 
           {/* Selección de Cliente */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Cliente Propietario *
-            </label>
-            <select
-              required
-              value={newCustomerId}
-              onChange={(e) => setNewCustomerId(e.target.value)}
-              className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
-            >
-              <option value="">-- Seleccionar cliente --</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.full_name} ({c.phone})
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Cliente Propietario *
+                </label>
+                <Button type="button" size="sm" variant="outline" onClick={() => setQuickCustomerOpen(true)} className="h-6 text-[10px] px-2 py-0">
+                  + Nuevo
+                </Button>
+              </div>
+              <input
+                list="appointments-customer-list"
+                required
+                value={newCustomerId}
+                onChange={(e) => setNewCustomerId(e.target.value)}
+                placeholder="Buscar por nombre o teléfono..."
+                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
+              />
+              <datalist id="appointments-customer-list">
+                {customers.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.full_name} - {c.phone}
+                  </option>
+                ))}
+              </datalist>
           </div>
 
           {/* Selección de Bicicleta */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Bicicleta a Intervenir
+                Información de la Bicicleta *
+              </label>
+              <input
+                type="text"
+                required
+                value={newBicycleInfo}
+                onChange={(e) => setNewBicycleInfo(e.target.value)}
+                placeholder="Ej: Trek Marlin 7, Roja"
+                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
+              />
+          </div>
+
+          {/* Servicio Técnico Solicitado */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Servicio Técnico Solicitado *
             </label>
-            {customerBicycles.length === 0 ? (
-              <p className="text-[11px] text-slate-400 italic">
-                {newCustomerId
-                  ? 'Este cliente no tiene bicicletas registradas aún (se registrará al ingresar al taller).'
-                  : 'Selecciona primero un cliente para ver sus bicicletas.'}
-              </p>
-            ) : (
-              <select
-                value={newBicycleId}
-                onChange={(e) => setNewBicycleId(e.target.value)}
-                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
-              >
-                {customerBicycles.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.brand} {b.model} ({b.bike_type} - {b.color})
-                  </option>
-                ))}
-              </select>
-            )}
+            <select
+              value={newServiceName}
+              onChange={(e) => setNewServiceName(e.target.value)}
+              className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
+            >
+              {COMMON_SERVICES.map((s) => (
+                <option key={s.name} value={s.name}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* Servicio y Duración */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Servicio Técnico Solicitado *
-              </label>
-              <select
-                value={newServiceName}
-                onChange={(e) => {
-                  setNewServiceName(e.target.value);
-                  const matched = COMMON_SERVICES.find((s) => s.name === e.target.value);
-                  if (matched) setNewDurationMin(matched.duration);
-                }}
-                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
-              >
-                {COMMON_SERVICES.map((s) => (
-                  <option key={s.name} value={s.name}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Duración Estimada (minutos)
-              </label>
-              <select
-                value={newDurationMin}
-                onChange={(e) => setNewDurationMin(Number(e.target.value))}
-                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
-              >
-                <option value={30}>30 min (Express)</option>
-                <option value={45}>45 min</option>
-                <option value={60}>60 min (1 hora)</option>
-                <option value={90}>90 min (1.5 horas)</option>
-                <option value={120}>120 min (2 horas)</option>
-                <option value={180}>180 min (3 horas)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Fecha, Hora y Mecánico */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Fecha *
-              </label>
-              <input
-                type="date"
-                required
-                value={newDate}
-                onChange={(e) => setNewDate(e.target.value)}
-                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Hora de Inicio *
-              </label>
-              <input
-                type="time"
-                required
-                value={newTime}
-                onChange={(e) => setNewTime(e.target.value)}
-                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Mecánico Responsable
-              </label>
-              <select
-                value={newMechanic}
-                onChange={(e) => setNewMechanic(e.target.value)}
-                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
-              >
-                {AVAILABLE_MECHANICS.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Fecha */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Fecha *
+            </label>
+            <input
+              type="date"
+              required
+              value={newDate}
+              onChange={(e) => setNewDate(e.target.value)}
+              className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
+            />
           </div>
 
           {/* Notas */}
@@ -1571,6 +1505,14 @@ export const AppointmentsPage: React.FC = () => {
         confirmText="Eliminar Cita"
         variant="danger"
         isLoading={isDeleting}
+      />
+      <QuickCustomerModal
+        isOpen={quickCustomerOpen}
+        onClose={() => setQuickCustomerOpen(false)}
+        onCustomerCreated={(c: Customer) => {
+          setCustomers([...customers, c]);
+          setNewCustomerId(c.id);
+        }}
       />
     </div>
   );

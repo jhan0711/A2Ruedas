@@ -44,7 +44,7 @@ export const InventoryPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState('');
   const [movementType, setMovementType] = useState<'in' | 'out' | 'adjustment'>('in');
-  const [quantity, setQuantity] = useState<number>(1);
+  const [quantity, setQuantity] = useState<number | ''>(1);
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -81,11 +81,12 @@ export const InventoryPage: React.FC = () => {
 
   const handleRegisterMovement = async (e: React.FormEvent) => {
     e.preventDefault();
+    const numericQty = Number(quantity) || 0;
     if (!selectedProductId) {
       setFormError('Debes seleccionar un producto.');
       return;
     }
-    if (quantity <= 0) {
+    if (numericQty <= 0) {
       setFormError('La cantidad debe ser mayor a 0.');
       return;
     }
@@ -95,7 +96,7 @@ export const InventoryPage: React.FC = () => {
     }
 
     const targetProduct = products.find((p) => p.id === selectedProductId);
-    if (movementType === 'out' && targetProduct && targetProduct.stock < quantity) {
+    if (movementType === 'out' && targetProduct && targetProduct.stock < numericQty) {
       setFormError(`Stock insuficiente. Stock actual disponible: ${targetProduct.stock} ${targetProduct.unit}.`);
       return;
     }
@@ -104,14 +105,14 @@ export const InventoryPage: React.FC = () => {
     try {
       const { product, movement } = await inventoryService.adjustStock(
         selectedProductId,
-        quantity,
+        numericQty,
         movementType,
         reason.trim(),
       );
 
       setAlertMessage({
         type: 'success',
-        text: `Movimiento registrado: ${movementType.toUpperCase()} de ${quantity} ${product.unit} en "${product.name}". Nuevo stock: ${movement.new_stock}.`,
+        text: `Movimiento registrado: ${movementType.toUpperCase()} de ${numericQty} ${product.unit} en "${product.name}". Nuevo stock: ${movement.new_stock}.`,
       });
 
       setModalOpen(false);
@@ -125,7 +126,7 @@ export const InventoryPage: React.FC = () => {
   };
 
   // Métricas financieras y operativas del Kardex
-  const totalCostValuation = products.reduce((acc, p) => acc + p.stock * p.cost_price, 0);
+  const totalCostValuation = 0;
   const totalSaleValuation = products.reduce((acc, p) => acc + p.stock * p.sale_price, 0);
   const lowStockProducts = products.filter((p) => p.stock <= p.min_stock);
   const totalUnits = products.reduce((acc, p) => acc + p.stock, 0);
@@ -570,7 +571,7 @@ export const InventoryPage: React.FC = () => {
               type="number"
               min={1}
               value={quantity}
-              onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+              onChange={(e) => setQuantity(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
               isMono
               required
             />

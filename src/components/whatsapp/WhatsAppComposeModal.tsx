@@ -20,7 +20,7 @@ import {
   WhatsAppMessage,
 } from '../../types/database';
 import { whatsappService } from '../../services/whatsappService';
-import { buildPublicBikeUrl } from '../../utils/qrUtils';
+
 import { Modal, Button, Badge } from '../ui';
 
 interface WhatsAppComposeModalProps {
@@ -96,9 +96,7 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
     const deposit = workOrder?.internal_notes?.match(/\$([0-9.]+)\svía/)?.[1]?.replace(/\./g, '') || 0;
     const balanceDue = Math.max(0, grandTotal - Number(deposit));
 
-    const publicUrl = resolvedBike
-      ? buildPublicBikeUrl(`BIKE-${resolvedBike.id.slice(0, 6).toUpperCase()}`)
-      : 'https://a2ruedas.app';
+    const publicUrl = 'https://a2ruedas.app';
 
     const interpolated = whatsappService.interpolateTemplate(tmpl.template, {
       customerName: resolvedCustomer?.full_name,

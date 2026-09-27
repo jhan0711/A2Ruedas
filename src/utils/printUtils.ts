@@ -1333,7 +1333,7 @@ export function printInvoiceDocument(
 export function generateBikeTagThermalHtml(
   bike: Bicycle,
   workOrder?: WorkOrder | null,
-  qrDataUrl?: string,
+  
   settings?: PrinterSettings
 ): string {
   const cfg = settings || printerService.getSettings();
@@ -1381,21 +1381,7 @@ export function generateBikeTagThermalHtml(
 
       <div class="divider"></div>
 
-      <!-- QR Code Principal de Alto Contraste -->
-      ${
-        qrDataUrl
-          ? `
-        <div class="text-center" style="margin: 4px 0;">
-          <img src="${qrDataUrl}" alt="QR Bicicleta" style="width: 38mm; height: 38mm; display: block; margin: 0 auto;" />
-        </div>
-      `
-          : `
-        <div class="text-center" style="border: 2px solid #000; padding: 12px; margin: 6px 0;">
-          <div class="bold" style="font-size: 14px;">[ QR CODE ]</div>
-          <div style="font-size: 9px;">${qrCodeStr}</div>
-        </div>
-      `
-      }
+
 
       <div class="text-center bold" style="font-size: 14px; letter-spacing: 1px; margin-top: 2px;">
         ${qrCodeStr}

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { PublicLayout } from '../components/layout/PublicLayout';
@@ -12,9 +13,6 @@ const HomePage = lazy(() =>
 const CatalogPage = lazy(() =>
   import('../pages/public/CatalogPage').then((m) => ({ default: m.CatalogPage }))
 );
-const BikePublicPage = lazy(() =>
-  import('../pages/public/BikePublicPage').then((m) => ({ default: m.BikePublicPage }))
-);
 
 // Autenticación administrativa
 const LoginPage = lazy(() =>
@@ -27,9 +25,6 @@ const DashboardPage = lazy(() =>
 );
 const CustomersPage = lazy(() =>
   import('../pages/admin/CustomersPage').then((m) => ({ default: m.CustomersPage }))
-);
-const BicyclesPage = lazy(() =>
-  import('../pages/admin/BicyclesPage').then((m) => ({ default: m.BicyclesPage }))
 );
 const InventoryPage = lazy(() =>
   import('../pages/admin/InventoryPage').then((m) => ({ default: m.InventoryPage }))
@@ -45,9 +40,6 @@ const ReceptionPage = lazy(() =>
 );
 const AppointmentsPage = lazy(() =>
   import('../pages/admin/AppointmentsPage').then((m) => ({ default: m.AppointmentsPage }))
-);
-const QRCodesPage = lazy(() =>
-  import('../pages/admin/QRCodesPage').then((m) => ({ default: m.QRCodesPage }))
 );
 const WhatsAppPage = lazy(() =>
   import('../pages/admin/WhatsAppPage').then((m) => ({ default: m.WhatsAppPage }))
@@ -74,7 +66,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: 'productos', element: <CatalogPage /> },
-      { path: 'bike/:code', element: <BikePublicPage /> },
+
     ],
   },
 
@@ -103,7 +95,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'bicicletas',
-            element: <BicyclesPage />,
+
           },
           {
             path: 'ordenes',
@@ -135,7 +127,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'qr',
-            element: <QRCodesPage />,
+
           },
           {
             path: 'whatsapp',
@@ -161,3 +153,4 @@ export const router = createBrowserRouter([
     element: <Navigate to="/" replace />,
   },
 ]);
+

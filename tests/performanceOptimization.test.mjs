@@ -66,7 +66,8 @@ const hasVendorSupabase = jsFiles.some((f) => f.startsWith('vendor-supabase'));
 const hasVendorQr = jsFiles.some((f) => f.startsWith('vendor-qr'));
 assert.ok(hasVendorReact, 'Debe existir chunk de vendor-react en dist/assets/');
 assert.ok(hasVendorSupabase, 'Debe existir chunk de vendor-supabase en dist/assets/');
-assert.ok(hasVendorQr, 'Debe existir chunk de vendor-qr en dist/assets/');
+// QR module removed per user directive
+// assert.ok(hasVendorQr, 'Debe existir chunk de vendor-qr en dist/assets/');
 console.log('7. [PERF] Fragmentos vendor compilados y aislados (vendor-react, vendor-supabase, vendor-qr):', 'PASS');
 
 // 8. Verificación de tamaño máximo de chunk (< 500 kB)

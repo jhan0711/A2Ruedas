@@ -16,6 +16,8 @@ import {
   CashCategory,
 } from '../../types/database';
 import { cashService } from '../../services/cashService';
+import { workOrderService } from '../../services/workOrderService';
+import { WorkOrder } from '../../types/database';
 import { Modal, Button } from '../ui';
 
 interface CashMovementModalProps {
@@ -42,11 +44,13 @@ export const CashMovementModal: React.FC<CashMovementModalProps> = ({
   const [concept, setConcept] = useState('');
   const [referenceId, setReferenceId] = useState(defaultWorkOrder || '');
   const [notes, setNotes] = useState('');
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
+    workOrderService.getWorkOrders().then(setWorkOrders).catch(console.error);
     setType(defaultType);
     setAmount(defaultAmount || 0);
     setReferenceId(defaultWorkOrder || '');
@@ -188,7 +192,7 @@ export const CashMovementModal: React.FC<CashMovementModalProps> = ({
             <div className="relative">
               <DollarSign className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
-                type="number"
+                type="number" onFocus={(e) => e.target.select()}
                 min="100"
                 step="500"
                 required
@@ -298,12 +302,20 @@ export const CashMovementModal: React.FC<CashMovementModalProps> = ({
               N° Orden OT Vinculada (Opcional)
             </label>
             <input
-              type="text"
-              value={referenceId}
-              onChange={(e) => setReferenceId(e.target.value)}
-              placeholder="Ej: OT-000001"
-              className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 uppercase"
-            />
+                  list="work-orders-list"
+                  type="text"
+                  value={referenceId}
+                  onChange={(e) => setReferenceId(e.target.value)}
+                  placeholder="Ej: OT-000001"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 uppercase"
+                />
+                <datalist id="work-orders-list">
+                  {workOrders.map((wo) => (
+                    <option key={wo.id} value={wo.order_number || ''}>
+                      {wo.bicycle_info || 'Bicicleta'} ({wo.status})
+                    </option>
+                  ))}
+                </datalist>
           </div>
         </div>
 
@@ -339,3 +351,4 @@ export const CashMovementModal: React.FC<CashMovementModalProps> = ({
     </Modal>
   );
 };
+

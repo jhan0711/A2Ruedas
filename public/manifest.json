@@ -11,24 +11,28 @@
   "theme_color": "#0f172a",
   "lang": "es-CO",
   "dir": "ltr",
-  "categories": ["business", "productivity", "utilities"],
+  "categories": [
+    "business",
+    "productivity",
+    "utilities"
+  ],
   "icons": [
     {
-      "src": "/icons/icon-192x192.svg",
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512x512.svg",
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-maskable-512x512.svg",
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
@@ -40,7 +44,7 @@
       "url": "/admin/ordenes/nueva",
       "icons": [
         {
-          "src": "/icons/icon-192x192.svg",
+          "src": "/icons/icon-192x192.png",
           "sizes": "192x192"
         }
       ]
@@ -52,19 +56,7 @@
       "url": "/productos",
       "icons": [
         {
-          "src": "/icons/icon-192x192.svg",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Escanear Código QR",
-      "short_name": "Escanear QR",
-      "description": "Identificar bicicleta o historial técnico",
-      "url": "/admin/qr",
-      "icons": [
-        {
-          "src": "/icons/icon-192x192.svg",
+          "src": "/icons/icon-192x192.png",
           "sizes": "192x192"
         }
       ]
@@ -76,7 +68,19 @@
       "url": "/admin/caja",
       "icons": [
         {
-          "src": "/icons/icon-192x192.svg",
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Módulo QR / Acceso",
+      "short_name": "QR",
+      "description": "Acceso QR",
+      "url": "/admin/qr",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
           "sizes": "192x192"
         }
       ]
