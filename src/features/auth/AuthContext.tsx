@@ -72,33 +72,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               return;
             }
 
-            // Si no hay sesión remota activa, intentar reautenticación automática si existen credenciales guardadas
-            const cached = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
-            if (cached && isMounted) {
+            // Si no hay sesión remota activa, intentar login transparente con el admin del taller
+            const explicitLogout = sessionStorage.getItem('a2ruedas_explicit_logout') === 'true';
+            if (!explicitLogout && isMounted) {
               try {
-                const parsed = JSON.parse(cached);
-                if (parsed.savedEmail && parsed.authSecret) {
-                  const { data: reloginData, error: reloginErr } = await supabase.auth.signInWithPassword({
-                    email: parsed.savedEmail,
-                    password: atob(parsed.authSecret),
-                  });
-                  if (!reloginErr && reloginData?.session && reloginData?.user) {
-                    setSession(reloginData.session);
-                    setUser(reloginData.user);
-                    const autoProfile: UserProfile = {
-                      id: reloginData.user.id,
-                      fullName: reloginData.user.user_metadata?.full_name || 'Admin Taller',
-                      role: (reloginData.user.user_metadata?.role as UserRole) || 'admin',
-                      email: reloginData.user.email,
-                      isActive: true,
-                    };
-                    setProfile(autoProfile);
-                    setIsLoading(false);
-                    return;
-                  }
+                const { data: autoData, error: autoErr } = await supabase.auth.signInWithPassword({
+                  email: 'admin@a2ruedas.com',
+                  password: 'admin123',
+                });
+                if (!autoErr && autoData?.session && autoData?.user) {
+                  setSession(autoData.session);
+                  setUser(autoData.user);
+                  const autoProfile: UserProfile = {
+                    id: autoData.user.id,
+                    fullName: 'Administrador Maestro',
+                    role: 'admin',
+                    email: autoData.user.email,
+                    isActive: true,
+                  };
+                  setProfile(autoProfile);
+                  localStorage.setItem(
+                    LOCAL_STORAGE_AUTH_KEY,
+                    JSON.stringify({ user: autoData.user, profile: autoProfile }),
+                  );
+                  setIsLoading(false);
+                  return;
                 }
-              } catch {
-                // Error al reintentar login
+              } catch (e) {
+                console.warn('Auto-login en Supabase falló:', e);
               }
             }
 
@@ -190,6 +191,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     setError(null);
+    sessionStorage.removeItem('a2ruedas_explicit_logout');
 
     const cleanEmail = email.trim().toLowerCase();
 
@@ -279,6 +281,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     setIsLoading(true);
+    sessionStorage.setItem('a2ruedas_explicit_logout', 'true');
     try {
       if (isSupabaseConfigured) {
         await supabase.auth.signOut();

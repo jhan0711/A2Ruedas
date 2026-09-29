@@ -33,6 +33,35 @@ export const customerService = {
         }
         const { data, error } = await query;
         if (!error && data) {
+          // Auto-sincronizar clientes creados en local que falten en Supabase
+          const localList = getLocalCustomers();
+          const supabasePhoneSet = new Set(data.map((c) => c.phone));
+          const unsynced = localList.filter((c) => !supabasePhoneSet.has(c.phone) && c.full_name && c.phone);
+          if (unsynced.length > 0) {
+            for (const item of unsynced) {
+              try {
+                const { data: syncedCust } = await supabase
+                  .from('customers')
+                  .insert([{
+                    full_name: item.full_name.trim(),
+                    phone: item.phone.trim(),
+                    whatsapp: item.whatsapp?.trim() || null,
+                    email: item.email?.trim() || null,
+                    document_id: item.document_id?.trim() || null,
+                    address: item.address?.trim() || null,
+                    notes: item.notes?.trim() || null,
+                  }])
+                  .select()
+                  .single();
+                if (syncedCust) {
+                  data.push(syncedCust);
+                }
+              } catch (e) {
+                console.warn('Auto-sync cliente pendiente:', e);
+              }
+            }
+          }
+
           saveLocalCustomers(data);
           return data;
         }

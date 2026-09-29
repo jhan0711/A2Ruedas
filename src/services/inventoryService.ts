@@ -212,6 +212,41 @@ export const inventoryService = {
         }
         const { data, error } = await query;
         if (!error && data) {
+          // Auto-sincronizar productos creados en local que falten en Supabase
+          const localList = getLocalProducts();
+          const supabaseSkuSet = new Set(data.map((p) => p.sku));
+          const unsynced = localList.filter((p) => !supabaseSkuSet.has(p.sku) && p.name && p.sku);
+          if (unsynced.length > 0) {
+            for (const item of unsynced) {
+              try {
+                const { data: syncedProd } = await supabase
+                  .from('products')
+                  .insert([{
+                    sku: item.sku,
+                    category_id: item.category_id,
+                    name: item.name,
+                    brand: item.brand,
+                    description: item.description || null,
+                    sale_price: Number(item.sale_price) || 0,
+                    stock: Number(item.stock) || 0,
+                    min_stock: Number(item.min_stock) || 0,
+                    unit: item.unit || 'unidad',
+                    location: item.location || null,
+                    image_url: item.image_url || null,
+                    images: Array.isArray(item.images) ? item.images : (item.image_url ? [item.image_url] : []),
+                    is_active: item.is_active !== undefined ? item.is_active : true,
+                  }])
+                  .select()
+                  .single();
+                if (syncedProd) {
+                  data.push(syncedProd);
+                }
+              } catch (e) {
+                console.warn('Auto-sync producto pendiente:', e);
+              }
+            }
+          }
+
           saveLocalProducts(data);
           return data;
         }
