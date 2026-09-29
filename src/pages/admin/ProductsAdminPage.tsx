@@ -363,19 +363,17 @@ export const ProductsAdminPage: React.FC = () => {
           />
         </div>
 
-        <div className="w-full sm:w-48">
-          <select
+        <div className="w-full sm:w-56">
+          <SearchableSelect
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
-          >
-            <option value="ALL">Todas las categorías</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setSelectedCategory(val || 'ALL')}
+            options={[
+              { value: 'ALL', label: 'Todas las categorías' },
+              ...categories.map((c) => ({ value: c.id, label: c.name })),
+            ]}
+            placeholder="Filtrar por categoría..."
+            className="w-full text-xs"
+          />
         </div>
 
         <div className="flex items-center gap-1">

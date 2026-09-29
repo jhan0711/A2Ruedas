@@ -868,17 +868,16 @@ export const WorkOrdersPage: React.FC = () => {
               <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Nuevo Estado de la Orden *
               </label>
-              <select
+              <SearchableSelect
                 value={newStatus}
-                onChange={(e) => setNewStatus(e.target.value as any)}
-                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium"
-              >
-                {STATUS_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setNewStatus(val as any)}
+                placeholder="Selecciona nuevo estado..."
+                options={STATUS_OPTIONS.map((opt) => ({
+                  value: opt.value,
+                  label: opt.label,
+                }))}
+                clearable={false}
+              />
             </div>
 
             <div className="space-y-1 text-left">

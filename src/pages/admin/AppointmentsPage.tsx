@@ -1283,17 +1283,17 @@ export const AppointmentsPage: React.FC = () => {
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Servicio Técnico Solicitado *
             </label>
-            <select
+            <SearchableSelect
               value={newServiceName}
-              onChange={(e) => setNewServiceName(e.target.value)}
-              className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
-            >
-              {COMMON_SERVICES.map((s) => (
-                <option key={s.name} value={s.name}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setNewServiceName(val)}
+              placeholder="Escribe o selecciona servicio..."
+              options={COMMON_SERVICES.map((s) => ({
+                value: s.name,
+                label: s.name,
+              }))}
+              emptyMessage="No se encontró ningún servicio"
+              required
+            />
           </div>
 
           {/* Fecha */}

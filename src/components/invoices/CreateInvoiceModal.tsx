@@ -316,21 +316,22 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
           {sourceMode === 'work_order' ? (
             <div className="space-y-1">
-              <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[11px]">
                 Seleccionar Orden OT a Facturar *
               </label>
-              <select
+              <SearchableSelect
                 value={selectedWorkOrderId}
-                onChange={(e) => handleWorkOrderSelect(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono font-bold text-blue-600"
-              >
-                <option value="">-- Elige una orden del taller --</option>
-                {workOrders.map((o) => (
-                  <option key={o.id} value={o.order_number}>
-                    {o.order_number} — {o.customer?.full_name} (${o.grand_total.toLocaleString('es-CO')}) [{o.status}]
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => handleWorkOrderSelect(val)}
+                placeholder="Escribe N° OT o nombre de cliente..."
+                options={workOrders.map((o) => ({
+                  value: o.order_number,
+                  label: `${o.order_number} — ${o.customer?.full_name || 'Cliente'}`,
+                  sublabel: `Total: $${o.grand_total.toLocaleString('es-CO')} • ${o.bicycle_info || 'Bicicleta'}`,
+                  badge: o.status,
+                }))}
+                emptyMessage="No se encontró ninguna orden de trabajo"
+                required
+              />
             </div>
           ) : (
             <div className="space-y-1">
@@ -429,17 +430,21 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 {/* Selector de Producto rápido si es mostrador */}
                 {sourceMode === 'counter' && (
                   <div className="col-span-12 sm:col-span-4">
-                    <select
-                      onChange={(e) => handleSelectProduct(item.id, e.target.value)}
-                      className="w-full py-1 px-2 rounded border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px]"
-                    >
-                      <option value="">-- Catálogo de Inventario --</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} (${p.sale_price.toLocaleString('es-CO')})
-                        </option>
-                      ))}
-                    </select>
+                    <SearchableSelect
+                      value=""
+                      onChange={(val) => {
+                        if (val) handleSelectProduct(item.id, val);
+                      }}
+                      placeholder="Buscar repuesto..."
+                      options={products.map((p) => ({
+                        value: p.id,
+                        label: p.name,
+                        sublabel: `SKU: ${p.sku} • $${p.sale_price.toLocaleString('es-CO')}`,
+                        badge: `Stock: ${p.stock}`,
+                      }))}
+                      emptyMessage="Sin resultados"
+                      clearable={false}
+                    />
                   </div>
                 )}
 

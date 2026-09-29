@@ -46,6 +46,7 @@ import {
   Button,
   Input,
   Select,
+  SearchableSelect,
   Card,
   Table,
   TableHeader,
@@ -922,20 +923,20 @@ export const ThermalPrintPage: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <Select
+                  <SearchableSelect
                     value={selectedBikeId}
-                    onChange={(e) => setSelectedBikeId(e.target.value)}
-                    className="w-full text-xs"
-                  >
-                    <option value="sample">
-                      📄 [Plantilla de Muestra] Trek Marlin 7 • Carlos Mendoza
-                    </option>
-                    {bicycles.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.brand} {b.model} • Prop: {b.customer?.full_name || 'Sin asignar'}
-                      </option>
-                    ))}
-                  </Select>
+                    onChange={(val) => setSelectedBikeId(val || 'sample')}
+                    placeholder="Buscar bicicleta o cliente..."
+                    options={[
+                      { value: 'sample', label: '📄 [Plantilla de Muestra] Trek Marlin 7 • Carlos Mendoza' },
+                      ...bicycles.map((b) => ({
+                        value: b.id,
+                        label: `${b.brand} ${b.model}`,
+                        sublabel: `Prop: ${b.customer?.full_name || 'Sin asignar'}${b.serial_number ? ` • Serial: ${b.serial_number}` : ''}`,
+                      })),
+                    ]}
+                    clearable={false}
+                  />
                 </div>
               )}
 
@@ -951,21 +952,21 @@ export const ThermalPrintPage: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <Select
+                  <SearchableSelect
                     value={selectedOrderId}
-                    onChange={(e) => setSelectedOrderId(e.target.value)}
-                    className="w-full text-xs"
-                  >
-                    <option value="sample">
-                      📄 [Plantilla de Muestra] OT-000001 • Trek Marlin 7 • Carlos Mendoza • $110.000
-                    </option>
-                    {workOrders.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.order_number} • {o.bicycle?.brand} {o.bicycle?.model} •{' '}
-                        {o.customer?.full_name || 'Consumidor Final'} • ${o.grand_total.toLocaleString('es-CO')}
-                      </option>
-                    ))}
-                  </Select>
+                    onChange={(val) => setSelectedOrderId(val || 'sample')}
+                    placeholder="Buscar OT o cliente..."
+                    options={[
+                      { value: 'sample', label: '📄 [Plantilla de Muestra] OT-000001 • Trek Marlin 7 • Carlos Mendoza' },
+                      ...workOrders.map((o) => ({
+                        value: o.id,
+                        label: `${o.order_number} • ${o.customer?.full_name || 'Consumidor Final'}`,
+                        sublabel: `${o.bicycle_info || 'Bicicleta'} • Total: $${o.grand_total.toLocaleString('es-CO')}`,
+                        badge: o.status,
+                      })),
+                    ]}
+                    clearable={false}
+                  />
                 </div>
               )}
 
@@ -981,20 +982,21 @@ export const ThermalPrintPage: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <Select
+                  <SearchableSelect
                     value={selectedInvoiceId}
-                    onChange={(e) => setSelectedInvoiceId(e.target.value)}
-                    className="w-full text-xs"
-                  >
-                    <option value="sample">
-                      📄 [Plantilla de Muestra Oficial] FAC-000001 • Carlos Mendoza • $115.000 (Calibración)
-                    </option>
-                    {invoices.map((inv) => (
-                      <option key={inv.id} value={inv.id}>
-                        {inv.invoice_number} • {inv.customer?.full_name || 'Consumidor Final'} • ${inv.total.toLocaleString('es-CO')} • ({inv.payment_status})
-                      </option>
-                    ))}
-                  </Select>
+                    onChange={(val) => setSelectedInvoiceId(val || 'sample')}
+                    placeholder="Buscar por N° factura o cliente..."
+                    options={[
+                      { value: 'sample', label: '📄 [Plantilla de Muestra Oficial] FAC-000001 • Carlos Mendoza' },
+                      ...invoices.map((inv) => ({
+                        value: inv.id,
+                        label: `${inv.invoice_number} • ${inv.customer?.full_name || 'Consumidor Final'}`,
+                        sublabel: `Total: $${inv.total.toLocaleString('es-CO')}`,
+                        badge: inv.payment_status,
+                      })),
+                    ]}
+                    clearable={false}
+                  />
                 </div>
               )}
 
@@ -1010,22 +1012,21 @@ export const ThermalPrintPage: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <Select
+                  <SearchableSelect
                     value={selectedRegisterId}
-                    onChange={(e) => setSelectedRegisterId(e.target.value)}
-                    className="w-full text-xs"
-                  >
-                    <option value="sample">
-                      📄 [Plantilla de Muestra] 🟢 SESIÓN EN VIVO • Cierre Diario y Arqueo de Gaveta
-                    </option>
-                    {cashRegisters.map((reg) => (
-                      <option key={reg.id} value={reg.id}>
-                        {reg.status === 'OPEN' ? '🟢 EN VIVO' : '⚪ CERRADA'} • ID:{' '}
-                        {reg.id.slice(0, 10).toUpperCase()} • {reg.opened_by} •{' '}
-                        {new Date(reg.opened_at).toLocaleDateString('es-CO')}
-                      </option>
-                    ))}
-                  </Select>
+                    onChange={(val) => setSelectedRegisterId(val || 'sample')}
+                    placeholder="Buscar sesión de caja..."
+                    options={[
+                      { value: 'sample', label: '📄 [Plantilla de Muestra] 🟢 SESIÓN EN VIVO • Cierre Diario' },
+                      ...cashRegisters.map((reg) => ({
+                        value: reg.id,
+                        label: `Sesión del ${new Date(reg.opened_at).toLocaleDateString('es-CO')}`,
+                        sublabel: `Base: $${reg.opening_balance.toLocaleString('es-CO')}`,
+                        badge: reg.status,
+                      })),
+                    ]}
+                    clearable={false}
+                  />
                 </div>
               )}
             </Card>

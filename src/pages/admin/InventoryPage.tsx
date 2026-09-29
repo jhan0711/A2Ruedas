@@ -30,6 +30,7 @@ import {
   LoadingSpinner,
   EmptyState,
   Alert,
+  SearchableSelect,
 } from '../../components/ui';
 
 export const InventoryPage: React.FC = () => {
@@ -549,19 +550,19 @@ export const InventoryPage: React.FC = () => {
             <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
               Producto / Repuesto *
             </label>
-            <select
+            <SearchableSelect
               value={selectedProductId}
-              onChange={(e) => setSelectedProductId(e.target.value)}
-              className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              onChange={(val) => setSelectedProductId(val)}
+              placeholder="Escribe para buscar por nombre o SKU..."
+              options={products.map((p) => ({
+                value: p.id,
+                label: p.name,
+                sublabel: `SKU: ${p.sku} • Stock actual: ${p.stock} ${p.unit}`,
+                badge: `Stock: ${p.stock}`,
+              }))}
+              emptyMessage="No se encontró ningún producto"
               required
-            >
-              <option value="">Selecciona un producto...</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} [{p.sku}] — Stock actual: {p.stock} {p.unit}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Cantidad y Previsualización Matemática */}
