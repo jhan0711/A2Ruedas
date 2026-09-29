@@ -33,6 +33,7 @@ import {
   LoadingSpinner,
   EmptyState,
   Alert,
+  SearchableSelect,
 } from '../../components/ui';
 
 export const ProductsAdminPage: React.FC = () => {
@@ -628,22 +629,18 @@ export const ProductsAdminPage: React.FC = () => {
                   <Plus className="w-3 h-3" /> Nueva
                 </button>
               </div>
-              <select
+              <SearchableSelect
                 value={formData.category_id}
-                onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
-                required
-              >
-                <option value="">-- Seleccionar categoría --</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              {formErrors.category_id && (
-                <span className="text-[11px] text-red-600 block mt-1">{formErrors.category_id}</span>
-              )}
+                onChange={(val) => setFormData({ ...formData, category_id: val })}
+                placeholder="Selecciona o escribe categoría..."
+                options={categories.map((c) => ({
+                  value: c.id,
+                  label: c.name,
+                  sublabel: c.description || undefined,
+                }))}
+                emptyMessage="No se encontró ninguna categoría"
+                error={formErrors.category_id}
+              />
             </div>
           </div>
 

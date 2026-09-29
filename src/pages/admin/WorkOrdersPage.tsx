@@ -49,6 +49,7 @@ import {
   LoadingSpinner,
   EmptyState,
   Alert,
+  SearchableSelect,
 } from '../../components/ui';
 
 const STATUS_OPTIONS: { value: WorkOrderStatus; label: string }[] = [
@@ -93,7 +94,6 @@ export const WorkOrdersPage: React.FC = () => {
   const [newServiceDesc, setNewServiceDesc] = useState('');
   const [newServicePrice, setNewServicePrice] = useState<number | ''>(0);
   const [selectedProductId, setSelectedProductId] = useState('');
-    const [partSearch, setPartSearch] = useState('');
   const [productQuantity, setProductQuantity] = useState<number | ''>(1);
 
   // Modal Cambiar Estado
@@ -158,7 +158,7 @@ export const WorkOrdersPage: React.FC = () => {
   const openCreateModal = async () => {
     const nextNum = await workOrderService.getNextOrderNumber();
     setNextOrderNumber(nextNum);
-    setSelectedCustomerId(customers.length > 0 ? customers[0].id : '');
+    setSelectedCustomerId('');
     setBicycleInfo('');
     setReportedIssues('');
     setAccessoriesReceived('');
@@ -168,7 +168,7 @@ export const WorkOrdersPage: React.FC = () => {
     setOrderItems([]);
     setNewServiceDesc('');
     setNewServicePrice(0);
-    setSelectedProductId(products.length > 0 ? products[0].id : '');
+    setSelectedProductId('');
     setProductQuantity(1);
     setFormErrors({});
     setFormModalOpen(true);
@@ -204,6 +204,7 @@ export const WorkOrdersPage: React.FC = () => {
     };
     setOrderItems([...orderItems, item]);
     setProductQuantity(1);
+    setSelectedProductId('');
   };
 
   const handleRemoveItem = (index: number) => {
@@ -622,27 +623,21 @@ export const WorkOrdersPage: React.FC = () => {
                   + Nuevo
                 </Button>
               </div>
-              <input
-                list="workorders-customer-list"
-                required
+              <SearchableSelect
                 value={selectedCustomerId}
-                onChange={(e) => {
-                  setSelectedCustomerId(e.target.value);
+                onChange={(val) => {
+                  setSelectedCustomerId(val);
                   setBicycleInfo('');
                 }}
-                placeholder="Buscar por nombre o teléfono..."
-                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
+                placeholder="Selecciona o escribe para buscar cliente..."
+                options={customers.map((c) => ({
+                  value: c.id,
+                  label: c.full_name,
+                  sublabel: `Tel: ${c.phone}${c.document_id ? ` • Doc: ${c.document_id}` : ''}`,
+                }))}
+                emptyMessage="No se encontró ningún cliente"
+                error={formErrors.customer}
               />
-              <datalist id="workorders-customer-list">
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.full_name} - {c.phone}
-                  </option>
-                ))}
-              </datalist>
-              {formErrors.customer && (
-                <span className="text-[11px] text-red-600 block mt-1">{formErrors.customer}</span>
-              )}
             </div>
 
             <div>
@@ -737,29 +732,21 @@ export const WorkOrdersPage: React.FC = () => {
                 <span className="text-[10px] font-bold uppercase text-slate-500 block">
                   + Agregar Repuesto de Inventario (Kardex)
                 </span>
-                <div className="flex flex-col gap-1 w-full">
-                    <input
-                      type="text"
-                      placeholder="Buscar repuesto..."
-                      value={partSearch}
-                      onChange={(e) => setPartSearch(e.target.value)}
-                      className="w-full text-xs p-1.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                    />
-                    <input
-                      list="workorders-products-list"
-                      value={selectedProductId}
-                      onChange={(e) => setSelectedProductId(e.target.value)}
-                      placeholder="Escribe para buscar..."
-                      className="w-full text-xs p-1.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                    />
-                    <datalist id="workorders-products-list">
-                      {products.filter(p => p.name.toLowerCase().includes(partSearch.toLowerCase())).map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} — ${p.sale_price.toLocaleString('es-CO')} (Stock: {p.stock})
-                        </option>
-                      ))}
-                    </datalist>
-                  </div>
+                <div className="w-full">
+                  <SearchableSelect
+                    value={selectedProductId}
+                    onChange={(val) => setSelectedProductId(val)}
+                    placeholder="Escribe el nombre del repuesto (ej: llanta, cadena)..."
+                    options={products.map((p) => ({
+                      value: p.id,
+                      label: p.name,
+                      sublabel: `SKU: ${p.sku} • $${p.sale_price.toLocaleString('es-CO')}`,
+                      badge: `Stock: ${p.stock}`,
+                      disabled: p.stock <= 0,
+                    }))}
+                    emptyMessage="No se encontró ningún repuesto con ese nombre"
+                  />
+                </div>
                 <div className="flex gap-2">
                   <input
                     type="number" onFocus={(e) => e.target.select()}

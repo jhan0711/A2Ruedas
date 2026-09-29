@@ -22,7 +22,7 @@ import { invoiceService } from '../../services/invoiceService';
 import { customerService } from '../../services/customerService';
 import { workOrderService } from '../../services/workOrderService';
 import { inventoryService } from '../../services/inventoryService';
-import { Modal, Button } from '../ui';
+import { Modal, Button, SearchableSelect } from '../ui';
 
 interface CreateInvoiceModalProps {
   isOpen: boolean;
@@ -340,22 +340,18 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 </label>
                 <span className="text-[10px] text-slate-500 italic">Venta rápida: dejar en blanco</span>
               </div>
-              <select
+              <SearchableSelect
                 value={selectedCustomerId}
-                onChange={(e) => setSelectedCustomerId(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white"
-              >
-                <option value="">👤 Consumidor Final / Venta Rápida (Sin registrar datos)</option>
-                {customers.length > 0 && (
-                  <optgroup label="Clientes Registrados en el Taller">
-                    {customers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.full_name} {c.document_id ? `(CC: ${c.document_id})` : c.phone ? `(${c.phone})` : ''}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
+                onChange={(val) => setSelectedCustomerId(val)}
+                placeholder="Consumidor Final (o escribe para buscar cliente)..."
+                options={customers.map((c) => ({
+                  value: c.id,
+                  label: c.full_name,
+                  sublabel: `Tel: ${c.phone}${c.document_id ? ` • Doc: ${c.document_id}` : ''}`,
+                }))}
+                emptyMessage="No se encontró ningún cliente"
+                clearable={true}
+              />
             </div>
           )}
 
@@ -578,13 +574,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
           </div>
         </div>
       </form>
-      <datalist id="invoice-products-datalist">
-        {products.map((p) => (
-          <option key={p.id} value={`${p.name} - $${p.sale_price}`}>
-            Stock: {p.stock}
-          </option>
-        ))}
-      </datalist>
     </Modal>
   );
 };

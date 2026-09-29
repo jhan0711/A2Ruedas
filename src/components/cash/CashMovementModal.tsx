@@ -18,7 +18,7 @@ import {
 import { cashService } from '../../services/cashService';
 import { workOrderService } from '../../services/workOrderService';
 import { WorkOrder } from '../../types/database';
-import { Modal, Button } from '../ui';
+import { Modal, Button, SearchableSelect } from '../ui';
 
 interface CashMovementModalProps {
   isOpen: boolean;
@@ -301,21 +301,19 @@ export const CashMovementModal: React.FC<CashMovementModalProps> = ({
               <FileText className="w-3.5 h-3.5 text-slate-400" />
               N° Orden OT Vinculada (Opcional)
             </label>
-            <input
-                  list="work-orders-list"
-                  type="text"
-                  value={referenceId}
-                  onChange={(e) => setReferenceId(e.target.value)}
-                  placeholder="Ej: OT-000001"
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 uppercase"
-                />
-                <datalist id="work-orders-list">
-                  {workOrders.map((wo) => (
-                    <option key={wo.id} value={wo.order_number || ''}>
-                      {wo.bicycle_info || 'Bicicleta'} ({wo.status})
-                    </option>
-                  ))}
-                </datalist>
+            <SearchableSelect
+              value={referenceId}
+              onChange={(val) => setReferenceId(val)}
+              placeholder="Buscar por N° OT o bicicleta..."
+              options={workOrders.map((wo) => ({
+                value: wo.order_number,
+                label: wo.order_number,
+                sublabel: `${wo.bicycle_info || 'Bicicleta'}${wo.customer ? ` • ${wo.customer.full_name}` : ''}`,
+                badge: wo.status,
+              }))}
+              emptyMessage="No se encontró ninguna orden de trabajo"
+              clearable={true}
+            />
           </div>
         </div>
 

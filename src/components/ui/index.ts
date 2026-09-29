@@ -13,3 +13,4 @@ export * from './Skeleton';
 export * from './SkipToContent';
 export * from './ToastContainer';
 export * from './PageLoadingFallback';
+export * from './SearchableSelect';

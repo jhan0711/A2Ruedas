@@ -23,7 +23,7 @@ import {
 } from '../../services/appointmentService';
 import { customerService } from '../../services/customerService';
 import { QuickCustomerModal } from '../../components/customers/QuickCustomerModal';
-import { Button, Card, Modal, ConfirmModal, Alert, LoadingSpinner } from '../../components/ui';
+import { Button, Card, Modal, ConfirmModal, Alert, LoadingSpinner, SearchableSelect } from '../../components/ui';
 
 type CalendarView = 'month' | 'week' | 'day' | 'list';
 
@@ -1250,21 +1250,17 @@ export const AppointmentsPage: React.FC = () => {
                   + Nuevo
                 </Button>
               </div>
-              <input
-                list="appointments-customer-list"
-                required
+              <SearchableSelect
                 value={newCustomerId}
-                onChange={(e) => setNewCustomerId(e.target.value)}
-                placeholder="Buscar por nombre o teléfono..."
-                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
+                onChange={(val) => setNewCustomerId(val)}
+                placeholder="Selecciona o escribe para buscar cliente..."
+                options={customers.map((c) => ({
+                  value: c.id,
+                  label: c.full_name,
+                  sublabel: `Tel: ${c.phone}${c.document_id ? ` • Doc: ${c.document_id}` : ''}`,
+                }))}
+                emptyMessage="No se encontró ningún cliente"
               />
-              <datalist id="appointments-customer-list">
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.full_name} - {c.phone}
-                  </option>
-                ))}
-              </datalist>
           </div>
 
           {/* Selección de Bicicleta */}
