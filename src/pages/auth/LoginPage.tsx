@@ -94,19 +94,6 @@ export const LoginPage: React.FC = () => {
             leftIcon={<Lock className="w-4 h-4" />}
           />
 
-          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-            <span>Credenciales de acceso inicial:</span>
-            <button
-              type="button"
-              onClick={() => {
-                setEmail('admin@a2ruedas.com');
-                setPassword('admin123');
-              }}
-              className="text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline font-semibold"
-            >
-              Cargar admin
-            </button>
-          </div>
 
           <Button
             type="submit"

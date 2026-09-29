@@ -54,14 +54,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             if (data?.session && isMounted) {
+              // Consultar perfil en base de datos para verificar estado activo y rol
+              let dbProfile: any = null;
+              try {
+                const { data: prof } = await supabase
+                  .from('profiles')
+                  .select('*')
+                  .eq('id', data.session.user.id)
+                  .maybeSingle();
+                dbProfile = prof;
+              } catch (pErr) {
+                console.warn('No se pudo consultar perfil remoto:', pErr);
+              }
+
+              if (dbProfile && !dbProfile.is_active) {
+                console.warn('Cuenta inactiva detectada en sesión inicial. Cerrando sesión.');
+                await supabase.auth.signOut();
+                setSession(null);
+                setUser(null);
+                setProfile(null);
+                localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
+                setIsLoading(false);
+                return;
+              }
+
               setSession(data.session);
               setUser(data.session.user);
               const loadedProfile: UserProfile = {
                 id: data.session.user.id,
-                fullName: data.session.user.user_metadata?.full_name || 'Admin Taller',
-                role: (data.session.user.user_metadata?.role as UserRole) || 'admin',
+                fullName:
+                  dbProfile?.full_name ||
+                  data.session.user.user_metadata?.full_name ||
+                  'Usuario Taller',
+                role:
+                  (dbProfile?.role as UserRole) ||
+                  (data.session.user.user_metadata?.role as UserRole) ||
+                  'admin',
                 email: data.session.user.email,
-                isActive: true,
+                phone: dbProfile?.phone?.split(':::')[0] || data.session.user.user_metadata?.phone,
+                isActive: dbProfile?.is_active ?? true,
               };
               setProfile(loadedProfile);
               localStorage.setItem(
@@ -72,38 +103,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               return;
             }
 
-            // Si no hay sesión remota activa, intentar login transparente con el admin del taller
-            const explicitLogout = sessionStorage.getItem('a2ruedas_explicit_logout') === 'true';
-            if (!explicitLogout && isMounted) {
-              try {
-                const { data: autoData, error: autoErr } = await supabase.auth.signInWithPassword({
-                  email: 'admin@a2ruedas.com',
-                  password: 'admin123',
-                });
-                if (!autoErr && autoData?.session && autoData?.user) {
-                  setSession(autoData.session);
-                  setUser(autoData.user);
-                  const autoProfile: UserProfile = {
-                    id: autoData.user.id,
-                    fullName: 'Administrador Maestro',
-                    role: 'admin',
-                    email: autoData.user.email,
-                    isActive: true,
-                  };
-                  setProfile(autoProfile);
-                  localStorage.setItem(
-                    LOCAL_STORAGE_AUTH_KEY,
-                    JSON.stringify({ user: autoData.user, profile: autoProfile }),
-                  );
-                  setIsLoading(false);
-                  return;
-                }
-              } catch (e) {
-                console.warn('Auto-login en Supabase falló:', e);
-              }
-            }
-
-            // Si Supabase está configurado y no hay sesión válida, limpiar estados para forzar login real
+            // Si Supabase está configurado y no hay sesión activa previa,
+            // NO auto-loguear: requerir que el usuario ingrese sus credenciales explícitamente
             if (isMounted) {
               setSession(null);
               setUser(null);
@@ -198,19 +199,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // 1. Intentar inicio de sesión real en Supabase Auth
       if (isSupabaseConfigured) {
-        const { data, error: sbError } = await supabase.auth.signInWithPassword({
+        let authResponse = await supabase.auth.signInWithPassword({
           email: cleanEmail,
           password,
         });
 
-        if (!sbError && data.session && data.user) {
+        // Si falló por credenciales incorrectas, verificar si es usuario con sincronización de primer login
+        if (
+          authResponse.error &&
+          authResponse.error.message === 'Invalid login credentials'
+        ) {
+          try {
+            // Intentar autenticación con contraseña de sincronización inicial
+            const tempRes = await supabase.auth.signInWithPassword({
+              email: cleanEmail,
+              password: 'TemporaryPassword123!',
+            });
+
+            if (!tempRes.error && tempRes.data.session) {
+              // Actualizar de inmediato la contraseña en Supabase con la que ingresó el usuario
+              await supabase.auth.updateUser({ password });
+              authResponse = tempRes;
+            }
+          } catch {
+            // Continuar con el error original si falla la sincronización
+          }
+        }
+
+        const { data, error: sbError } = authResponse;
+
+        if (!sbError && data?.session && data?.user) {
+          // Consultar perfil para verificar si la cuenta está activa y obtener rol
+          let dbProfile: any = null;
+          try {
+            const { data: prof } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', data.user.id)
+              .maybeSingle();
+            dbProfile = prof;
+          } catch (pErr) {
+            console.warn('No se pudo verificar el perfil en base de datos:', pErr);
+          }
+
+          if (dbProfile && !dbProfile.is_active) {
+            await supabase.auth.signOut();
+            setIsLoading(false);
+            const suspendedMsg =
+              'Acceso denegado: Esta cuenta ha sido suspendida o desactivada por la administración.';
+            setError(suspendedMsg);
+            return { success: false, error: suspendedMsg };
+          }
+
           setSession(data.session);
           setUser(data.user);
           const userProfile: UserProfile = {
             id: data.user.id,
-            fullName: data.user.user_metadata?.full_name || 'Administrador Taller',
-            role: (data.user.user_metadata?.role as UserRole) || 'admin',
-            isActive: true,
+            fullName:
+              dbProfile?.full_name ||
+              data.user.user_metadata?.full_name ||
+              'Personal del Taller',
+            role:
+              (dbProfile?.role as UserRole) ||
+              (data.user.user_metadata?.role as UserRole) ||
+              'admin',
+            email: data.user.email,
+            phone: dbProfile?.phone?.split(':::')[0] || data.user.user_metadata?.phone,
+            isActive: dbProfile?.is_active ?? true,
           };
           setProfile(userProfile);
           localStorage.setItem(

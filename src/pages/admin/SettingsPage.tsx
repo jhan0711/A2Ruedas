@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Settings,
@@ -71,10 +71,28 @@ export const SettingsPage: React.FC = () => {
 
   // Estados de usuarios
   const [userList, setUserList] = useState<WorkshopUser[]>(() => userService.getUsers());
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [isSavingUser, setIsSavingUser] = useState(false);
   const [userModalOpen, setUserModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<WorkshopUser | null>(null);
   const [deleteUserModalOpen, setDeleteUserModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<WorkshopUser | null>(null);
+
+  // Sincronizar usuarios desde Supabase al montar la página
+  useEffect(() => {
+    async function loadWorkshopUsers() {
+      setIsLoadingUsers(true);
+      try {
+        const remoteUsers = await userService.fetchUsers();
+        setUserList(remoteUsers);
+      } catch (err) {
+        console.warn('Error al cargar usuarios de Supabase:', err);
+      } finally {
+        setIsLoadingUsers(false);
+      }
+    }
+    loadWorkshopUsers();
+  }, []);
 
   // Formulario de Usuario (Nuevo / Edición)
   const [userFormName, setUserFormName] = useState('');
@@ -188,7 +206,7 @@ export const SettingsPage: React.FC = () => {
     setUserModalOpen(true);
   };
 
-  const handleSaveUser = (e: React.FormEvent) => {
+  const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setUserFormError(null);
 
@@ -205,20 +223,24 @@ export const SettingsPage: React.FC = () => {
       return;
     }
 
+    setIsSavingUser(true);
+
     if (!editingUser) {
       // Validaciones para nuevo usuario
       if (!userFormPassword || userFormPassword.length < 6) {
         setUserFormError('La contraseña debe contener al menos 6 caracteres.');
+        setIsSavingUser(false);
         return;
       }
 
       if (userFormPassword !== userFormPasswordConfirm) {
         setUserFormError('Las contraseñas no coinciden. Por favor verifícalas.');
+        setIsSavingUser(false);
         return;
       }
 
       try {
-        userService.createUser({
+        await userService.createUser({
           fullName: cleanName,
           email: cleanEmail,
           phone: userFormPhone.trim(),
@@ -227,16 +249,19 @@ export const SettingsPage: React.FC = () => {
           isActive: userFormIsActive,
         });
 
-        setUserList(userService.getUsers());
+        const refreshed = await userService.fetchUsers();
+        setUserList(refreshed);
         setUserModalOpen(false);
         setAlertMessage({
           variant: 'success',
-          title: 'Usuario agregado',
-          text: `Se ha registrado exitosamente a "${cleanName}" (${cleanEmail}). Ya puede iniciar sesión con sus credenciales.`,
+          title: 'Usuario registrado con éxito',
+          text: `Se ha registrado a "${cleanName}" (${cleanEmail}) en la base de datos de Supabase. Ya puede iniciar sesión en cualquier dispositivo.`,
         });
-        setTimeout(() => setAlertMessage(null), 4000);
+        setTimeout(() => setAlertMessage(null), 5000);
       } catch (err: any) {
-        setUserFormError(err.message || 'Error al registrar el usuario.');
+        setUserFormError(err.message || 'Error al registrar el usuario en base de datos.');
+      } finally {
+        setIsSavingUser(false);
       }
     } else {
       // Edición de usuario existente
@@ -252,26 +277,31 @@ export const SettingsPage: React.FC = () => {
         if (userFormPassword && userFormPassword.trim().length > 0) {
           if (userFormPassword.length < 6) {
             setUserFormError('La nueva contraseña debe tener mínimo 6 caracteres.');
+            setIsSavingUser(false);
             return;
           }
           if (userFormPassword !== userFormPasswordConfirm) {
             setUserFormError('Las nuevas contraseñas no coinciden.');
+            setIsSavingUser(false);
             return;
           }
           updates.password = userFormPassword;
         }
 
-        userService.updateUser(editingUser.id, updates);
-        setUserList(userService.getUsers());
+        await userService.updateUser(editingUser.id, updates);
+        const refreshed = await userService.fetchUsers();
+        setUserList(refreshed);
         setUserModalOpen(false);
         setAlertMessage({
           variant: 'success',
           title: 'Usuario actualizado',
-          text: `La información de "${cleanName}" ha sido actualizada correctamente.`,
+          text: `La información de "${cleanName}" ha sido actualizada correctamente en el sistema.`,
         });
-        setTimeout(() => setAlertMessage(null), 4000);
+        setTimeout(() => setAlertMessage(null), 5000);
       } catch (err: any) {
         setUserFormError(err.message || 'Error al actualizar el usuario.');
+      } finally {
+        setIsSavingUser(false);
       }
     }
   };
@@ -281,24 +311,25 @@ export const SettingsPage: React.FC = () => {
     setDeleteUserModalOpen(true);
   };
 
-  const handleConfirmDeleteUser = () => {
+  const handleConfirmDeleteUser = async () => {
     if (!userToDelete) return;
     try {
-      userService.deleteUser(userToDelete.id);
-      setUserList(userService.getUsers());
+      await userService.deleteUser(userToDelete.id);
+      const refreshed = await userService.fetchUsers();
+      setUserList(refreshed);
       setDeleteUserModalOpen(false);
       setUserToDelete(null);
       setAlertMessage({
         variant: 'info',
         title: 'Usuario eliminado',
-        text: 'La cuenta ha sido eliminada del taller.',
+        text: 'La cuenta ha sido eliminada del taller y de la base de datos.',
       });
-      setTimeout(() => setAlertMessage(null), 3500);
+      setTimeout(() => setAlertMessage(null), 4000);
     } catch (err: any) {
       setAlertMessage({
         variant: 'error',
-        title: 'No se pudo eliminar',
-        text: err.message || 'Error al intentar eliminar el usuario.',
+        title: 'Error al eliminar usuario',
+        text: err.message || 'No fue posible eliminar la cuenta.',
       });
       setDeleteUserModalOpen(false);
     }
@@ -678,7 +709,12 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             {/* Listado de Usuarios */}
-            <div className="overflow-x-auto">
+            {isLoadingUsers && userList.length <= 1 ? (
+              <div className="py-8 text-center text-xs text-slate-400">
+                Sincronizando usuarios autorizados con Supabase...
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -692,7 +728,10 @@ export const SettingsPage: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
                   {userList.map((usr) => {
-                    const isMasterAdmin = usr.id === INITIAL_ADMIN_USER.id;
+                    const isMasterAdmin =
+                      usr.id === INITIAL_ADMIN_USER.id ||
+                      usr.id === 'user-admin-main' ||
+                      usr.email.toLowerCase() === 'admin@a2ruedas.com';
                     const roleBadge =
                       usr.role === 'admin' ? (
                         <Badge variant="purple" className="font-semibold">
@@ -787,6 +826,7 @@ export const SettingsPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            )}
           </Card>
         </div>
       )}
@@ -1419,6 +1459,7 @@ export const SettingsPage: React.FC = () => {
               type="submit"
               variant="primary"
               size="md"
+              isLoading={isSavingUser}
               leftIcon={<Save className="w-4 h-4" />}
             >
               {editingUser ? 'Guardar Cambios' : 'Registrar Usuario'}
