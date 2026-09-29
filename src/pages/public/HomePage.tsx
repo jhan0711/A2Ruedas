@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Bike, Wrench, ShieldCheck, Clock, MapPin, Search, ArrowRight, MessageCircle } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Bike, Wrench, ShieldCheck, Clock, MapPin, ArrowRight, MessageCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
   workshopSettingsService,
   WORKSHOP_SETTINGS_EVENT,
@@ -8,9 +8,7 @@ import {
 } from '../../services/workshopSettingsService';
 
 export const HomePage: React.FC = () => {
-  const [qrCodeInput, setQrCodeInput] = useState('');
   const [settings, setSettings] = useState(() => workshopSettingsService.getSettings());
-  const navigate = useNavigate();
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -29,14 +27,6 @@ export const HomePage: React.FC = () => {
     `Hola ${settings.name}, quisiera agendar un mantenimiento para mi bicicleta en el taller.`
   )}`;
 
-  const handleLookupBike = (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanCode = qrCodeInput.trim().toUpperCase();
-    if (cleanCode) {
-      navigate(`/bike/${cleanCode}`);
-    }
-  };
-
   return (
     <div className="space-y-12 py-4">
       {/* Hero Section */}
@@ -51,7 +41,7 @@ export const HomePage: React.FC = () => {
         </h1>
 
         <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
-          Mantenimiento preventivo y correctivo, repuestos originales de alta gama, diagnóstico computarizado y seguimiento en tiempo real con código QR.
+          Mantenimiento preventivo y correctivo, repuestos originales de alta gama, diagnóstico computarizado y atención técnica personalizada.
         </p>
 
         {/* Acciones principales */}
@@ -73,36 +63,6 @@ export const HomePage: React.FC = () => {
             <span>Consultar por WhatsApp</span>
           </a>
         </div>
-      </section>
-
-
-      {/* Caja de consulta de Bicicleta por Código QR */}
-      <section className="max-w-lg mx-auto p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
-        <div className="text-center mb-3">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-            ¿Tienes el código QR de tu bicicleta?
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Ingresa el identificador (ejemplo: <span className="font-mono text-blue-600 font-semibold">BIKE-8F3A92</span>) para ver el historial de mantenimiento.
-          </p>
-        </div>
-
-        <form onSubmit={handleLookupBike} className="flex gap-2">
-          <input
-            type="text"
-            value={qrCodeInput}
-            onChange={(e) => setQrCodeInput(e.target.value)}
-            placeholder="BIKE-XXXXXX"
-            className="flex-1 px-3 py-2 rounded-md border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-xs font-mono uppercase tracking-wider text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-          <button
-            type="submit"
-            className="px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
-          >
-            <Search className="w-3.5 h-3.5" />
-            <span>Consultar</span>
-          </button>
-        </form>
       </section>
 
       {/* Repuestos Destacados con Imágenes */}
@@ -208,9 +168,9 @@ export const HomePage: React.FC = () => {
           <div className="w-8 h-8 rounded-md bg-purple-100 dark:bg-purple-950 flex items-center justify-center text-purple-600">
             <Clock className="w-4 h-4" />
           </div>
-          <h3 className="font-bold text-sm text-slate-900 dark:text-white">Trazabilidad por QR</h3>
+          <h3 className="font-bold text-sm text-slate-900 dark:text-white">Garantía y Rapidez</h3>
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            Cada bicicleta recibe un adhesivo con código QR único para consultar cuándo se realizó su último servicio y qué repuestos se cambiaron.
+            Entregas puntuales, diagnósticos claros y respaldo técnico con repuestos garantizados en cada servicio.
           </p>
         </div>
       </section>

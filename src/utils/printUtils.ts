@@ -687,7 +687,7 @@ export function generateThermalTicketHtml(order: WorkOrder, signature: Signature
       <div class="divider"></div>
 
       <div class="text-center" style="font-size: 8px;">
-        <div>CONSULTA QR: ${order.order_number}</div>
+        <div class="bold">ORDEN N°: ${order.order_number}</div>
         <div style="margin-top: 3px; line-height: 1.1;">
           Garantía: 30 días en ajustes.<br>
           Retiro máximo: 30 días posteriores al aviso.
@@ -1328,7 +1328,7 @@ export function printInvoiceDocument(
 }
 
 /**
- * 1. Genera Marbete / Etiqueta Adhesiva de Bicicleta para Rollo Térmico Continuo (con Código QR)
+ * 1. Genera Marbete / Etiqueta Adhesiva de Bicicleta para Rollo Térmico Continuo
  */
 export function generateBikeTagThermalHtml(
   bike: Bicycle,
@@ -1339,7 +1339,7 @@ export function generateBikeTagThermalHtml(
   const cfg = settings || printerService.getSettings();
   const widthMm = printerService.getPrintableWidthMm(cfg.paper_width);
   const fontSizePx = printerService.getFontSizePx(cfg.font_density);
-  const qrCodeStr = bike.qr_code || 'BIKE-000000';
+  const bikeTagId = bike.serial_number || (bike.id ? bike.id.slice(0, 8).toUpperCase() : 'BICI');
   const ownerName = bike.customer?.full_name || workOrder?.customer?.full_name || 'Consumidor Final';
   const ownerPhone = bike.customer?.phone || workOrder?.customer?.phone || 'No registrado';
   const dateStr = new Date().toLocaleDateString('es-CO');
@@ -1349,7 +1349,7 @@ export function generateBikeTagThermalHtml(
     <html lang="es">
     <head>
       <meta charset="utf-8">
-      <title>Marbete ${qrCodeStr}</title>
+      <title>Marbete ${bikeTagId}</title>
       <style>
         @page { size: auto; margin: 0; }
         * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -1381,10 +1381,8 @@ export function generateBikeTagThermalHtml(
 
       <div class="divider"></div>
 
-
-
-      <div class="text-center bold" style="font-size: 14px; letter-spacing: 1px; margin-top: 2px;">
-        ${qrCodeStr}
+      <div class="text-center bold" style="font-size: 13px; letter-spacing: 0.5px; margin-top: 2px;">
+        IDENTIFICACIÓN DE TALLER
       </div>
 
       <div class="divider"></div>
@@ -1449,7 +1447,7 @@ export function generateBikeTagThermalHtml(
 
       <div class="divider"></div>
       <div class="text-center" style="font-size: 8px; color: #444;">
-        <span>Escanea el QR para consultar el historial</span><br>
+        <span>Identificación física de bicicleta en taller</span><br>
         <span>Fecha de Etiqueta: ${dateStr}</span>
       </div>
 
@@ -1758,7 +1756,6 @@ export function generateWorkOrderTicketHtml(
 
       <div style="font-size: 8px; line-height: 1.2; color: #333;">
         <div>${cfg.warranty_text}</div>
-        <div style="margin-top: 2px;">Consulta timeline público con la Orden: ${workOrder.order_number}</div>
       </div>
 
       <!-- Firma de Entrega Conforme -->
@@ -1997,7 +1994,6 @@ export function generateTestTicketHtml(settings?: PrinterSettings): string {
         <div class="flex-between"><span>Ancho de Rollo:</span><span class="bold">${cfg.paper_width} (${widthMm} mm útiles)</span></div>
         <div class="flex-between"><span>Densidad:</span><span class="bold">${cfg.font_density}</span></div>
         <div class="flex-between"><span>Líneas de Avance:</span><span class="bold">${cfg.feed_lines} líneas</span></div>
-        <div class="flex-between"><span>Código QR:</span><span class="bold">${cfg.show_qr_code ? 'Habilitado' : 'Deshabilitado'}</span></div>
       </div>
 
       <div class="divider"></div>

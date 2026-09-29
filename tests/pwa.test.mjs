@@ -38,14 +38,14 @@ assert.ok(manifestContent.shortcuts.length >= 4, 'Debe definir al menos 4 shortc
 
 const shortcutOt = manifestContent.shortcuts.find((s) => s.url === '/admin/ordenes/nueva');
 const shortcutCatalog = manifestContent.shortcuts.find((s) => s.url === '/productos');
-const shortcutQr = manifestContent.shortcuts.find((s) => s.url === '/admin/qr');
+const shortcutOrders = manifestContent.shortcuts.find((s) => s.url === '/admin/ordenes');
 const shortcutCash = manifestContent.shortcuts.find((s) => s.url === '/admin/caja');
 
 assert.ok(shortcutOt, 'Debe existir shortcut de Nueva Orden');
 assert.ok(shortcutCatalog, 'Debe existir shortcut de Catálogo');
-assert.ok(shortcutQr, 'Debe existir shortcut de Escanear QR');
+assert.ok(shortcutOrders, 'Debe existir shortcut de Órdenes de Trabajo');
 assert.ok(shortcutCash, 'Debe existir shortcut de Caja');
-console.log('3. Accesos directos para pantalla de inicio (Nueva OT, Catálogo, QR, Caja):', 'PASS');
+console.log('3. Accesos directos para pantalla de inicio (Nueva OT, Catálogo, Órdenes, Caja):', 'PASS');
 
 // 4. Validación de Archivos Físicos de Iconos SVG
 const icon192Path = path.join(projectRoot, 'public', 'icons', 'icon-192x192.svg');

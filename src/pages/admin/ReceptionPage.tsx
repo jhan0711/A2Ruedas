@@ -15,7 +15,6 @@ import {
   Search,
   DollarSign,
   FileCheck,
-  QrCode,
 } from 'lucide-react';
 import { Customer,  WorkOrder } from '../../types/database';
 import { customerService } from '../../services/customerService';
@@ -301,24 +300,6 @@ export const ReceptionPage: React.FC = () => {
       {/* PASO 1: SELECCIÓN DE CLIENTE Y BICICLETA */}
       {currentStep === 'client_bike' && (
         <div className="space-y-4">
-          {/* Tarjeta de Reconocimiento Rápido por Código QR */}
-          <div className="p-3.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shrink-0 shadow-xs">
-                <QrCode className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-xs font-bold text-slate-900 dark:text-white">
-                  ¿La bicicleta ya tiene código QR del taller?
-                </h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Escanea el sticker adhesivo con la cámara o código para autocompletar cliente y bicicleta en 1 segundo.
-                </p>
-              </div>
-            </div>
-            
-          </div>
-
           <Card className="p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
@@ -795,9 +776,6 @@ export const ReceptionPage: React.FC = () => {
         onClose={() => setTicketModalOpen(false)}
         order={createdOrder}
       />
-
-      {/* Modal de Escaneo de QR para Selección Automática */}
-      
 
       {/* Modal de Envío de WhatsApp con Bitácora */}
       <WhatsAppComposeModal

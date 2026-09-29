@@ -20,33 +20,22 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const LOCAL_STORAGE_AUTH_KEY = 'a2ruedas_auth_session';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Inicializar estados con la sesión local previa para evitar parpadeos o redirecciones en recarga
   const [user, setUser] = useState<User | null>(() => {
     try {
       const cached = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        return parsed.user || null;
-      }
+      return cached ? JSON.parse(cached).user : null;
     } catch {
-      // Ignorar error de parsing
+      return null;
     }
-    return null;
   });
-
   const [profile, setProfile] = useState<UserProfile | null>(() => {
     try {
       const cached = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        return parsed.profile || null;
-      }
+      return cached ? JSON.parse(cached).profile : null;
     } catch {
-      // Ignorar error de parsing
+      return null;
     }
-    return null;
   });
-
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,12 +71,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setIsLoading(false);
               return;
             }
+
+            // Si no hay sesión remota activa, intentar reautenticación automática si existen credenciales guardadas
+            const cached = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
+            if (cached && isMounted) {
+              try {
+                const parsed = JSON.parse(cached);
+                if (parsed.savedEmail && parsed.authSecret) {
+                  const { data: reloginData, error: reloginErr } = await supabase.auth.signInWithPassword({
+                    email: parsed.savedEmail,
+                    password: atob(parsed.authSecret),
+                  });
+                  if (!reloginErr && reloginData?.session && reloginData?.user) {
+                    setSession(reloginData.session);
+                    setUser(reloginData.user);
+                    const autoProfile: UserProfile = {
+                      id: reloginData.user.id,
+                      fullName: reloginData.user.user_metadata?.full_name || 'Admin Taller',
+                      role: (reloginData.user.user_metadata?.role as UserRole) || 'admin',
+                      email: reloginData.user.email,
+                      isActive: true,
+                    };
+                    setProfile(autoProfile);
+                    setIsLoading(false);
+                    return;
+                  }
+                }
+              } catch {
+                // Error al reintentar login
+              }
+            }
+
+            // Si Supabase está configurado y no hay sesión válida, limpiar estados para forzar login real
+            if (isMounted) {
+              setSession(null);
+              setUser(null);
+              setProfile(null);
+              localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
+              setIsLoading(false);
+              return;
+            }
           } catch (sbErr) {
             console.warn('Verificación de sesión remota omitida (modo offline/resiliente):', sbErr);
           }
         }
 
-        // Revisar si existe sesión local almacenada (modo taller persistente y seguro)
+        // Modo offline exclusivo
         const cached = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
         if (cached && isMounted) {
           try {
@@ -189,9 +218,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsLoading(false);
           return { success: true };
         }
+
+        const errMessage =
+          sbError?.message === 'Invalid login credentials'
+            ? 'Correo electrónico o contraseña incorrectos en Supabase.'
+            : sbError?.message || 'Error de autenticación con el servidor de Supabase.';
+        setError(errMessage);
+        setIsLoading(false);
+        return { success: false, error: errMessage };
       }
 
-      // 2. Validación de credenciales en el registro de usuarios autorizados del taller
+      // 2. Validación de credenciales en modo offline exclusivo (sin Supabase configurado)
       const matchedUser = userService.validateCredentials(cleanEmail, password);
       if (matchedUser) {
         const authenticatedUser: User = {
@@ -225,27 +262,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: true };
       }
 
-
-      // 3. Validación de sesión previa almacenada en contingencia
-      const cached = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          const expectedEmail = (parsed.savedEmail || parsed.user?.email || '').toLowerCase();
-          const expectedSecret = parsed.authSecret;
-
-          if (expectedEmail === cleanEmail && (!expectedSecret || expectedSecret === btoa(password))) {
-            setUser(parsed.user);
-            setProfile(parsed.profile);
-            setIsLoading(false);
-            return { success: true };
-          }
-        } catch {
-          // Ignorar error de parsing
-        }
-      }
-
       const msg = 'Correo electrónico o contraseña incorrectos. Verifica tus credenciales de acceso.';
+      setError(msg);
+      setIsLoading(false);
+      return { success: false, error: msg };
       setError(msg);
       setIsLoading(false);
       return { success: false, error: msg };

@@ -54,35 +54,32 @@ export const appointmentService = {
       try {
         let query = supabase
           .from('appointments')
-          .select('*, customer:customers(*), bicycle:bicycles(*)')
+          .select('*, customer:customers(*)')
           .order('scheduled_at', { ascending: true });
 
         if (startDate) query = query.gte('scheduled_at', startDate);
         if (endDate) query = query.lte('scheduled_at', endDate);
 
         const { data, error } = await query;
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           saveLocalAppointments(data);
           return data;
         }
+        if (error) {
+          console.warn('Error al consultar citas en Supabase:', error.message);
+        }
       } catch (err) {
-        console.warn('Usando citas desde almacenamiento local:', err);
+        console.warn('Error inesperado al consultar citas en Supabase:', err);
       }
     }
 
     const local = getLocalAppointments();
-    const [customers, bicycles] = await Promise.all([
-      customerService.getCustomers(),
-      Promise.resolve([]),
-    ]);
-
+    const customers = await customerService.getCustomers();
     const custMap = new Map(customers.map((c) => [c.id, c]));
-    const bikeMap = new Map(bicycles.map((b) => [b.id, b]));
 
     const populated = local.map((apt) => ({
       ...apt,
       customer: apt.customer || custMap.get(apt.customer_id),
-      bicycle: apt.bicycle || (apt.bicycle_id ? bikeMap.get(apt.bicycle_id) : null),
     }));
 
     let filtered = populated;
@@ -114,55 +111,68 @@ export const appointmentService = {
     };
 
     if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase
-          .from('appointments')
-          .insert([newAppointment])
-          .select('*, customer:customers(*), bicycle:bicycles(*)')
-          .single();
-        if (!error && data) {
-          const list = getLocalAppointments();
-          saveLocalAppointments([data, ...list]);
-          return data;
-        }
-      } catch (err) {
-        console.warn('Error al guardar cita en Supabase, guardando en local:', err);
+      const dbPayload = {
+        customer_id: appointment.customer_id,
+        scheduled_at: appointment.scheduled_at,
+        service_id: appointment.service_id || null,
+        technician_id: appointment.technician_id || null,
+        estimated_duration_min: Number(appointment.estimated_duration_min) || 60,
+        status: appointment.status || 'SCHEDULED',
+        notes: appointment.notes?.trim() || null,
+        bicycle_info: appointment.bicycle_info || null,
+      };
+
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert([dbPayload])
+        .select('*, customer:customers(*)')
+        .single();
+      if (error) {
+        console.error('Error al guardar cita en Supabase:', error);
+        throw new Error(`Error en base de datos: ${error.message}`);
+      }
+      if (data) {
+        const list = getLocalAppointments();
+        saveLocalAppointments([data, ...list]);
+        return data;
       }
     }
 
     const list = getLocalAppointments();
     saveLocalAppointments([newAppointment, ...list]);
 
-    // Poblar cliente y bicicleta si están en memoria
-    const [customers, bicycles] = await Promise.all([
-      customerService.getCustomers(),
-      Promise.resolve([]),
-    ]);
+    const customers = await customerService.getCustomers();
     return {
       ...newAppointment,
       customer: customers.find((c) => c.id === newAppointment.customer_id),
-      bicycle: newAppointment.bicycle_id
-        ? bicycles.find((b) => b.id === newAppointment.bicycle_id)
-        : null,
     };
   },
 
   async updateAppointment(id: string, updates: AppointmentUpdate): Promise<Appointment> {
     if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase
-          .from('appointments')
-          .update(updates)
-          .eq('id', id)
-          .select('*, customer:customers(*), bicycle:bicycles(*)')
-          .single();
-        if (!error && data) {
-          const list = getLocalAppointments().map((a) => (a.id === id ? data : a));
-          saveLocalAppointments(list);
-          return data;
-        }
-      } catch (err) {
-        console.warn('Error al actualizar cita en Supabase:', err);
+      const dbUpdates: Record<string, any> = {};
+      if (updates.scheduled_at !== undefined) dbUpdates.scheduled_at = updates.scheduled_at;
+      if (updates.service_id !== undefined) dbUpdates.service_id = updates.service_id;
+      if (updates.technician_id !== undefined) dbUpdates.technician_id = updates.technician_id;
+      if (updates.estimated_duration_min !== undefined) dbUpdates.estimated_duration_min = updates.estimated_duration_min;
+      if (updates.status !== undefined) dbUpdates.status = updates.status;
+      if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+      if (updates.bicycle_info !== undefined) dbUpdates.bicycle_info = updates.bicycle_info;
+
+      const { data, error } = await supabase
+        .from('appointments')
+        .update(dbUpdates)
+        .eq('id', id)
+        .select('*, customer:customers(*)')
+        .single();
+      if (error) {
+        console.error('Error al actualizar cita en Supabase:', error);
+        throw new Error(`Error en base de datos: ${error.message}`);
+      }
+      if (data) {
+        const list = getLocalAppointments().map((a) => (a.id === id ? data : a));
+        saveLocalAppointments(list);
+        return data;
       }
     }
 
@@ -171,23 +181,19 @@ export const appointmentService = {
     saveLocalAppointments(updatedList);
 
     const updated = updatedList.find((a) => a.id === id)!;
-    const [customers, bicycles] = await Promise.all([
-      customerService.getCustomers(),
-      Promise.resolve([]),
-    ]);
+    const customers = await customerService.getCustomers();
     return {
       ...updated,
       customer: customers.find((c) => c.id === updated.customer_id),
-      bicycle: updated.bicycle_id ? bicycles.find((b) => b.id === updated.bicycle_id) : null,
     };
   },
 
   async deleteAppointment(id: string): Promise<boolean> {
     if (isSupabaseConfigured) {
-      try {
-        await supabase.from('appointments').delete().eq('id', id);
-      } catch (err) {
-        console.warn('Error al eliminar cita en Supabase:', err);
+      const { error } = await supabase.from('appointments').delete().eq('id', id);
+      if (error) {
+        console.error('Error al eliminar cita en Supabase:', error);
+        throw new Error(`Error en base de datos: ${error.message}`);
       }
     }
 

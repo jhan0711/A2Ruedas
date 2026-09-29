@@ -176,14 +176,14 @@ export const DashboardPage: React.FC = () => {
           >
             Guía de Flujos del Taller
           </Button>
-          <Link to="/admin/recepcion">
+          <Link to="/admin/ordenes/nueva">
             <Button size="sm" leftIcon={<PlusCircle className="w-3.5 h-3.5" />}>
               Ingresar Bicicleta (OT)
             </Button>
           </Link>
-          <Link to="/admin/qr">
-            <Button variant="secondary" size="sm" >
-              Escanear QR
+          <Link to="/admin/ordenes">
+            <Button variant="secondary" size="sm">
+              Ver Órdenes
             </Button>
           </Link>
         </div>
@@ -353,7 +353,7 @@ export const DashboardPage: React.FC = () => {
                   </p>
                 </div>
                 <div className="pt-2">
-                  <Link to="/admin/recepcion">
+                  <Link to="/admin/ordenes/nueva">
                     <Button size="sm" leftIcon={<PlusCircle className="w-3.5 h-3.5" />}>
                       Registrar Nueva Recepción
                     </Button>
@@ -455,12 +455,6 @@ export const DashboardPage: React.FC = () => {
                 <span>Impresión 58 mm</span>
                 <span className="inline-flex items-center gap-1 font-mono text-[10px] text-emerald-600 dark:text-emerald-400">
                   <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Listo para imprimir
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Lector de Cámara QR</span>
-                <span className="inline-flex items-center gap-1 font-mono text-[10px] text-emerald-600 dark:text-emerald-400">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Listo
                 </span>
               </div>
               <div className="flex items-center justify-between">

@@ -53,32 +53,29 @@ export const workOrderService = {
       try {
         let query = supabase
           .from('work_orders')
-          .select('*, customer:customers(*), bicycle:bicycles(*), items:work_order_items(*)')
+          .select('*, customer:customers(*), items:work_order_items(*)')
           .order('created_at', { ascending: false });
         if (status) query = query.eq('status', status);
         const { data, error } = await query;
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           saveLocalOrders(data);
           return data;
         }
+        if (error) {
+          console.warn('Error al consultar OTs en Supabase:', error.message);
+        }
       } catch (err) {
-        console.warn('Usando órdenes de trabajo locales:', err);
+        console.warn('Error inesperado al consultar OTs en Supabase:', err);
       }
     }
 
     const local = getLocalOrders();
-    const [customers, bicycles] = await Promise.all([
-      customerService.getCustomers(),
-      Promise.resolve([]),
-    ]);
-
+    const customers = await customerService.getCustomers();
     const custMap = new Map(customers.map((c) => [c.id, c]));
-    const bikeMap = new Map(bicycles.map((b) => [b.id, b]));
 
     const populated = local.map((order) => ({
       ...order,
       customer: order.customer || custMap.get(order.customer_id),
-      bicycle: order.bicycle || bikeMap.get(order.bicycle_id),
     }));
 
     if (!status) return populated;
@@ -90,7 +87,7 @@ export const workOrderService = {
       try {
         const { data, error } = await supabase
           .from('work_orders')
-          .select('*, customer:customers(*), bicycle:bicycles(*), items:work_order_items(*)')
+          .select('*, customer:customers(*), items:work_order_items(*)')
           .eq('id', id)
           .single();
         if (!error && data) return data;
@@ -107,7 +104,7 @@ export const workOrderService = {
       try {
         const { data, error } = await supabase
           .from('work_orders')
-          .select('*, customer:customers(*), bicycle:bicycles(*), items:work_order_items(*)')
+          .select('*, customer:customers(*), items:work_order_items(*)')
           .eq('bicycle_id', bicycleId)
           .order('created_at', { ascending: false });
         if (!error && data) return data;
@@ -186,20 +183,63 @@ export const workOrderService = {
     };
 
     if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase.from('work_orders').insert([order]).select().single();
-        if (!error && data) {
-          if (items.length > 0) {
-            const itemsToInsert = items.map((it) => ({ ...it, work_order_id: data.id }));
-            await supabase.from('work_order_items').insert(itemsToInsert);
+      const dbPayload = {
+        order_number: orderNumber,
+        customer_id: order.customer_id,
+        technician_id: order.technician_id || null,
+        status: order.status || 'RECIBIDA',
+        reported_issues: order.reported_issues || 'Revisión y mantenimiento general',
+        accessories_received: order.accessories_received || null,
+        entry_mileage_km: order.entry_mileage_km || null,
+        estimated_delivery_at: order.estimated_delivery_at || null,
+        total_labor: Number(order.total_labor) || 0,
+        total_parts: Number(order.total_parts) || 0,
+        discount: Number(order.discount) || 0,
+        grand_total: Number(order.grand_total) || 0,
+        internal_notes: order.internal_notes || null,
+        bicycle_info: order.bicycle_info || null,
+      };
+
+      const { data, error } = await supabase.from('work_orders').insert([dbPayload]).select().single();
+      if (error) {
+        console.error('Error al guardar OT en Supabase:', error);
+        throw new Error(`Error en base de datos: ${error.message}`);
+      }
+      if (data) {
+        let insertedItems: WorkOrderItem[] = [];
+        if (items.length > 0) {
+          const itemsToInsert = items.map((it) => ({
+            work_order_id: data.id,
+            item_type: it.item_type || 'service',
+            product_id: it.product_id || null,
+            service_id: it.service_id || null,
+            description: it.description,
+            quantity: Number(it.quantity) || 1,
+            unit_price: Number(it.unit_price) || 0,
+            total_price: Number(it.total_price) || 0,
+          }));
+          const { data: dbItems, error: itmErr } = await supabase
+            .from('work_order_items')
+            .insert(itemsToInsert)
+            .select();
+          if (itmErr) {
+            console.error('Error al guardar items de OT en Supabase:', itmErr);
+          } else if (dbItems) {
+            insertedItems = dbItems;
           }
-          await supabase.from('work_order_status_history').insert([initialHistoryEntry]);
-          const list = getLocalOrders();
-          saveLocalOrders([newOrder, ...list]);
-          return newOrder;
         }
-      } catch (err) {
-        console.warn('Error al guardar OT en Supabase:', err);
+
+        const remoteOrder: WorkOrder = {
+          ...newOrder,
+          id: data.id,
+          order_number: data.order_number,
+          items: insertedItems.length > 0 ? insertedItems : createdItems,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+        };
+        const list = getLocalOrders();
+        saveLocalOrders([remoteOrder, ...list]);
+        return remoteOrder;
       }
     }
 
@@ -242,10 +282,22 @@ export const workOrderService = {
     };
 
     if (isSupabaseConfigured) {
-      try {
-        await supabase.from('work_orders').update(updates).eq('id', id);
-      } catch (err) {
-        console.warn('Error al actualizar OT en Supabase:', err);
+      const dbUpdates: Record<string, any> = {};
+      if (updates.status !== undefined) dbUpdates.status = updates.status;
+      if (updates.reported_issues !== undefined) dbUpdates.reported_issues = updates.reported_issues;
+      if (updates.accessories_received !== undefined) dbUpdates.accessories_received = updates.accessories_received;
+      if (updates.bicycle_info !== undefined) dbUpdates.bicycle_info = updates.bicycle_info;
+      if (updates.total_labor !== undefined) dbUpdates.total_labor = Number(updates.total_labor) || 0;
+      if (updates.total_parts !== undefined) dbUpdates.total_parts = Number(updates.total_parts) || 0;
+      if (updates.discount !== undefined) dbUpdates.discount = Number(updates.discount) || 0;
+      if (updates.grand_total !== undefined) dbUpdates.grand_total = Number(updates.grand_total) || 0;
+      if (updates.internal_notes !== undefined) dbUpdates.internal_notes = updates.internal_notes;
+      if (updates.estimated_delivery_at !== undefined) dbUpdates.estimated_delivery_at = updates.estimated_delivery_at;
+
+      const { error } = await supabase.from('work_orders').update(dbUpdates).eq('id', id);
+      if (error) {
+        console.error('Error al actualizar OT en Supabase:', error);
+        throw new Error(`Error en base de datos: ${error.message}`);
       }
     }
 
@@ -256,11 +308,15 @@ export const workOrderService = {
 
   async deleteWorkOrder(id: string): Promise<void> {
     if (isSupabaseConfigured) {
-      try {
-        await supabase.from('work_orders').delete().eq('id', id);
-      } catch (err) {
-        console.warn('Error al eliminar OT en Supabase:', err);
+      await supabase.from('work_order_items').delete().eq('work_order_id', id);
+      const { error } = await supabase.from('work_orders').delete().eq('id', id);
+      if (error) {
+        console.error('Error al eliminar OT en Supabase:', error);
+        throw new Error(`Error en base de datos: ${error.message}`);
       }
+      const list = getLocalOrders().filter((o) => o.id !== id);
+      saveLocalOrders(list);
+      return;
     }
 
     const list = getLocalOrders().filter((o) => o.id !== id);

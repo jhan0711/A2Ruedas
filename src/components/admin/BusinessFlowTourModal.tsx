@@ -35,7 +35,7 @@ interface JourneyStep {
 const JOURNEYS: JourneyStep[] = [
   {
     id: 1,
-    title: 'Jornada 1: Recepción, Daños Previos y Marbete QR',
+    title: 'Jornada 1: Recepción, Daños Previos y Marbete de Identificación',
     subtitle: 'El cliente llega al taller a dejar su bicicleta',
     icon: <ClipboardList className="w-6 h-6 text-blue-500" />,
     route: '/admin/ordenes/nueva',
@@ -47,7 +47,7 @@ const JOURNEYS: JourneyStep[] = [
       'Diagrama anatómico interactivo para marcar partes rayadas o dañadas.',
       'Inventario de accesorios recibidos en custodia.',
       'Firma digital táctil directa sobre la pantalla.',
-      'Generación automática del marbete adhesivo con código QR para el marco.',
+      'Generación automática del marbete adhesivo de taller para el marco.',
     ],
     tips: 'Consejo: Puedes imprimir el marbete adhesivo en tu impresora térmica de 58 mm o con cinta adhesiva para adherirlo al marco de la bici.',
   },

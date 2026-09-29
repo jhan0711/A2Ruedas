@@ -11,7 +11,6 @@ import {
   Calendar,
   RefreshCw,
   X,
-  History,
   Printer,
   PenTool,
   Receipt,
@@ -26,7 +25,6 @@ import {
   WorkOrder,
   WorkOrderInsert,
   WorkOrderItem,
-  WorkOrderStatusHistory,
   Customer,
   
   Product,
@@ -108,9 +106,7 @@ export const WorkOrdersPage: React.FC = () => {
   // Modal Detalle / Dossier de la OT
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailOrder, setDetailOrder] = useState<WorkOrder | null>(null);
-  const [orderHistory, setOrderHistory] = useState<WorkOrderStatusHistory[]>([]);
   const [orderSignatures, setOrderSignatures] = useState<Signature[]>([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   // Modal Eliminar Orden
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -303,18 +299,11 @@ export const WorkOrdersPage: React.FC = () => {
   const openDetailModal = async (order: WorkOrder) => {
     setDetailOrder(order);
     setDetailModalOpen(true);
-    setIsLoadingHistory(true);
     try {
-      const [history, sigs] = await Promise.all([
-        workOrderService.getOrderHistory(order.id),
-        workOrderService.getSignatures(order.id),
-      ]);
-      setOrderHistory(history);
+      const sigs = await workOrderService.getSignatures(order.id);
       setOrderSignatures(sigs);
     } catch (err) {
-      console.error('Error al cargar historial o firmas de OT:', err);
-    } finally {
-      setIsLoadingHistory(false);
+      console.error('Error al cargar firmas de OT:', err);
     }
   };
 
@@ -1129,46 +1118,6 @@ export const WorkOrdersPage: React.FC = () => {
               </div>
             )}
 
-            {/* Historial de Auditoría de Estados */}
-            <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5">
-                <History className="w-3.5 h-3.5 text-blue-600" />
-                Historial de Trazabilidad y Auditoría ({orderHistory.length})
-              </h3>
-              {isLoadingHistory ? (
-                <LoadingSpinner size="sm" text="Consultando historial..." />
-              ) : orderHistory.length === 0 ? (
-                <div className="text-xs text-slate-400 italic">No hay historial previo registrado.</div>
-              ) : (
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {orderHistory.map((h) => (
-                    <div
-                      key={h.id}
-                      className="p-2 rounded bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs"
-                    >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Badge status={h.to_status} isMono size="sm" />
-                          {h.notes && (
-                            <span className="text-[11px] text-slate-700 dark:text-slate-300">
-                              {h.notes}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <span className="font-mono text-[10px] text-slate-400 whitespace-nowrap">
-                        {new Date(h.created_at).toLocaleString('es-CO', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
         </Modal>
       )}

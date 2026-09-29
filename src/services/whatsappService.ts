@@ -53,12 +53,12 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
   },
   {
     id: 'ENTREGA_AGRADECIMIENTO',
-    title: 'Entrega Formal, Garantía e Historial QR',
-    description: 'Agradece la visita, confirma la garantía de servicio y comparte el enlace al timeline QR.',
+    title: 'Entrega Formal y Garantía',
+    description: 'Agradece la visita y confirma la garantía de satisfacción del servicio.',
     trigger: 'ENTREGADA',
-    variables: ['{CLIENTE}', '{BICICLETA}', '{ORDEN}', '{ENLACE_QR}'],
+    variables: ['{CLIENTE}', '{BICICLETA}', '{ORDEN}'],
     template:
-      '¡Hola {CLIENTE}! 🌟 Tu bicicleta {BICICLETA} ha sido ENTREGADA con éxito (Orden N° {ORDEN}).\n\nTodas nuestras intervenciones cuentan con garantía de satisfacción. Puedes consultar en cualquier momento el historial técnico y mantenimientos escaneando el código QR de tu marco o en este enlace:\n{ENLACE_QR}\n\n¡Gracias por rodar con A2Ruedas!',
+      '¡Hola {CLIENTE}! 🌟 Tu bicicleta {BICICLETA} ha sido ENTREGADA con éxito (Orden N° {ORDEN}).\n\nTodas nuestras intervenciones cuentan con garantía técnica de 30 días.\n\n¡Gracias por rodar con A2Ruedas!',
   },
   {
     id: 'CONFIRMACION_CITA',
@@ -86,15 +86,6 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
     variables: ['{CLIENTE}', '{BICICLETA}', '{KILOMETRAJE}'],
     template:
       '¡Hola {CLIENTE}! 🚴‍♂️ Notamos que tu bicicleta {BICICLETA} ya acumula {KILOMETRAJE} km de rodaje. Para prevenir el desgaste de la cadena y conservar la suspensión, te sugerimos un mantenimiento preventivo. Escríbenos para agendar tu cupo.',
-  },
-  {
-    id: 'HISTORIAL_QR',
-    title: 'Compartir Historial Técnico por QR',
-    description: 'Envía el enlace público de la bicicleta al cliente.',
-    trigger: 'HISTORIAL_QR',
-    variables: ['{CLIENTE}', '{BICICLETA}', '{ENLACE_QR}'],
-    template:
-      '¡Hola {CLIENTE}! 📱 Te compartimos el enlace al historial técnico y mantenimientos certificado de tu bicicleta {BICICLETA} en A2Ruedas:\n{ENLACE_QR}',
   },
   {
     id: 'PERSONALIZADO',
@@ -225,7 +216,6 @@ export const whatsappService = {
           ? data.balanceDue.toLocaleString('es-CO')
           : data.balanceDue || '0',
       '{FALLA}': data.reportedIssues || 'Revisión técnica',
-      '{ENLACE_QR}': data.publicUrl || 'https://a2ruedas.app',
       '{FECHA}': data.appointmentDate || 'fecha acordada',
       '{HORA}': data.appointmentTime || 'hora acordada',
       '{MECANICO}': data.mechanicName || 'Técnico Especializado',

@@ -94,16 +94,16 @@ export const router = createBrowserRouter([
             element: <AppointmentsPage />,
           },
           {
-            path: 'bicicletas',
-
-          },
-          {
             path: 'ordenes',
             element: <WorkOrdersPage />,
           },
           {
             path: 'ordenes/nueva',
             element: <ReceptionPage />,
+          },
+          {
+            path: 'recepcion',
+            element: <Navigate to="/admin/ordenes/nueva" replace />,
           },
           {
             path: 'inventario',
@@ -124,10 +124,6 @@ export const router = createBrowserRouter([
           {
             path: 'facturas',
             element: <InvoicesPage />,
-          },
-          {
-            path: 'qr',
-
           },
           {
             path: 'whatsapp',

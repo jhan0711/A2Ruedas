@@ -142,9 +142,6 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         confirmText="Cerrar Sesión"
         variant="warning"
       />
-
-      {/* Modal global de escaneo de QR */}
-      
     </header>
   );
 };

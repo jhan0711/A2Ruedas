@@ -475,14 +475,9 @@ export const WorkOrderTicketModal: React.FC<WorkOrderTicketModalProps> = ({
                 </div>
               </div>
 
-              {/* Código QR y Términos */}
+              {/* Términos */}
               <div className="text-center space-y-2 pt-1">
-                <div className="inline-flex items-center gap-1 px-2 py-1 border border-slate-400 rounded text-[10px] font-bold">
-                  
-                  <span>CONSULTA QR: {order.order_number}</span>
-                </div>
-
-                <div className="pt-2 text-[9px] text-slate-500 leading-tight">
+                <div className="pt-1 text-[9px] text-slate-500 leading-tight">
                   <p className="font-semibold text-slate-700">TÉRMINOS DE SERVICIO:</p>
                   <p>• Garantía de 30 días en ajustes mecánicos.</p>
                   <p>• Pasados 30 días aplica cargo diario de custodia.</p>

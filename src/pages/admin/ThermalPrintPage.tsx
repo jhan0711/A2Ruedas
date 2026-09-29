@@ -86,7 +86,6 @@ const SAMPLE_BICYCLE: Bicycle = {
   color: 'Rojo / Negro',
   bike_type: 'MTB',
   serial_number: 'WTU1234567M',
-  qr_code: 'BIKE-8F3A92',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
 };
@@ -262,21 +261,8 @@ export const ThermalPrintPage: React.FC = () => {
         cashService.getActiveRegister(),
       ]);
 
-      // Enriquecer bicicletas con QR
-      const enrichedBikes = await Promise.all(
-        bikesData.map(async (bike) => {
-          if (bike.qr_code) return bike;
-          try {
-            const qr = await Promise.resolve({qr_code: ''});
-            return { qr_code: qr.qr_code };
-          } catch {
-            return bike;
-          }
-        })
-      );
-
       setWorkOrders(ordersData);
-      setBicycles(enrichedBikes);
+      setBicycles(bikesData);
       setInvoices(invoicesData);
 
       const allRegs = activeReg ? [activeReg, ...pastRegs] : pastRegs;
@@ -335,7 +321,6 @@ export const ThermalPrintPage: React.FC = () => {
             (selectedBikeId !== 'sample' && bicycles.find((b) => b.id === selectedBikeId)) ||
             bicycles[0] ||
             SAMPLE_BICYCLE;
-          const qrCodeValue = bike.qr_code || 'BIKE-8F3A92';
 
           const relatedOrder =
             workOrders.find(
@@ -517,7 +502,6 @@ export const ThermalPrintPage: React.FC = () => {
       bicycles.forEach((b) => {
         const matches =
           !term ||
-          (b.qr_code && b.qr_code.toLowerCase().includes(term)) ||
           b.brand.toLowerCase().includes(term) ||
           b.model.toLowerCase().includes(term) ||
           (b.serial_number && b.serial_number.toLowerCase().includes(term)) ||
@@ -526,7 +510,7 @@ export const ThermalPrintPage: React.FC = () => {
           items.push({
             type: 'BIKE',
             id: b.id,
-            code: b.qr_code || 'SIN-QR',
+            code: b.serial_number || (b.id ? b.id.slice(0, 8).toUpperCase() : 'BICI'),
             title: `${b.brand} ${b.model}`,
             subtitle: `Propietario: ${b.customer?.full_name || 'No registrado'} • Serial: ${b.serial_number || 'N/A'}`,
             date: new Date(b.created_at).toLocaleDateString('es-CO'),
@@ -575,8 +559,6 @@ export const ThermalPrintPage: React.FC = () => {
         if (item.variant === 'TAG') {
           const bike = order.bicycle || bicycles.find((b) => b.id === order.bicycle_id);
           if (bike) {
-            const qrCodeVal = bike.qr_code || 'BIKE-000000';
-
             const html = generateBikeTagThermalHtml(bike, order, '', settings);
             printDirectHtml(html);
             showAlert('success', `Marbete de bicicleta impreso para la orden ${order.order_number}.`);
@@ -597,8 +579,6 @@ export const ThermalPrintPage: React.FC = () => {
         showAlert('success', `Tirilla de factura ${inv.invoice_number} impresa.`);
       } else if (item.type === 'BIKE') {
         const bike = item.raw as Bicycle;
-        const qrCodeVal = bike.qr_code || 'BIKE-000000';
-
         const html = generateBikeTagThermalHtml(bike, null, '', settings);
         printDirectHtml(html);
         showAlert('success', `Marbete adhesivo para ${bike.brand} ${bike.model} impreso.`);
@@ -666,7 +646,7 @@ export const ThermalPrintPage: React.FC = () => {
                 </Badge>
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Plantillas continuas de alta densidad, marbetes de bicicleta con QR y comprobantes operativos.
+                Plantillas continuas de alta densidad, marbetes de bicicleta y comprobantes operativos.
               </p>
             </div>
           </div>
@@ -764,7 +744,7 @@ export const ThermalPrintPage: React.FC = () => {
                 </span>
                 <span className="text-[11px] text-blue-600 dark:text-blue-400 font-medium">
                   {selectedTemplate === 'BIKE_TAG'
-                    ? 'Adhesivo Marco con QR'
+                    ? 'Adhesivo Marco'
                     : selectedTemplate === 'RECEPTION'
                     ? 'Custodia e Inventario'
                     : selectedTemplate === 'WORK_ORDER'
@@ -790,13 +770,13 @@ export const ThermalPrintPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200">
-                      QR Bici
+                      Marbete
                     </span>
                   </div>
                   <div>
                     <div className="text-xs font-bold">Marbete Bicicleta</div>
                     <div className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1">
-                      Adhesivo de marco con QR
+                      Adhesivo para marco
                     </div>
                   </div>
                 </button>
@@ -934,7 +914,7 @@ export const ThermalPrintPage: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                      Bicicleta registrada con Código QR:
+                      Bicicleta de taller:
                     </label>
                     {bicycles.length === 0 && (
                       <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
@@ -948,12 +928,11 @@ export const ThermalPrintPage: React.FC = () => {
                     className="w-full text-xs"
                   >
                     <option value="sample">
-                      📄 [Plantilla de Muestra] Trek Marlin 7 • [BIKE-8F3A92] • Carlos Mendoza
+                      📄 [Plantilla de Muestra] Trek Marlin 7 • Carlos Mendoza
                     </option>
                     {bicycles.map((b) => (
                       <option key={b.id} value={b.id}>
-                        {b.brand} {b.model} • [{b.qr_code || 'SIN-QR'}] • Prop:{' '}
-                        {b.customer?.full_name || 'Sin asignar'}
+                        {b.brand} {b.model} • Prop: {b.customer?.full_name || 'Sin asignar'}
                       </option>
                     ))}
                   </Select>
@@ -1279,11 +1258,11 @@ export const ThermalPrintPage: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => handleQuickPrint({ ...it, variant: 'TAG' })}
-                                title="Imprimir Marbete con Código QR para marco de bicicleta"
+                                title="Imprimir Marbete para marco de bicicleta"
                                 className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-blue-500/15 text-blue-600 dark:text-blue-300 hover:bg-blue-500/25 border border-blue-500/30 transition-colors shadow-xs"
                               >
                                 
-                                Marbete QR
+                                Marbete
                               </button>
                               <button
                                 type="button"
@@ -1322,11 +1301,11 @@ export const ThermalPrintPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleQuickPrint(it)}
-                              title="Imprimir Marbete Adhesivo con QR"
+                              title="Imprimir Marbete Adhesivo de Identificación"
                               className="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-md bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500/25 border border-indigo-500/30 transition-colors shadow-xs"
                             >
                               
-                              Imprimir Marbete QR
+                              Imprimir Marbete
                             </button>
                           )}
 
@@ -1530,19 +1509,6 @@ export const ThermalPrintPage: React.FC = () => {
                   <option value="5">5 líneas (Cuchilla lejana)</option>
                 </Select>
               </div>
-            </div>
-
-            <div className="pt-2 flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="show_qr_code"
-                checked={tempSettings.show_qr_code}
-                onChange={(e) => setTempSettings({ ...tempSettings, show_qr_code: e.target.checked })}
-                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300"
-              />
-              <label htmlFor="show_qr_code" className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-                Habilitar generación e impresión de Código QR en tirillas y marbetes continuos
-              </label>
             </div>
           </Card>
 

@@ -118,7 +118,6 @@ export const SettingsPage: React.FC = () => {
       paper_width: printerSettings.paper_width,
       font_density: printerSettings.font_density,
       feed_lines: printerSettings.feed_lines,
-      show_qr_code: printerSettings.show_qr_code,
     });
 
     // 3. Sincronizar estados locales inmediatamente
@@ -442,7 +441,7 @@ export const SettingsPage: React.FC = () => {
                   Información Institucional del Taller
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Aparece en marbetes de marco con QR, comprobantes de custodia, facturas de venta y recibos de entrega.
+                  Aparece en marbetes de marco, comprobantes de custodia, facturas de venta y recibos de entrega.
                 </p>
               </div>
 
@@ -1086,20 +1085,6 @@ export const SettingsPage: React.FC = () => {
                   <option value="5">5 líneas (Cuchilla retrasada)</option>
                 </Select>
               </div>
-            </div>
-
-            <div className="pt-3 border-t border-slate-200 dark:border-slate-800">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={printerSettings.show_qr_code}
-                  onChange={(e) => handlePrinterChange('show_qr_code', e.target.checked)}
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300"
-                />
-                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                  Imprimir códigos QR automáticos en marbetes de bicicleta y comprobantes de recepción
-                </span>
-              </label>
             </div>
           </Card>
 

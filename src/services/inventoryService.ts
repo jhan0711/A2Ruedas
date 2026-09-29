@@ -6,16 +6,16 @@ const LOCAL_STORAGE_MOVEMENTS = 'a2ruedas_movements_cache';
 const LOCAL_STORAGE_CATEGORIES = 'a2ruedas_categories_cache';
 
 const defaultCategories: ProductCategory[] = [
-  { id: 'cat-bikes', name: 'Bicicletas Convencionales', slug: 'bicicletas', description: 'Bicicletas de ruta, gravel, montaña (MTB), urbanas y BMX', created_at: new Date().toISOString() },
-  { id: 'cat-ebikes', name: 'Bicicletas Eléctricas (E-Bikes)', slug: 'bicis-electricas', description: 'Bicicletas asistidas, baterías de litio, motores y cargadores', created_at: new Date().toISOString() },
-  { id: 'cat-apparel', name: 'Ropa y Equipamiento', slug: 'ropa-equipamiento', description: 'Jerseys técnicos, badanas, chaquetas cortavientos, guantes y zapatillas', created_at: new Date().toISOString() },
-  { id: 'cat-nutrition', name: 'Nutrición y Suplementos', slug: 'suplementos-nutricion', description: 'Geles energéticos, hidratantes isotónicos, electrolitos y barras de proteína', created_at: new Date().toISOString() },
-  { id: 'cat-1', name: 'Transmisión', slug: 'transmision', description: 'Cadenas, piñones, cassettes, tensores y mandos', created_at: new Date().toISOString() },
-  { id: 'cat-2', name: 'Frenos', slug: 'frenos', description: 'Pastillas, mordazas, discos, rotores y líquido', created_at: new Date().toISOString() },
-  { id: 'cat-3', name: 'Llantas y Neumáticos', slug: 'llantas-neumaticos', description: 'Corazas, neumáticos, sellante tubeless y válvulas', created_at: new Date().toISOString() },
-  { id: 'cat-4', name: 'Mantenimiento y Grasa', slug: 'mantenimiento-grasa', description: 'Lubricantes, desengrasantes, grasas especiales y ceras', created_at: new Date().toISOString() },
-  { id: 'cat-5', name: 'Pedales y Calas', slug: 'pedales-calas', description: 'Pedales automáticos, plataformas y calas SPD/Look', created_at: new Date().toISOString() },
-  { id: 'cat-6', name: 'Accesorios y Cascos', slug: 'accesorios', description: 'Portacaramañolas, infladores, herramientas y cascos', created_at: new Date().toISOString() },
+  { id: '1a2b2bf9-fe6f-46e6-a8d4-3a18103766c5', name: 'Bicicletas Convencionales', slug: 'bicicletas', description: 'Bicicletas de ruta, gravel, montaña (MTB), urbanas y BMX', created_at: '2026-09-29T00:00:56.402069+00:00' },
+  { id: '68bd25db-054f-460c-b921-8b9944e351d5', name: 'Bicicletas Eléctricas (E-Bikes)', slug: 'bicis-electricas', description: 'Bicicletas asistidas, baterías de litio, motores y cargadores', created_at: '2026-09-29T00:00:56.892916+00:00' },
+  { id: '0d9a138f-473d-481d-a5f1-8119759d6296', name: 'Ropa y Equipamiento', slug: 'ropa-equipamiento', description: 'Jerseys técnicos, badanas, chaquetas cortavientos, guantes y zapatillas', created_at: '2026-09-29T00:00:57.394898+00:00' },
+  { id: '1e8f0998-05a9-43d3-b0b0-9bb082a8154f', name: 'Nutrición y Suplementos', slug: 'suplementos-nutricion', description: 'Geles energéticos, hidratantes isotónicos, electrolitos y barras de proteína', created_at: '2026-09-29T00:00:57.879017+00:00' },
+  { id: 'c074d156-e7f4-482a-8a27-a992269753e9', name: 'Accesorios y Cascos', slug: 'accesorios', description: 'Portacaramañolas, infladores, herramientas y cascos', created_at: '2026-09-29T00:00:58.347078+00:00' },
+  { id: 'db25d356-cba5-49cf-aaa1-0b7865a11b1a', name: 'Transmisión', slug: 'transmision', description: 'Cadenas, piñones, coronas, tensores y mandos de cambio', created_at: '2026-09-26T16:02:15.433789+00:00' },
+  { id: '1a3d7128-eb20-46fb-a507-740ce3ea36ce', name: 'Frenos', slug: 'frenos', description: 'Pastillas, discos, zapatas, mordazas y guayas de freno', created_at: '2026-09-26T16:02:15.433789+00:00' },
+  { id: '6eed6583-940c-456f-923e-279ffa035c6d', name: 'Llantas y Neumáticos', slug: 'llantas-neumaticos', description: 'Corazas tubeless, neumáticos, válvulas y sellantes', created_at: '2026-09-26T16:02:15.433789+00:00' },
+  { id: 'c9e08e92-411f-44a0-acf3-4baec5a8c334', name: 'Mantenimiento y Grasa', slug: 'mantenimiento-grasa', description: 'Lubricantes de cadena, desengrasantes y grasas de rodamientos', created_at: '2026-09-26T16:02:15.433789+00:00' },
+  { id: '1081ab24-7efe-4112-9415-8e8c6d3155e0', name: 'Pedales y Calas', slug: 'pedales-calas', description: 'Pedales automáticos, plataformas y calas SPD', created_at: '2026-09-26T16:02:15.433789+00:00' },
 ];
 
 const initialProducts: Product[] = [];
@@ -78,7 +78,7 @@ export const inventoryService = {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('product_categories').select('*').order('name');
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           saveLocalCategories(data);
           return data;
         }
@@ -211,12 +211,15 @@ export const inventoryService = {
           query = query.or(`name.ilike.%${searchTerm}%,sku.ilike.%${searchTerm}%,brand.ilike.%${searchTerm}%`);
         }
         const { data, error } = await query;
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           saveLocalProducts(data);
           return data;
         }
+        if (error) {
+          console.warn('Error al consultar productos en Supabase:', error.message);
+        }
       } catch (err) {
-        console.warn('Usando productos locales:', err);
+        console.warn('Error inesperado al consultar productos en Supabase:', err);
       }
     }
 
@@ -275,20 +278,44 @@ export const inventoryService = {
     };
 
     if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase.from('products').insert([product]).select().single();
-        if (!error && data) {
-          const list = getLocalProducts();
-          saveLocalProducts([data, ...list]);
+      const dbPayload = {
+        sku: product.sku,
+        category_id: product.category_id,
+        name: product.name,
+        brand: product.brand,
+        description: product.description || null,
+        sale_price: Number(product.sale_price) || 0,
+        stock: Number(product.stock) || 0,
+        min_stock: Number(product.min_stock) || 0,
+        unit: product.unit || 'unidad',
+        location: product.location || null,
+        image_url: product.image_url || null,
+        images: Array.isArray(product.images)
+          ? product.images
+          : product.image_url
+          ? [product.image_url]
+          : [],
+        is_active: product.is_active !== undefined ? product.is_active : true,
+      };
 
-          // Registrar movimiento inicial de stock si es > 0
-          if (product.stock > 0) {
+      const { data, error } = await supabase.from('products').insert([dbPayload]).select().single();
+      if (error) {
+        console.error('Error al crear producto en Supabase:', error);
+        throw new Error(`Error en base de datos: ${error.message}`);
+      }
+      if (data) {
+        const list = getLocalProducts();
+        saveLocalProducts([data, ...list]);
+
+        // Registrar movimiento inicial de stock si es > 0
+        if (product.stock > 0) {
+          try {
             await this.adjustStock(data.id, product.stock, 'in', 'Inventario inicial al crear referencia');
+          } catch (e) {
+            console.warn('Error al asentar stock inicial:', e);
           }
-          return data;
         }
-      } catch (err) {
-        console.warn('Error al crear producto en Supabase:', err);
+        return data;
       }
     }
 
@@ -317,20 +344,35 @@ export const inventoryService = {
   async updateProduct(id: string, updates: ProductUpdate): Promise<Product> {
     const now = new Date().toISOString();
     if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .update(updates)
-          .eq('id', id)
-          .select()
-          .single();
-        if (!error && data) {
-          const list = getLocalProducts().map((p) => (p.id === id ? data : p));
-          saveLocalProducts(list);
-          return data;
-        }
-      } catch (err) {
-        console.warn('Error al actualizar producto en Supabase:', err);
+      const dbUpdates: Record<string, any> = {};
+      if (updates.sku !== undefined) dbUpdates.sku = updates.sku;
+      if (updates.category_id !== undefined) dbUpdates.category_id = updates.category_id;
+      if (updates.name !== undefined) dbUpdates.name = updates.name;
+      if (updates.brand !== undefined) dbUpdates.brand = updates.brand;
+      if (updates.description !== undefined) dbUpdates.description = updates.description;
+      if (updates.sale_price !== undefined) dbUpdates.sale_price = Number(updates.sale_price) || 0;
+      if (updates.stock !== undefined) dbUpdates.stock = Number(updates.stock) || 0;
+      if (updates.min_stock !== undefined) dbUpdates.min_stock = Number(updates.min_stock) || 0;
+      if (updates.unit !== undefined) dbUpdates.unit = updates.unit;
+      if (updates.location !== undefined) dbUpdates.location = updates.location;
+      if (updates.image_url !== undefined) dbUpdates.image_url = updates.image_url;
+      if (updates.images !== undefined) dbUpdates.images = updates.images;
+      if (updates.is_active !== undefined) dbUpdates.is_active = updates.is_active;
+
+      const { data, error } = await supabase
+        .from('products')
+        .update(dbUpdates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) {
+        console.error('Error al actualizar producto en Supabase:', error);
+        throw new Error(`Error en base de datos: ${error.message}`);
+      }
+      if (data) {
+        const list = getLocalProducts().map((p) => (p.id === id ? data : p));
+        saveLocalProducts(list);
+        return data;
       }
     }
 
@@ -345,16 +387,14 @@ export const inventoryService = {
 
   async deleteProduct(id: string): Promise<void> {
     if (isSupabaseConfigured) {
-      try {
-        const { error } = await supabase.from('products').delete().eq('id', id);
-        if (!error) {
-          const list = getLocalProducts().filter((p) => p.id !== id);
-          saveLocalProducts(list);
-          return;
-        }
-      } catch (err) {
-        console.warn('Error al eliminar producto en Supabase:', err);
+      const { error } = await supabase.from('products').delete().eq('id', id);
+      if (error) {
+        console.error('Error al eliminar producto en Supabase:', error);
+        throw new Error(`Error en base de datos: ${error.message}`);
       }
+      const list = getLocalProducts().filter((p) => p.id !== id);
+      saveLocalProducts(list);
+      return;
     }
 
     const list = getLocalProducts().filter((p) => p.id !== id);

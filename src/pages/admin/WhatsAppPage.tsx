@@ -283,7 +283,6 @@ export const WhatsAppPage: React.FC = () => {
               <option value="LISTA">LISTA</option>
               <option value="ENTREGADA">ENTREGADA</option>
               <option value="CITA_PROGRAMADA">CITA PROGRAMADA</option>
-              <option value="HISTORIAL_QR">HISTORIAL QR</option>
               <option value="MANUAL">MANUAL</option>
             </select>
           </div>

@@ -405,7 +405,6 @@ export type WhatsAppTrigger =
   | 'CITA_PROGRAMADA'
   | 'RECORDATORIO_CITA'
   | 'ALERTA_KILOMETRAJE'
-  | 'HISTORIAL_QR'
   | 'MANUAL';
 
 export interface WhatsAppMessage {
@@ -435,7 +434,6 @@ export type WhatsAppTemplateId =
   | 'CONFIRMACION_CITA'
   | 'RECORDATORIO_CITA'
   | 'ALERTA_KILOMETRAJE'
-  | 'HISTORIAL_QR'
   | 'PERSONALIZADO';
 
 export interface WhatsAppTemplate {

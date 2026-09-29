@@ -1,3 +1,40 @@
+# Plan de Despliegue Profesional: A2Ruedas PWA
+
+**Fase actual:** FASE 1 — Limpieza Funcional (QR, Consulta de Estado y Trazabilidad)
+**Estado:** LIMPIEZA COMPLETADA (PASS) — LISTO PARA FASE 2 (Sincronización Total Supabase)
+**Última actualización:** 2026-09-27
+
+---
+
+## Directivas Clave del Despliegue Actual:
+1. **Eliminación Total de Códigos QR:**
+   - Retirada la búsqueda de bicicletas por QR en la Home pública (`HomePage.tsx`).
+   - Retiradas las opciones e impresiones de marbetes QR en [`ThermalPrintPage.tsx`](file:///c:/dev/A2Ruedas/src/pages/admin/ThermalPrintPage.tsx) y [`printUtils.ts`](file:///c:/dev/A2Ruedas/src/utils/printUtils.ts), adaptándolos a marbetes estándar de identificación de taller.
+   - Retirado el bloque `CONSULTA QR` en el comprobante térmico [`WorkOrderTicketModal.tsx`](file:///c:/dev/A2Ruedas/src/components/receipts/WorkOrderTicketModal.tsx).
+   - Limpieza de accesos directos y rutas vacías asociadas a QR en [`routes.tsx`](file:///c:/dev/A2Ruedas/src/app/routes.tsx) y manifiesto PWA (`manifest.json` y `manifest.webmanifest`).
+2. **Eliminación de Consulta de Estado del Servicio por el Cliente:**
+   - La página pública queda reservada exclusivamente a la vitrina institucional del taller, catálogo público de repuestos y botón directo de contacto por WhatsApp.
+   - Eliminados formularios, botones y referencias donde el cliente final consultaba estados u órdenes.
+3. **Eliminación de Trazabilidad del Servicio:**
+   - Supresión del historial de auditoría de estados dentro del detalle de la orden en [`WorkOrdersPage.tsx`](file:///c:/dev/A2Ruedas/src/pages/admin/WorkOrdersPage.tsx).
+   - Eliminación de textos promocionales de trazabilidad en la Home y en las plantillas de WhatsApp.
+4. **Sincronización Total en Supabase (Multi-Dispositivo PC ↔ Móvil):**
+   - **Diagnóstico confirmado:**
+     - Error `PGRST204` en `products`: la columna `cost_price` fue eliminada de Supabase pero el frontend seguía enviándola.
+     - Error `42501` (violación de RLS) en `customers`, `work_orders`, etc.: las políticas exigían usuario autenticado vía JWT, pero la sesión local sintética enviaba peticiones anónimas que eran rechazadas por la base de datos y enmascaradas en `localStorage`.
+   - **Acción requerida en Fase 2:** Unificación del esquema de columnas, ajuste de políticas RLS para garantizar inserción y lectura autorizada desde cualquier terminal autorizada, y eliminación del enmascaramiento silencioso de errores.
+
+---
+
+## Roadmap de Fases de Despliegue:
+- [x] **FASE 0 — Auditoría Pre-Deployment:** Diagnóstico exhaustivo de código, Git, Supabase, RLS, rutas, PWA y causas raíz del fallo de sincronización. [PASS]
+- [x] **FASE 1 — Limpieza Funcional (QR, Consulta de Estado y Trazabilidad):** Erradicación total de elementos QR, consultas de cliente y trazabilidad en vistas, impresiones y rutas. [PASS]
+- [ ] **FASE 2 — Reparación y Certificación de Sincronización Supabase:** Corrección de schemas en frontend/PostgreSQL, configuración RLS, autenticación unificada y verificación de inserciones en tiempo real entre múltiples terminales.
+- [ ] **FASE 3 — Infraestructura y Despliegue en la Nube (Vercel / Netlify):** Verificación de builds, variables de entorno, headers de seguridad y publicación con soporte PWA completo.
+- [ ] **FASE 4 — Verificación en Vivo y Certificación Final:** Pruebas reales desde PC y dispositivo móvil simultáneos comprobando sincronización inmediata bidireccional.
+
+---
+
 # Estado general del proyecto: A2Ruedas
 
 Fase actual: FASE 26 — Entrega Final y Manuales de Operación

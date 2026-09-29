@@ -1,8 +1,8 @@
 import assert from 'assert';
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://bmwrsekgpfculdtzvcfx.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_ENfuJdohMAL2Z-RU13BPAw_gdBOv6kA';
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://bmwrsekgpfculdtzvcfx.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtd3JzZWtncGZjdWxkdHp2Y2Z4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5MzUzOTUsImV4cCI6MjEwNTUxMTM5NX0.D2QMO1fhhS164TIVWn40xo50oCvL0ETg-1XcyAp8QBQ';
 
 console.log('=== INICIANDO PRUEBAS DE LA FASE 13: PRUEBA MULTIUSUARIO & CONCURRENCIA ===\n');
 

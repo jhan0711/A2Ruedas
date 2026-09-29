@@ -258,7 +258,8 @@ export const ProductsAdminPage: React.FC = () => {
       loadData();
     } catch (err) {
       console.error('Error al guardar producto:', err);
-      setAlertMessage({ type: 'error', text: 'Ocurrió un error al guardar el producto.' });
+      const msg = err instanceof Error ? err.message : 'Ocurrió un error al guardar el producto.';
+      setAlertMessage({ type: 'error', text: msg });
     } finally {
       setIsSaving(false);
     }
@@ -727,25 +728,23 @@ export const ProductsAdminPage: React.FC = () => {
             </div>
 
             <input
+              id="product-photo-upload"
               type="file"
               ref={fileInputRef}
               accept="image/*"
               multiple
               onChange={handleFileSelect}
-              className="hidden"
+              className="sr-only"
             />
 
             <div className="flex flex-col sm:flex-row gap-2">
-              <Button
-                size="sm"
-                type="button"
-                variant="primary"
-                onClick={() => fileInputRef.current?.click()}
-                leftIcon={<Upload className="w-3.5 h-3.5" />}
-                className="w-full sm:w-auto"
+              <label
+                htmlFor="product-photo-upload"
+                className="inline-flex items-center justify-center font-medium rounded-md cursor-pointer transition-all duration-150 active:scale-[0.98] select-none px-3 py-1.5 text-xs gap-1.5 min-h-[32px] bg-blue-600 hover:bg-blue-700 text-white shadow-xs border border-blue-700 w-full sm:w-auto text-center"
               >
-                Subir Foto desde Dispositivo / Cámara
-              </Button>
+                <Upload className="w-3.5 h-3.5 shrink-0" />
+                <span>Subir Foto desde Dispositivo / Cámara</span>
+              </label>
 
               <div className="flex-1 flex gap-1.5">
                 <input

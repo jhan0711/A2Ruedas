@@ -74,10 +74,10 @@
       ]
     },
     {
-      "name": "Módulo QR / Acceso",
-      "short_name": "QR",
-      "description": "Acceso QR",
-      "url": "/admin/qr",
+      "name": "Órdenes de Trabajo",
+      "short_name": "Órdenes",
+      "description": "Gestión de órdenes y servicio técnico",
+      "url": "/admin/ordenes",
       "icons": [
         {
           "src": "/icons/icon-192x192.png",

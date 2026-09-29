@@ -32,12 +32,15 @@ export const customerService = {
           query = query.or(`full_name.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`);
         }
         const { data, error } = await query;
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           saveLocalCustomers(data);
           return data;
         }
+        if (error) {
+          console.warn('Error al consultar clientes en Supabase:', error.message);
+        }
       } catch (err) {
-        console.warn('Usando caché local de clientes:', err);
+        console.warn('Error inesperado al consultar clientes en Supabase:', err);
       }
     }
 
@@ -72,19 +75,29 @@ export const customerService = {
     };
 
     if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase
-          .from('customers')
-          .insert([customer])
-          .select()
-          .single();
-        if (!error && data) {
-          const list = getLocalCustomers();
-          saveLocalCustomers([data, ...list]);
-          return data;
-        }
-      } catch (err) {
-        console.warn('Error al guardar cliente en Supabase, persistiendo en caché local:', err);
+      const dbPayload = {
+        full_name: customer.full_name.trim(),
+        phone: customer.phone.trim(),
+        whatsapp: customer.whatsapp?.trim() || null,
+        email: customer.email?.trim() || null,
+        document_id: customer.document_id?.trim() || null,
+        address: customer.address?.trim() || null,
+        notes: customer.notes?.trim() || null,
+      };
+
+      const { data, error } = await supabase
+        .from('customers')
+        .insert([dbPayload])
+        .select()
+        .single();
+      if (error) {
+        console.error('Error al guardar cliente en Supabase:', error);
+        throw new Error(`Error en base de datos: ${error.message}`);
+      }
+      if (data) {
+        const list = getLocalCustomers();
+        saveLocalCustomers([data, ...list]);
+        return data;
       }
     }
 
@@ -97,20 +110,29 @@ export const customerService = {
   async updateCustomer(id: string, updates: CustomerUpdate): Promise<Customer> {
     const now = new Date().toISOString();
     if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase
-          .from('customers')
-          .update(updates)
-          .eq('id', id)
-          .select()
-          .single();
-        if (!error && data) {
-          const list = getLocalCustomers().map((c) => (c.id === id ? data : c));
-          saveLocalCustomers(list);
-          return data;
-        }
-      } catch (err) {
-        console.warn('Error al actualizar en Supabase:', err);
+      const dbUpdates: Record<string, any> = {};
+      if (updates.full_name !== undefined) dbUpdates.full_name = updates.full_name.trim();
+      if (updates.phone !== undefined) dbUpdates.phone = updates.phone.trim();
+      if (updates.whatsapp !== undefined) dbUpdates.whatsapp = updates.whatsapp?.trim() || null;
+      if (updates.email !== undefined) dbUpdates.email = updates.email?.trim() || null;
+      if (updates.document_id !== undefined) dbUpdates.document_id = updates.document_id?.trim() || null;
+      if (updates.address !== undefined) dbUpdates.address = updates.address?.trim() || null;
+      if (updates.notes !== undefined) dbUpdates.notes = updates.notes?.trim() || null;
+
+      const { data, error } = await supabase
+        .from('customers')
+        .update(dbUpdates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) {
+        console.error('Error al actualizar cliente en Supabase:', error);
+        throw new Error(`Error en base de datos: ${error.message}`);
+      }
+      if (data) {
+        const list = getLocalCustomers().map((c) => (c.id === id ? data : c));
+        saveLocalCustomers(list);
+        return data;
       }
     }
 
@@ -125,16 +147,14 @@ export const customerService = {
 
   async deleteCustomer(id: string): Promise<boolean> {
     if (isSupabaseConfigured) {
-      try {
-        const { error } = await supabase.from('customers').delete().eq('id', id);
-        if (!error) {
-          const list = getLocalCustomers().filter((c) => c.id !== id);
-          saveLocalCustomers(list);
-          return true;
-        }
-      } catch (err) {
-        console.warn('Error al eliminar en Supabase:', err);
+      const { error } = await supabase.from('customers').delete().eq('id', id);
+      if (error) {
+        console.error('Error al eliminar cliente en Supabase:', error);
+        throw new Error(`Error en base de datos: ${error.message}`);
       }
+      const list = getLocalCustomers().filter((c) => c.id !== id);
+      saveLocalCustomers(list);
+      return true;
     }
 
     const list = getLocalCustomers().filter((c) => c.id !== id);
