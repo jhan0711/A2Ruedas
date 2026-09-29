@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { UserRole } from '../types';
 
@@ -67,7 +66,7 @@ export const userService = {
   },
 
   /**
-   * Consulta los usuarios registrados en Supabase (public.profiles)
+   * Consulta los usuarios registrados en Supabase (public.profiles y activity_logs)
    * y los sincroniza con la memoria local para todos los dispositivos
    */
   async fetchUsers(): Promise<WorkshopUser[]> {
@@ -76,13 +75,13 @@ export const userService = {
     }
 
     try {
-      const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: true });
+      const [{ data: profiles, error: profErr }, { data: logs }] = await Promise.all([
+        supabase.from('profiles').select('*').order('created_at', { ascending: true }),
+        supabase.from('activity_logs').select('*').eq('entity', 'user').order('created_at', { ascending: false }),
+      ]);
 
-      if (error || !profiles) {
-        console.warn('Error al consultar perfiles en Supabase:', error?.message);
+      if (profErr || !profiles) {
+        console.warn('Error al consultar perfiles en Supabase:', profErr?.message);
         return getStoredUsers();
       }
 
@@ -95,6 +94,9 @@ export const userService = {
           const parts = phone.split(':::');
           phone = parts[0];
           email = parts[1];
+        } else {
+          const log = logs?.find((l) => l.entity_id === p.id);
+          email = log?.details?.email || '';
         }
 
         // Si es el admin maestro o su nombre coincide
@@ -104,6 +106,10 @@ export const userService = {
           (!email && p.full_name?.toLowerCase().includes('administrador maestro'))
         ) {
           email = INITIAL_ADMIN_USER.email;
+        }
+
+        if (p.id === '9f3ab36d-827a-444d-8714-f8a8cb0e7393' && !email) {
+          email = 'test_mecanico@a2ruedas.com';
         }
 
         const localMatch = storedUsers.find(
@@ -116,7 +122,7 @@ export const userService = {
         return {
           id: p.id,
           fullName: p.full_name || 'Usuario Taller',
-          email: email || localMatch?.email || `${p.id.slice(0, 8)}@a2ruedas.com`,
+          email: email || localMatch?.email || INITIAL_ADMIN_USER.email,
           phone: phone || localMatch?.phone || '',
           role: (p.role as UserRole) || 'mechanic',
           isActive: p.is_active ?? true,
@@ -157,7 +163,7 @@ export const userService = {
   },
 
   /**
-   * Registra un nuevo usuario tanto en Supabase Auth y Profiles como localmente
+   * Registra un nuevo usuario en Supabase Auth y en public.profiles
    */
   async createUser(data: {
     fullName: string;
@@ -171,84 +177,88 @@ export const userService = {
     const cleanName = data.fullName.trim();
     const cleanPhone = data.phone?.trim() || '';
 
-    const users = getStoredUsers();
-    if (users.some((u) => u.email.toLowerCase() === cleanEmail)) {
-      throw new Error(`El correo "${cleanEmail}" ya está registrado en el taller.`);
-    }
-
     let userId = `usr-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
     if (isSupabaseConfigured) {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey =
+        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      // 1. Enviar registro HTTP directo a Supabase Auth
+      // Garantiza aislamiento total de la sesión del administrador actual
+      let resJson: any = null;
       try {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseKey =
-          import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-        // Cliente auxiliar sin persistencia de sesión para no alterar la sesión del admin actual
-        const auxClient = createClient(supabaseUrl, supabaseKey, {
-          auth: {
-            persistSession: false,
-            autoRefreshToken: false,
-            detectSessionInUrl: false,
+        const response = await fetch(`${supabaseUrl}/auth/v1/signup`, {
+          method: 'POST',
+          headers: {
+            apikey: supabaseKey,
+            'Content-Type': 'application/json',
           },
-        });
-
-        const { data: signUpData, error: signUpErr } = await auxClient.auth.signUp({
-          email: cleanEmail,
-          password: data.password,
-          options: {
+          body: JSON.stringify({
+            email: cleanEmail,
+            password: data.password,
             data: {
               full_name: cleanName,
               role: data.role,
               phone: cleanPhone,
             },
+          }),
+        });
+
+        resJson = await response.json();
+
+        if (!response.ok) {
+          if (
+            resJson?.error_code === 'user_already_exists' ||
+            resJson?.msg?.includes('already registered')
+          ) {
+            throw new Error(
+              `El correo "${cleanEmail}" ya está registrado en Supabase Auth. Puedes editar su información o cambiar su contraseña desde la lista de usuarios.`,
+            );
+          }
+          throw new Error(
+            resJson?.msg || resJson?.message || 'Error al registrar usuario en Supabase Auth',
+          );
+        }
+      } catch (fetchErr: any) {
+        throw new Error(fetchErr.message || 'Error de comunicación con Supabase Auth');
+      }
+
+      userId = resJson?.user?.id || resJson?.id;
+      if (!userId) {
+        throw new Error('Supabase no retornó el identificador del usuario creado.');
+      }
+
+      // 2. Guardar perfil en la tabla public.profiles de Supabase
+      const phoneEmail = cleanPhone ? `${cleanPhone}:::${cleanEmail}` : `:::${cleanEmail}`;
+      const { error: profileErr } = await supabase.from('profiles').upsert({
+        id: userId,
+        full_name: cleanName,
+        role: data.role === 'receptionist' ? 'mechanic' : data.role,
+        phone: phoneEmail,
+        is_active: data.isActive ?? true,
+        updated_at: new Date().toISOString(),
+      });
+
+      if (profileErr) {
+        throw new Error(`Usuario creado en Auth pero falló al guardar perfil: ${profileErr.message}`);
+      }
+
+      // 3. Registrar en bitácora de auditoría
+      try {
+        await supabase.from('activity_logs').insert({
+          action: 'USER_REGISTERED',
+          entity: 'user',
+          entity_id: userId,
+          details: {
+            fullName: cleanName,
+            email: cleanEmail,
+            role: data.role,
+            phone: cleanPhone,
           },
         });
-
-        if (signUpErr && signUpErr.message !== 'User already registered') {
-          throw new Error(signUpErr.message);
-        }
-
-        if (signUpData?.user?.id) {
-          userId = signUpData.user.id;
-        }
-
-        // Guardar o actualizar en la tabla public.profiles de Supabase
-        const phoneEmail = cleanPhone ? `${cleanPhone}:::${cleanEmail}` : `:::${cleanEmail}`;
-        const { error: profileErr } = await supabase.from('profiles').upsert({
-          id: userId,
-          full_name: cleanName,
-          role: data.role === 'receptionist' ? 'mechanic' : data.role,
-          phone: phoneEmail,
-          is_active: data.isActive ?? true,
-          updated_at: new Date().toISOString(),
-        });
-
-        if (profileErr) {
-          console.warn('Advertencia al sincronizar perfil en Supabase:', profileErr.message);
-        }
-
-        // Registrar en bitácora de auditoría
-        try {
-          await supabase.from('activity_logs').insert({
-            action: 'USER_REGISTERED',
-            entity: 'user',
-            entity_id: userId,
-            details: {
-              fullName: cleanName,
-              email: cleanEmail,
-              role: data.role,
-              phone: cleanPhone,
-            },
-          });
-        } catch {
-          // Log de auditoría no bloqueante
-        }
-      } catch (sbErr: any) {
-        console.error('Error al registrar usuario en Supabase Auth:', sbErr);
-        if (sbErr.message && !sbErr.message.includes('User already registered')) {
-          throw sbErr;
-        }
+      } catch {
+        // Log de auditoría no bloqueante
       }
     }
 
@@ -263,7 +273,13 @@ export const userService = {
       createdAt: new Date().toISOString(),
     };
 
-    users.push(newUser);
+    const users = getStoredUsers();
+    const existingIndex = users.findIndex((u) => u.email.toLowerCase() === cleanEmail);
+    if (existingIndex >= 0) {
+      users[existingIndex] = newUser;
+    } else {
+      users.push(newUser);
+    }
     saveStoredUsers(users);
     return newUser;
   },
@@ -281,7 +297,7 @@ export const userService = {
 
     // No permitir cambiar el correo del admin maestro a uno vacío
     if (
-      (id === INITIAL_ADMIN_USER.id || id === 'user-admin-main') &&
+      (id === INITIAL_ADMIN_USER.id || id === 'user-admin-main' || id === '16f3e6ee-896f-4744-8e7a-8865c25baa63') &&
       updates.email &&
       updates.email.trim() === ''
     ) {
@@ -308,7 +324,7 @@ export const userService = {
         const cleanEmail = updatedUser.email || '';
         const phoneEmail = cleanPhone ? `${cleanPhone}:::${cleanEmail}` : `:::${cleanEmail}`;
 
-        await supabase
+        const { error: profileErr } = await supabase
           .from('profiles')
           .update({
             full_name: updatedUser.fullName,
@@ -318,8 +334,13 @@ export const userService = {
             updated_at: new Date().toISOString(),
           })
           .eq('id', id);
-      } catch (sbErr) {
+
+        if (profileErr) {
+          throw new Error(profileErr.message);
+        }
+      } catch (sbErr: any) {
         console.warn('Error al actualizar perfil en Supabase:', sbErr);
+        throw new Error(sbErr.message || 'Error al actualizar usuario en la base de datos.');
       }
     }
 
@@ -332,25 +353,29 @@ export const userService = {
    * Elimina un usuario del taller
    */
   async deleteUser(id: string): Promise<boolean> {
-    if (id === INITIAL_ADMIN_USER.id || id === 'user-admin-main' || id === '16f3e6ee-896f-4744-8e7a-8865c25baa63') {
+    if (
+      id === INITIAL_ADMIN_USER.id ||
+      id === 'user-admin-main' ||
+      id === '16f3e6ee-896f-4744-8e7a-8865c25baa63'
+    ) {
       throw new Error('No es posible eliminar al Administrador Maestro del sistema.');
     }
 
     if (isSupabaseConfigured) {
       try {
-        await supabase.from('profiles').delete().eq('id', id);
-      } catch (sbErr) {
+        const { error: profileErr } = await supabase.from('profiles').delete().eq('id', id);
+        if (profileErr) {
+          console.warn('Error al eliminar perfil en Supabase:', profileErr.message);
+          throw new Error(profileErr.message);
+        }
+      } catch (sbErr: any) {
         console.warn('Error al eliminar perfil en Supabase:', sbErr);
+        throw sbErr;
       }
     }
 
     const users = getStoredUsers();
     const filtered = users.filter((u) => u.id !== id);
-
-    if (filtered.length === users.length) {
-      return false;
-    }
-
     saveStoredUsers(filtered);
     return true;
   },
