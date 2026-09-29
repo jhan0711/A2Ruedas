@@ -1,8 +1,9 @@
 # Plan de Despliegue Profesional: A2Ruedas PWA
 
-**Fase actual:** FASE 1 — Limpieza Funcional (QR, Consulta de Estado y Trazabilidad)
-**Estado:** LIMPIEZA COMPLETADA (PASS) — LISTO PARA FASE 2 (Sincronización Total Supabase)
-**Última actualización:** 2026-09-27
+**Fase actual:** FASE 3 — Despliegue en la Nube (Netlify)
+**Estado:** DESPLIEGUE EN PRODUCCIÓN CONFIRMADO (PASS) — LISTO PARA FASE 4 (Verificación en Vivo y Certificación Final)
+**Última actualización:** 2026-09-28
+**URL de Producción Oficial:** https://a2ruedas.netlify.app
 
 ---
 
@@ -19,19 +20,22 @@
    - Supresión del historial de auditoría de estados dentro del detalle de la orden en [`WorkOrdersPage.tsx`](file:///c:/dev/A2Ruedas/src/pages/admin/WorkOrdersPage.tsx).
    - Eliminación de textos promocionales de trazabilidad en la Home y en las plantillas de WhatsApp.
 4. **Sincronización Total en Supabase (Multi-Dispositivo PC ↔ Móvil):**
-   - **Diagnóstico confirmado:**
-     - Error `PGRST204` en `products`: la columna `cost_price` fue eliminada de Supabase pero el frontend seguía enviándola.
-     - Error `42501` (violación de RLS) en `customers`, `work_orders`, etc.: las políticas exigían usuario autenticado vía JWT, pero la sesión local sintética enviaba peticiones anónimas que eran rechazadas por la base de datos y enmascaradas en `localStorage`.
-   - **Acción requerida en Fase 2:** Unificación del esquema de columnas, ajuste de políticas RLS para garantizar inserción y lectura autorizada desde cualquier terminal autorizada, y eliminación del enmascaramiento silencioso de errores.
+   - **Causa raíz diagnosticada y resuelta:**
+     - Eliminación de sesiones falsas locales que provocaban rechazo de RLS `42501` en Postgres.
+     - Sincronización de perfil de Administrador en la tabla `profiles` para claves foráneas.
+     - Sembrado y persistencia de las 10 categorías oficiales en Supabase con UUIDs válidos.
+     - Remoción de relación inexistente `bicycles` en PostgREST (`PGRST200`) en órdenes y citas.
+     - Eliminación de fallback silencioso a `localStorage`: los servicios propagan los estados remotos en tiempo real.
+     - Corrección del botón de fotografías en el catálogo de productos con elemento `<label>` nativo accesible.
 
 ---
 
 ## Roadmap de Fases de Despliegue:
 - [x] **FASE 0 — Auditoría Pre-Deployment:** Diagnóstico exhaustivo de código, Git, Supabase, RLS, rutas, PWA y causas raíz del fallo de sincronización. [PASS]
 - [x] **FASE 1 — Limpieza Funcional (QR, Consulta de Estado y Trazabilidad):** Erradicación total de elementos QR, consultas de cliente y trazabilidad en vistas, impresiones y rutas. [PASS]
-- [ ] **FASE 2 — Reparación y Certificación de Sincronización Supabase:** Corrección de schemas en frontend/PostgreSQL, configuración RLS, autenticación unificada y verificación de inserciones en tiempo real entre múltiples terminales.
-- [ ] **FASE 3 — Infraestructura y Despliegue en la Nube (Vercel / Netlify):** Verificación de builds, variables de entorno, headers de seguridad y publicación con soporte PWA completo.
-- [ ] **FASE 4 — Verificación en Vivo y Certificación Final:** Pruebas reales desde PC y dispositivo móvil simultáneos comprobando sincronización inmediata bidireccional.
+- [x] **FASE 2 — Reparación y Certificación de Sincronización Supabase:** Corrección de schemas en frontend/PostgreSQL, configuración RLS, autenticación unificada y verificación de inserciones en tiempo real entre múltiples terminales. [PASS]
+- [x] **FASE 3 — Infraestructura y Despliegue en la Nube (Netlify):** Verificación de builds, variables de entorno inyectadas, headers de seguridad HTTP, rewrites SPA y publicación continua con Git push a `main`. [PASS]
+- [ ] **FASE 4 — Verificación en Vivo y Certificación Final:** Pruebas reales desde PC y dispositivo móvil simultáneos comprobando sincronización inmediata bidireccional sobre la URL de producción `https://a2ruedas.netlify.app`.
 
 ---
 
