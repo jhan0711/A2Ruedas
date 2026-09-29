@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Bike, Wrench, ShieldCheck, Clock, MapPin, ArrowRight, MessageCircle } from 'lucide-react';
+import { Bike, Wrench, ShieldCheck, Clock, MapPin, ArrowRight, MessageCircle, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   workshopSettingsService,
   WORKSHOP_SETTINGS_EVENT,
   formatPhoneForWhatsApp,
 } from '../../services/workshopSettingsService';
+import {
+  catalogService,
+  PublicCatalogProduct,
+  DEFAULT_PRODUCT_IMAGE,
+} from '../../services/catalogService';
 
 export const HomePage: React.FC = () => {
   const [settings, setSettings] = useState(() => workshopSettingsService.getSettings());
+  const [featuredProducts, setFeaturedProducts] = useState<PublicCatalogProduct[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -19,6 +26,30 @@ export const HomePage: React.FC = () => {
     return () => {
       window.removeEventListener(WORKSHOP_SETTINGS_EVENT, handleUpdate);
       window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    catalogService
+      .getPublicProducts()
+      .then((prods) => {
+        if (isMounted) {
+          // Tomar los primeros 3 productos activos del catálogo para la vitrina del inicio
+          setFeaturedProducts(prods.slice(0, 3));
+        }
+      })
+      .catch((err) => {
+        console.error('Error al cargar productos destacados del catálogo:', err);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoadingProducts(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
     };
   }, []);
 
@@ -82,64 +113,83 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Link to="/productos" className="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-            <div className="h-36 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
-              <img
-                src="https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?auto=format&fit=crop&w=500&q=80"
-                alt="Cadena Shimano 9V"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-            <div className="p-3">
-              <span className="text-[10px] font-mono text-slate-400 uppercase">Shimano • Transmisión</span>
-              <h3 className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                Cadena Shimano 9V Deore
-              </h3>
-              <span className="font-mono text-xs font-bold text-slate-900 dark:text-white mt-1 block">
-                $85.000
-              </span>
-            </div>
-          </Link>
-
-          <Link to="/productos" className="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-            <div className="h-36 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
-              <img
-                src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=500&q=80"
-                alt="Pastillas Shimano B05S"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-            <div className="p-3">
-              <span className="text-[10px] font-mono text-slate-400 uppercase">Shimano • Frenos</span>
-              <h3 className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                Pastillas de Freno B05S
-              </h3>
-              <span className="font-mono text-xs font-bold text-slate-900 dark:text-white mt-1 block">
-                $45.000
-              </span>
-            </div>
-          </Link>
-
-          <Link to="/productos" className="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-            <div className="h-36 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
-              <img
-                src="https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=500&q=80"
-                alt="Coraza Continental Grand Prix"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-            <div className="p-3">
-              <span className="text-[10px] font-mono text-slate-400 uppercase">Continental • Llantas</span>
-              <h3 className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                Coraza Grand Prix 5000
-              </h3>
-              <span className="font-mono text-xs font-bold text-slate-900 dark:text-white mt-1 block">
-                $290.000
-              </span>
-            </div>
-          </Link>
-        </div>
+        {isLoadingProducts ? (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs animate-pulse"
+              >
+                <div className="h-36 w-full bg-slate-200 dark:bg-slate-800" />
+                <div className="p-3 space-y-2">
+                  <div className="h-3 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                  <div className="h-4 w-3/4 bg-slate-200 dark:bg-slate-800 rounded" />
+                  <div className="h-4 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : featuredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {featuredProducts.map((product) => (
+              <Link
+                key={product.id}
+                to={`/productos?p=${product.id}`}
+                className="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between"
+              >
+                <div className="h-36 w-full overflow-hidden bg-slate-100 dark:bg-slate-800 relative">
+                  <img
+                    src={product.image_url || DEFAULT_PRODUCT_IMAGE}
+                    alt={product.name}
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = DEFAULT_PRODUCT_IMAGE;
+                    }}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  {product.available ? (
+                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-600/90 text-white backdrop-blur-xs shadow-xs">
+                      En stock
+                    </span>
+                  ) : (
+                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-600/90 text-white backdrop-blur-xs shadow-xs">
+                      Consultar
+                    </span>
+                  )}
+                </div>
+                <div className="p-3">
+                  <span className="text-[10px] font-mono text-slate-400 uppercase truncate block">
+                    {product.brand ? `${product.brand} • ` : ''}
+                    {product.category_name}
+                  </span>
+                  <h3 className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
+                    {product.name}
+                  </h3>
+                  <div className="mt-1 flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-slate-900 dark:text-white">
+                      ${product.price.toLocaleString('es-CO')}
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400">COP</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center space-y-3 bg-slate-50/50 dark:bg-slate-900/30">
+            <Package className="w-8 h-8 text-slate-400 mx-auto" />
+            <p className="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
+              Contamos con repuestos y accesorios en taller. Visita nuestro catálogo en línea o contáctanos por WhatsApp.
+            </p>
+            <Link
+              to="/productos"
+              className="inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+            >
+              <span>Explorar catálogo</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* Servicios Principales */}
