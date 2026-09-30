@@ -13,6 +13,12 @@ import { cashService } from './cashService';
 const LOCAL_STORAGE_INVOICES = 'a2ruedas_invoices_v1';
 const LOCAL_STORAGE_INVOICE_ITEMS = 'a2ruedas_invoice_items_v1';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isValidUUID(str: string | null | undefined): boolean {
+  return typeof str === 'string' && UUID_REGEX.test(str.trim());
+}
+
 /**
  * En producción se inicia con facturación limpia
  */
@@ -96,7 +102,12 @@ export const invoiceService = {
         }
 
         const { data, error } = await query;
-        if (!error && data) invoices = data as Invoice[];
+        if (!error && data) {
+          invoices = data as Invoice[];
+          localStorage.setItem(LOCAL_STORAGE_INVOICES, JSON.stringify(invoices));
+        } else if (error) {
+          console.warn('Error al consultar facturas en Supabase:', error);
+        }
       } catch (err) {
         console.warn('Error al consultar facturas en Supabase:', err);
       }
@@ -209,40 +220,161 @@ export const invoiceService = {
     }));
 
     if (isSupabaseConfigured) {
-      try {
-        const { data: dbInvoice, error: invError } = await supabase
-          .from('invoices')
-          .insert({
-            invoice_number: newInvoice.invoice_number,
-            customer_id: newInvoice.customer_id,
-            work_order_id: newInvoice.work_order_id,
-            subtotal: newInvoice.subtotal,
-            discount: newInvoice.discount,
-            tax: newInvoice.tax,
-            total: newInvoice.total,
-            payment_method: newInvoice.payment_method,
-            payment_status: newInvoice.payment_status,
-            issued_by: newInvoice.issued_by,
-          })
-          .select()
-          .single();
-
-        if (!invError && dbInvoice) {
-          newInvoice.id = dbInvoice.id;
-          newInvoice.created_at = dbInvoice.created_at;
-
-          const itemsToInsert = newItems.map((it) => ({
-            invoice_id: dbInvoice.id,
-            description: it.description,
-            quantity: it.quantity,
-            unit_price: it.unit_price,
-            total_price: it.total_price,
-          }));
-
-          await supabase.from('invoice_items').insert(itemsToInsert);
+      // 1. Resolver issued_by (debe ser UUID válido de profiles)
+      let resolvedIssuedBy: string | null = null;
+      if (isValidUUID(payload.issued_by)) {
+        resolvedIssuedBy = payload.issued_by || null;
+      } else {
+        try {
+          const { data: authData } = await supabase.auth.getUser();
+          if (authData?.user?.id && isValidUUID(authData.user.id)) {
+            resolvedIssuedBy = authData.user.id;
+          }
+        } catch (err) {
+          console.warn('Error al consultar usuario autenticado:', err);
         }
-      } catch (err) {
-        console.warn('Error al guardar factura en Supabase:', err);
+
+        if (!resolvedIssuedBy) {
+          try {
+            const { data: profs } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('is_active', true)
+              .limit(1);
+            if (profs && profs.length > 0 && profs[0].id) {
+              resolvedIssuedBy = profs[0].id;
+            }
+          } catch (err) {
+            console.warn('Error al consultar perfil para issued_by:', err);
+          }
+        }
+      }
+
+      // 2. Resolver customer_id (campo NOT NULL que referencia customers(id))
+      let resolvedCustomerId: string | null = null;
+      if (isValidUUID(payload.customer_id)) {
+        resolvedCustomerId = payload.customer_id || null;
+      } else {
+        try {
+          const { data: existingCust } = await supabase
+            .from('customers')
+            .select('id')
+            .or('full_name.eq.Consumidor Final,document_id.eq.222222222222')
+            .limit(1);
+
+          if (existingCust && existingCust.length > 0) {
+            resolvedCustomerId = existingCust[0].id;
+          } else {
+            const { data: createdCust } = await supabase
+              .from('customers')
+              .insert([{
+                full_name: 'Consumidor Final',
+                document_id: '222222222222',
+                phone: '0000000000',
+                notes: 'Cliente genérico para ventas de mostrador y facturación rápida'
+              }])
+              .select('id')
+              .single();
+
+            if (createdCust?.id) {
+              resolvedCustomerId = createdCust.id;
+            }
+          }
+        } catch (err) {
+          console.warn('Error al resolver Consumidor Final:', err);
+        }
+
+        if (!resolvedCustomerId) {
+          try {
+            const { data: anyCust } = await supabase.from('customers').select('id').limit(1);
+            if (anyCust && anyCust.length > 0) {
+              resolvedCustomerId = anyCust[0].id;
+            }
+          } catch {}
+        }
+      }
+
+      // 3. Resolver work_order_id (debe ser UUID si existe)
+      let resolvedWorkOrderId: string | null = null;
+      if (payload.work_order_id) {
+        if (isValidUUID(payload.work_order_id)) {
+          resolvedWorkOrderId = payload.work_order_id;
+        } else {
+          try {
+            const { data: wo } = await supabase
+              .from('work_orders')
+              .select('id')
+              .eq('order_number', payload.work_order_id.trim())
+              .limit(1)
+              .maybeSingle();
+            if (wo?.id) {
+              resolvedWorkOrderId = wo.id;
+            }
+          } catch (err) {
+            console.warn('Error al resolver UUID de orden de trabajo:', err);
+          }
+        }
+      }
+
+      if (resolvedCustomerId && resolvedIssuedBy) {
+        try {
+          const { data: dbInvoice, error: invError } = await supabase
+            .from('invoices')
+            .insert({
+              invoice_number: newInvoice.invoice_number,
+              customer_id: resolvedCustomerId,
+              work_order_id: resolvedWorkOrderId,
+              subtotal: newInvoice.subtotal,
+              discount: newInvoice.discount,
+              tax: newInvoice.tax,
+              total: newInvoice.total,
+              payment_method: newInvoice.payment_method,
+              payment_status: newInvoice.payment_status,
+              issued_by: resolvedIssuedBy,
+            })
+            .select()
+            .single();
+
+          if (invError) {
+            console.error('Error al insertar factura en Supabase:', invError);
+            throw new Error(`Error en base de datos: ${invError.message}`);
+          }
+
+          if (dbInvoice) {
+            newInvoice.id = dbInvoice.id;
+            newInvoice.created_at = dbInvoice.created_at;
+            newInvoice.customer_id = dbInvoice.customer_id;
+            newInvoice.issued_by = dbInvoice.issued_by;
+            newInvoice.work_order_id = dbInvoice.work_order_id;
+
+            const itemsToInsert = newItems.map((it) => ({
+              invoice_id: dbInvoice.id,
+              description: it.description,
+              quantity: it.quantity,
+              unit_price: it.unit_price,
+              total_price: it.total_price,
+            }));
+
+            const { data: dbItems, error: itemsError } = await supabase
+              .from('invoice_items')
+              .insert(itemsToInsert)
+              .select();
+
+            if (itemsError) {
+              console.error('Error al insertar líneas de factura en Supabase:', itemsError);
+            } else if (dbItems) {
+              newItems.forEach((it, idx) => {
+                if (dbItems[idx]) {
+                  it.id = dbItems[idx].id;
+                  it.invoice_id = dbInvoice.id;
+                }
+              });
+            }
+          }
+        } catch (err: any) {
+          console.error('Error al persistir factura en Supabase:', err);
+          throw err;
+        }
       }
     }
 
@@ -343,7 +475,7 @@ export const invoiceService = {
     return this.createInvoice(
       {
         customer_id: workOrder.customer_id,
-        work_order_id: workOrder.order_number || workOrder.id,
+        work_order_id: workOrder.id || workOrder.order_number,
         subtotal,
         discount: validDiscount,
         tax: 0,

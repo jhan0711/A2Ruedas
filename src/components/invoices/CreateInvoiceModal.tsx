@@ -100,7 +100,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
 
   // Aplicar datos de una orden de trabajo seleccionada
   const applyWorkOrder = (order: WorkOrder) => {
-    setSelectedWorkOrderId(order.order_number);
+    setSelectedWorkOrderId(order.id);
     setSelectedCustomerId(order.customer_id || '');
 
     const items: InvoiceLineItem[] =
@@ -129,9 +129,9 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   };
 
   // Manejar cambio de orden seleccionada en el dropdown
-  const handleWorkOrderSelect = (orderNum: string) => {
-    setSelectedWorkOrderId(orderNum);
-    const found = workOrders.find((o) => o.order_number === orderNum);
+  const handleWorkOrderSelect = (orderId: string) => {
+    setSelectedWorkOrderId(orderId);
+    const found = workOrders.find((o) => o.id === orderId || o.order_number === orderId);
     if (found) {
       applyWorkOrder(found);
     }
@@ -324,7 +324,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 onChange={(val) => handleWorkOrderSelect(val)}
                 placeholder="Escribe N° OT o nombre de cliente..."
                 options={workOrders.map((o) => ({
-                  value: o.order_number,
+                  value: o.id,
                   label: `${o.order_number} — ${o.customer?.full_name || 'Cliente'}`,
                   sublabel: `Total: $${o.grand_total.toLocaleString('es-CO')} • ${o.bicycle_info || 'Bicicleta'}`,
                   badge: o.status,
