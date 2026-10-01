@@ -109,8 +109,7 @@ export const InvoicesPage: React.FC = () => {
       'es-CO'
     )} COP\n💳 *Medio de Pago:* ${invoice.payment_method}\n\n¡Gracias por rodar con A2Ruedas Taller! 🚲🔧`;
 
-    const deepLink = whatsappService.buildWhatsAppDeepLink(cleanPhone, message);
-    window.open(deepLink, '_blank');
+    whatsappService.openWhatsApp(cleanPhone, message);
   };
 
   // Filtrado reactivo de facturas

@@ -313,6 +313,6 @@ export const appointmentService = {
         `Te esperamos en nuestro taller (Cra 15 #85-20). Si necesitas reprogramar, por favor avísanos con anticipación.`
     );
 
-    return `https://wa.me/${waNumber}?text=${text}`;
+    return `whatsapp://send?phone=${waNumber}&text=${text}`;
   },
 };

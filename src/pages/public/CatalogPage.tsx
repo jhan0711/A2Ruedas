@@ -896,8 +896,6 @@ export const CatalogPage: React.FC = () => {
 
                 <a
                   href={whatsAppUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-md"
                 >
                   <MessageCircle className="w-4 h-4" />

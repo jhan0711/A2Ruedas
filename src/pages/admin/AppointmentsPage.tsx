@@ -801,8 +801,6 @@ export const AppointmentsPage: React.FC = () => {
                           {apt.customer?.phone && (
                             <a
                               href={appointmentService.getWhatsAppConfirmationUrl(apt)}
-                              target="_blank"
-                              rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
                               className="text-emerald-600 p-1 hover:bg-emerald-50 dark:hover:bg-emerald-950 rounded transition-colors"
                               title="WhatsApp"
@@ -927,8 +925,6 @@ export const AppointmentsPage: React.FC = () => {
                     {apt.customer?.phone && (
                       <a
                         href={appointmentService.getWhatsAppConfirmationUrl(apt)}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         className="p-1.5 rounded-md bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 hover:bg-emerald-100 transition-colors"
                         title="Enviar confirmación a WhatsApp"
                       >
@@ -1055,8 +1051,6 @@ export const AppointmentsPage: React.FC = () => {
                     {apt.customer?.phone && (
                       <a
                         href={appointmentService.getWhatsAppConfirmationUrl(apt)}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 hover:bg-emerald-100 transition-colors"
                         title="WhatsApp"
                       >
@@ -1162,8 +1156,6 @@ export const AppointmentsPage: React.FC = () => {
                           {apt.customer?.phone && (
                             <a
                               href={appointmentService.getWhatsAppConfirmationUrl(apt)}
-                              target="_blank"
-                              rel="noopener noreferrer"
                               className="p-1 rounded text-slate-400 hover:text-emerald-600 transition-colors"
                               title="Enviar por WhatsApp"
                             >
@@ -1411,8 +1403,6 @@ export const AppointmentsPage: React.FC = () => {
                 {selectedAppointment.customer?.phone && (
                   <a
                     href={appointmentService.getWhatsAppConfirmationUrl(selectedAppointment)}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-semibold pt-1 hover:underline"
                   >
                     <MessageCircle className="w-3.5 h-3.5" />

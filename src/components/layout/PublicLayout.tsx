@@ -30,7 +30,7 @@ export const PublicLayout: React.FC = () => {
   }, []);
 
   const cleanPhone = formatPhoneForWhatsApp(settings.phone);
-  const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
+  const waUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(
     `Hola ${settings.name}, quisiera consultar sobre un servicio o agendamiento en el taller.`
   )}`;
 
@@ -58,8 +58,6 @@ export const PublicLayout: React.FC = () => {
           <div className="flex items-center gap-3">
             <a
               href={waUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
             >
               <MessageCircle className="w-3 h-3" />

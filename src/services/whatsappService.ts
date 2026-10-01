@@ -163,12 +163,40 @@ export const whatsappService = {
   },
 
   /**
-   * Construye el enlace universal seguro (Deep Link) para abrir WhatsApp Web o App
+   * Construye el enlace de protocolo nativo para abrir la aplicación instalada en Windows / dispositivo
+   * Protocolo oficial de la aplicación: whatsapp://send?phone=...&text=...
    */
   buildWhatsAppDeepLink(phone: string, text: string): string {
     const formatted = this.formatWhatsAppPhone(phone);
     const encoded = encodeURIComponent(text);
+    return `whatsapp://send?phone=${formatted}&text=${encoded}`;
+  },
+
+  /**
+   * Construye enlace alternativo para navegador web clásico (wa.me)
+   */
+  buildWhatsAppWebLink(phone: string, text: string): string {
+    const formatted = this.formatWhatsAppPhone(phone);
+    const encoded = encodeURIComponent(text);
     return `https://wa.me/${formatted}?text=${encoded}`;
+  },
+
+  /**
+   * Invoca directamente la aplicación de WhatsApp instalada en Windows / dispositivo
+   * sin abrir páginas intermedias de navegador
+   */
+  openWhatsApp(phone: string, text: string): void {
+    if (typeof window === 'undefined') return;
+    const formatted = this.formatWhatsAppPhone(phone);
+    const encoded = encodeURIComponent(text);
+    const appUri = `whatsapp://send?phone=${formatted}&text=${encoded}`;
+
+    // Disparar invocación directa del protocolo registrado en Windows
+    const link = document.createElement('a');
+    link.href = appUri;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   },
 
   /**
@@ -358,10 +386,7 @@ export const whatsappService = {
     message: string;
     trigger: WhatsAppTrigger | string;
   }): Promise<WhatsAppMessage> {
-    const deepLink = this.buildWhatsAppDeepLink(params.phone, params.message);
-    if (typeof window !== 'undefined') {
-      window.open(deepLink, '_blank');
-    }
+    this.openWhatsApp(params.phone, params.message);
 
     return this.logMessage({
       customer_id: params.customerId,

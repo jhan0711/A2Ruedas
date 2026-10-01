@@ -327,9 +327,7 @@ export const CustomersPage: React.FC = () => {
                         </span>
                         {cleanWhatsApp.length >= 7 && (
                           <a
-                            href={`https://wa.me/${waFormatted}?text=Hola%20${encodeURIComponent(customer.full_name)},%20te%20escribimos%20de%20A2Ruedas%20Taller`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            href={`whatsapp://send?phone=${waFormatted}&text=Hola%20${encodeURIComponent(customer.full_name)},%20te%20escribimos%20de%20A2Ruedas%20Taller`}
                             className="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
                           >
                             <span>Abrir WhatsApp</span>

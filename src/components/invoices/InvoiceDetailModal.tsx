@@ -64,8 +64,7 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
       'es-CO'
     )} COP\n💳 *Medio de Pago:* ${invoice.payment_method}\n\n¡Gracias por confiar en ${workshopName}! 🚲🔧`;
 
-    const deepLink = whatsappService.buildWhatsAppDeepLink(cleanPhone, message);
-    window.open(deepLink, '_blank');
+    whatsappService.openWhatsApp(cleanPhone, message);
   };
 
   // Impresión de Tirilla Térmica 58 mm

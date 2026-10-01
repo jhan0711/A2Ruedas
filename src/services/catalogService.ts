@@ -185,6 +185,6 @@ export const catalogService = {
 
     const message = `¡Hola *${workshopName}*! 👋🚴\n\nEstuve revisando su catálogo público y me gustaría consultar disponibilidad para adquirir los siguientes repuestos en el taller:\n\n${itemsList}\n\n━━━━━━━━━━━━━━━━━━━━\n💰 *Total Estimado:* $${total.toLocaleString('es-CO')} COP\n\n¿Tienen disponibilidad para retiro o instalación en el taller? ¡Muchas gracias!`;
 
-    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    return `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
   },
 };

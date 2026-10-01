@@ -182,7 +182,7 @@ export function sanitizeUrl(url: unknown): string {
 
   try {
     const parsed = new URL(trimmed);
-    const safeProtocols = ['http:', 'https:', 'tel:', 'mailto:'];
+    const safeProtocols = ['http:', 'https:', 'tel:', 'mailto:', 'whatsapp:'];
     if (safeProtocols.includes(parsed.protocol)) {
       return trimmed;
     }

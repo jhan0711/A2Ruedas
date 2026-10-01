@@ -54,7 +54,7 @@ export const HomePage: React.FC = () => {
   }, []);
 
   const cleanPhone = formatPhoneForWhatsApp(settings.phone);
-  const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
+  const waUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(
     `Hola ${settings.name}, quisiera agendar un mantenimiento para mi bicicleta en el taller.`
   )}`;
 
@@ -86,8 +86,6 @@ export const HomePage: React.FC = () => {
           </Link>
           <a
             href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 text-emerald-800 dark:text-emerald-300 text-xs sm:text-sm font-semibold transition-colors"
           >
             <MessageCircle className="w-4 h-4" />
