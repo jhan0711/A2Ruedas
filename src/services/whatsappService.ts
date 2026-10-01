@@ -3,7 +3,6 @@ import {
   WhatsAppMessage,
   WhatsAppMessageInsert,
   WhatsAppTemplate,
-  WhatsAppTemplateId,
   WhatsAppTrigger,
 } from '../types/database';
 import { customerService } from './customerService';
@@ -12,91 +11,57 @@ import { workOrderService } from './workOrderService';
 const LOCAL_STORAGE_KEY = 'a2ruedas_whatsapp_messages_cache';
 
 /**
- * Catálogo maestro de plantillas oficiales de comunicación por WhatsApp para el taller
+/**
+ * Catálogo maestro de las 2 plantillas oficiales requeridas:
+ * 1. Recepción de la bicicleta (Agenda / Ingreso)
+ * 2. Entrega final (Orden de trabajo)
  */
-export const WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
+export const DEFAULT_WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
   {
     id: 'ORDEN_RECIBIDA',
-    title: 'Recepción Formal de Bicicleta',
-    description: 'Notifica al cliente que su bicicleta ha ingresado al taller con su número de orden OT.',
+    title: 'Recepción de la Bicicleta (Agenda / Ingreso)',
+    description: 'Notifica al cliente que su bicicleta ha ingresado al taller con su orden o agendamiento.',
     trigger: 'RECIBIDA',
     variables: ['{CLIENTE}', '{BICICLETA}', '{ORDEN}', '{FALLA}'],
     template:
       '¡Hola {CLIENTE}! 👋 Te confirmamos que tu bicicleta {BICICLETA} ha sido RECIBIDA exitosamente en A2Ruedas Taller con la Orden N° {ORDEN}.\n\nDiagnóstico técnico en curso. Puedes consultar el estado en cualquier momento. ¡Gracias por confiar en nosotros! 🚲',
   },
   {
-    id: 'PRESUPUESTO_LISTO',
-    title: 'Presupuesto Listo y Solicitud de Aprobación',
-    description: 'Envía el desglose financiero estimado solicitando la autorización del cliente.',
-    trigger: 'PRESUPUESTO',
-    variables: ['{CLIENTE}', '{BICICLETA}', '{ORDEN}', '{TOTAL}'],
-    template:
-      '¡Hola {CLIENTE}! 🔧 Tenemos listo el diagnóstico y presupuesto técnico para tu bicicleta {BICICLETA} (Orden N° {ORDEN}).\n\nEl valor total estimado es de ${TOTAL}.\n\nPor favor confírmanos si apruebas el servicio para iniciar de inmediato con las intervenciones.',
-  },
-  {
-    id: 'ESPERANDO_REPUESTO',
-    title: 'Notificación de Repuestos en Tránsito',
-    description: 'Informa al cliente que el servicio está en pausa temporal aguardando un componente.',
-    trigger: 'ESPERANDO_REPUESTO',
-    variables: ['{CLIENTE}', '{BICICLETA}', '{ORDEN}'],
-    template:
-      'Estimado(a) {CLIENTE}, te informamos que tu bicicleta {BICICLETA} (Orden N° {ORDEN}) se encuentra temporalmente en espera de un repuesto específico de alta calidad necesario para el ensamblaje.\n\nTe avisaremos tan pronto reanudemos los trabajos.',
-  },
-  {
-    id: 'BICICLETA_LISTA',
-    title: 'Bicicleta Lista para Retiro',
-    description: 'Avisa al cliente que su bicicleta está terminada, indicando el saldo pendiente y horarios.',
-    trigger: 'LISTA',
-    variables: ['{CLIENTE}', '{BICICLETA}', '{ORDEN}', '{SALDO}'],
-    template:
-      '¡Buenas noticias {CLIENTE}! 🎉 Tu bicicleta {BICICLETA} está 100% LISTA para entrega en A2Ruedas Taller (Orden N° {ORDEN}).\n\nSaldo pendiente por cancelar: ${SALDO}.\n\nPuedes pasar a retirarla en nuestro horario habitual: Lunes a Sábado de 8:00 am a 6:00 pm. ¡Te esperamos!',
-  },
-  {
-    id: 'ENTREGA_AGRADECIMIENTO',
-    title: 'Entrega Formal y Garantía',
-    description: 'Agradece la visita y confirma la garantía de satisfacción del servicio.',
+    id: 'ENTREGA_FINAL',
+    title: 'Entrega Final de la Bicicleta (Orden de Trabajo)',
+    description: 'Avisa al cliente que su bicicleta está terminada, indicando saldo pendiente y garantía técnica.',
     trigger: 'ENTREGADA',
-    variables: ['{CLIENTE}', '{BICICLETA}', '{ORDEN}'],
+    variables: ['{CLIENTE}', '{BICICLETA}', '{ORDEN}', '{TOTAL}', '{SALDO}'],
     template:
-      '¡Hola {CLIENTE}! 🌟 Tu bicicleta {BICICLETA} ha sido ENTREGADA con éxito (Orden N° {ORDEN}).\n\nTodas nuestras intervenciones cuentan con garantía técnica de 30 días.\n\n¡Gracias por rodar con A2Ruedas!',
-  },
-  {
-    id: 'CONFIRMACION_CITA',
-    title: 'Confirmación de Cita Programada',
-    description: 'Notifica la reserva de fecha y hora en el taller.',
-    trigger: 'CITA_PROGRAMADA',
-    variables: ['{CLIENTE}', '{BICICLETA}', '{FECHA}', '{HORA}', '{MECANICO}'],
-    template:
-      '¡Hola {CLIENTE}! 📅 Confirmamos tu cita de mantenimiento para tu bicicleta {BICICLETA} en A2Ruedas Taller para el día {FECHA} a las {HORA}.\n\nMecánico asignado: {MECANICO}.\nSi necesitas reprogramar, por favor avísanos con anticipación.',
-  },
-  {
-    id: 'RECORDATORIO_CITA',
-    title: 'Recordatorio de Cita Próxima',
-    description: 'Recuerda al cliente su cita en las próximas 24 horas.',
-    trigger: 'RECORDATORIO_CITA',
-    variables: ['{CLIENTE}', '{BICICLETA}', '{FECHA}', '{HORA}'],
-    template:
-      '¡Hola {CLIENTE}! 🔔 Te recordamos tu cita de mantenimiento programada para el {FECHA} a las {HORA} en A2Ruedas Taller.\n\nTe esperamos puntualmente para recibir tu bicicleta {BICICLETA} y comenzar el servicio.',
-  },
-  {
-    id: 'ALERTA_KILOMETRAJE',
-    title: 'Alerta de Mantenimiento Preventivo (Odómetro)',
-    description: 'Sugiere revisión técnica cuando la bicicleta supera un ciclo de kilometraje.',
-    trigger: 'ALERTA_KILOMETRAJE',
-    variables: ['{CLIENTE}', '{BICICLETA}', '{KILOMETRAJE}'],
-    template:
-      '¡Hola {CLIENTE}! 🚴‍♂️ Notamos que tu bicicleta {BICICLETA} ya acumula {KILOMETRAJE} km de rodaje. Para prevenir el desgaste de la cadena y conservar la suspensión, te sugerimos un mantenimiento preventivo. Escríbenos para agendar tu cupo.',
-  },
-  {
-    id: 'PERSONALIZADO',
-    title: 'Mensaje Libre / Personalizado',
-    description: 'Redacción directa para comunicaciones específicas o presupuestos a la medida.',
-    trigger: 'MANUAL',
-    variables: ['{CLIENTE}', '{BICICLETA}'],
-    template:
-      '¡Hola {CLIENTE}! Te escribimos desde A2Ruedas Taller con respecto a tu bicicleta {BICICLETA}.',
+      '¡Hola {CLIENTE}! 🎉 Tu bicicleta {BICICLETA} está 100% lista y ha sido ENTREGADA con éxito (Orden N° {ORDEN}).\n\nTotal del servicio: ${TOTAL}.\nSaldo pendiente: ${SALDO}.\n\nTodas nuestras intervenciones cuentan con garantía técnica de 30 días. ¡Gracias por rodar con A2Ruedas! 🚲',
   },
 ];
+
+export const WHATSAPP_TEMPLATES = DEFAULT_WHATSAPP_TEMPLATES;
+
+const TEMPLATES_STORAGE_KEY = 'a2ruedas_whatsapp_templates_custom_v3';
+
+function getStoredTemplates(): WhatsAppTemplate[] {
+  if (typeof window === 'undefined') return DEFAULT_WHATSAPP_TEMPLATES;
+  try {
+    const raw = localStorage.getItem(TEMPLATES_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn('Error reading saved WhatsApp templates:', e);
+  }
+  return DEFAULT_WHATSAPP_TEMPLATES;
+}
+
+function saveStoredTemplates(templates: WhatsAppTemplate[]): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates));
+  }
+}
 
 // En producción la bitácora de envíos de WhatsApp inicia limpia
 const INITIAL_LOGS: WhatsAppMessage[] = [];
@@ -123,37 +88,61 @@ function saveLocalLogs(logs: WhatsAppMessage[]): void {
 
 export const whatsappService = {
   /**
-   * Obtiene la lista completa de plantillas preconfiguradas
+   * Obtiene la lista de plantillas (editadas o por defecto)
    */
   getTemplates(): WhatsAppTemplate[] {
-    return WHATSAPP_TEMPLATES;
+    return getStoredTemplates();
   },
 
   /**
    * Obtiene una plantilla por su ID
    */
-  getTemplateById(id: WhatsAppTemplateId): WhatsAppTemplate | undefined {
-    return WHATSAPP_TEMPLATES.find((t) => t.id === id);
+  getTemplateById(id: string): WhatsAppTemplate | undefined {
+    const templates = this.getTemplates();
+    const found = templates.find((t) => t.id === id);
+    if (found) return found;
+    if (id === 'ENTREGA_AGRADECIMIENTO' || id === 'BICICLETA_LISTA' || id === 'ENTREGA_FINAL') {
+      return templates.find((t) => t.id === 'ENTREGA_FINAL') || templates[1] || templates[0];
+    }
+    return templates.find((t) => t.id === 'ORDEN_RECIBIDA') || templates[0];
   },
 
   /**
    * Obtiene la plantilla más adecuada según el estado de la orden de trabajo
    */
   getTemplateForStatus(status: string): WhatsAppTemplate {
-    switch (status) {
-      case 'RECIBIDA':
-        return this.getTemplateById('ORDEN_RECIBIDA')!;
-      case 'PRESUPUESTO':
-        return this.getTemplateById('PRESUPUESTO_LISTO')!;
-      case 'ESPERANDO_REPUESTO':
-        return this.getTemplateById('ESPERANDO_REPUESTO')!;
-      case 'LISTA':
-        return this.getTemplateById('BICICLETA_LISTA')!;
-      case 'ENTREGADA':
-        return this.getTemplateById('ENTREGA_AGRADECIMIENTO')!;
-      default:
-        return this.getTemplateById('PERSONALIZADO')!;
+    const templates = this.getTemplates();
+    const delivery = templates.find((t) => t.id === 'ENTREGA_FINAL') || templates[1] || templates[0];
+    const reception = templates.find((t) => t.id === 'ORDEN_RECIBIDA') || templates[0];
+    if (status === 'ENTREGADA' || status === 'LISTA') {
+      return delivery;
     }
+    return reception;
+  },
+
+  /**
+   * Guarda o edita una plantilla de forma persistente
+   */
+  saveTemplate(updated: WhatsAppTemplate): WhatsAppTemplate {
+    const templates = this.getTemplates();
+    const index = templates.findIndex((t) => t.id === updated.id);
+    let nextList: WhatsAppTemplate[];
+    if (index >= 0) {
+      nextList = [...templates];
+      nextList[index] = { ...nextList[index], ...updated };
+    } else {
+      nextList = [...templates, updated];
+    }
+    saveStoredTemplates(nextList);
+    return updated;
+  },
+
+  /**
+   * Restablece las plantillas a los valores por defecto
+   */
+  resetTemplates(): WhatsAppTemplate[] {
+    saveStoredTemplates(DEFAULT_WHATSAPP_TEMPLATES);
+    return DEFAULT_WHATSAPP_TEMPLATES;
   },
 
   /**

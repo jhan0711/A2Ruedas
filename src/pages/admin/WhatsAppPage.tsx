@@ -14,9 +14,10 @@ import {
   Send,
   FileText,
   RotateCcw,
+  Edit2,
 } from 'lucide-react';
-import { WhatsAppMessage, Customer, WorkOrder } from '../../types/database';
-import { whatsappService, WHATSAPP_TEMPLATES } from '../../services/whatsappService';
+import { WhatsAppMessage, Customer, WorkOrder, WhatsAppTemplate } from '../../types/database';
+import { whatsappService } from '../../services/whatsappService';
 import { customerService } from '../../services/customerService';
 import {
   Button,
@@ -30,6 +31,7 @@ import {
   LoadingSpinner,
   EmptyState,
   Alert,
+  Modal,
 } from '../../components/ui';
 import { WhatsAppComposeModal } from '../../components/whatsapp/WhatsAppComposeModal';
 
@@ -37,6 +39,15 @@ export const WhatsAppPage: React.FC = () => {
   const [messages, setMessages] = useState<WhatsAppMessage[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Plantillas oficiales y edición
+  const [templates, setTemplates] = useState<WhatsAppTemplate[]>(() => whatsappService.getTemplates());
+  const [editingTemplate, setEditingTemplate] = useState<WhatsAppTemplate | null>(null);
+  const [editFormData, setEditFormData] = useState<{
+    title: string;
+    description: string;
+    template: string;
+  } | null>(null);
 
   // Filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,6 +63,51 @@ export const WhatsAppPage: React.FC = () => {
     type: 'success' | 'error' | 'warning';
     text: string;
   } | null>(null);
+
+  const handleOpenEditTemplate = (tmpl: WhatsAppTemplate) => {
+    setEditingTemplate(tmpl);
+    setEditFormData({
+      title: tmpl.title,
+      description: tmpl.description,
+      template: tmpl.template,
+    });
+  };
+
+  const handleSaveTemplate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTemplate || !editFormData) return;
+    const updated: WhatsAppTemplate = {
+      ...editingTemplate,
+      title: editFormData.title.trim(),
+      description: editFormData.description.trim(),
+      template: editFormData.template.trim(),
+    };
+    whatsappService.saveTemplate(updated);
+    setTemplates(whatsappService.getTemplates());
+    setEditingTemplate(null);
+    setEditFormData(null);
+    setAlertMessage({
+      type: 'success',
+      text: `Plantilla "${updated.title}" actualizada y guardada permanentemente.`,
+    });
+  };
+
+  const handleResetTemplates = () => {
+    const defaults = whatsappService.resetTemplates();
+    setTemplates(defaults);
+    setAlertMessage({
+      type: 'success',
+      text: 'Plantillas oficiales restablecidas a los valores de fábrica.',
+    });
+  };
+
+  const insertVariableIntoTemplate = (variable: string) => {
+    if (!editFormData) return;
+    setEditFormData({
+      ...editFormData,
+      template: `${editFormData.template} ${variable}`,
+    });
+  };
 
   const loadData = async () => {
     setIsLoading(true);
@@ -206,50 +262,80 @@ export const WhatsAppPage: React.FC = () => {
       </div>
 
       {/* Catálogo Visual de Plantillas Oficiales */}
-      <Card className="p-4 border-slate-200 dark:border-slate-800 space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-emerald-600" />
-            Plantillas Oficiales Disponibles ({WHATSAPP_TEMPLATES.length})
-          </h2>
-          <span className="text-[11px] text-slate-500 font-mono">
-            Variables automáticas: {'{CLIENTE}'}, {'{BICICLETA}'}, {'{ORDEN}'}, {'{TOTAL}'}, {'{SALDO}'}
-          </span>
+      <Card className="p-4 border-slate-200 dark:border-slate-800 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              Plantillas Oficiales del Taller ({templates.length})
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Plantillas oficiales de comunicación para recepción física y entrega de bicicletas. Puedes editarlas libremente y los cambios quedarán guardados permanentemente.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleResetTemplates}
+              className="text-xs"
+              leftIcon={<RotateCcw className="w-3 h-3 text-slate-400" />}
+              title="Restablecer textos por defecto"
+            >
+              Restablecer Valores
+            </Button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-          {WHATSAPP_TEMPLATES.map((tmpl) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {templates.map((tmpl) => (
             <div
               key={tmpl.id}
-              className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-1.5 flex flex-col justify-between"
+              className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-xs flex flex-col justify-between space-y-3"
             >
               <div>
-                <div className="flex items-center justify-between gap-1">
-                  <span className="font-semibold text-xs text-slate-900 dark:text-white truncate">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="font-bold text-sm text-slate-900 dark:text-white">
                     {tmpl.title}
                   </span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shrink-0">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 shrink-0">
                     {tmpl.trigger}
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2.5">
                   {tmpl.description}
                 </p>
+
+                {/* Vista previa del mensaje */}
+                <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-950/80 border border-slate-200/80 dark:border-slate-800 text-xs font-mono whitespace-pre-line text-slate-700 dark:text-slate-300 leading-relaxed max-h-36 overflow-y-auto">
+                  {tmpl.template}
+                </div>
               </div>
 
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setSelectedTriggerForCompose(tmpl.trigger);
-                  setSelectedCustomerForCompose(customers[0] || null);
-                  setComposeModalOpen(true);
-                }}
-                className="w-full text-xs text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 mt-1"
-                leftIcon={<Send className="w-3 h-3" />}
-              >
-                Probar Plantilla
-              </Button>
+              <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleOpenEditTemplate(tmpl)}
+                  className="flex-1 text-xs"
+                  leftIcon={<Edit2 className="w-3.5 h-3.5 text-blue-600" />}
+                >
+                  Editar Plantilla
+                </Button>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => {
+                    setSelectedTriggerForCompose(tmpl.trigger);
+                    setSelectedCustomerForCompose(customers[0] || null);
+                    setComposeModalOpen(true);
+                  }}
+                  className="flex-1 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                  leftIcon={<Send className="w-3.5 h-3.5" />}
+                >
+                  Enviar WhatsApp
+                </Button>
+              </div>
             </div>
           ))}
         </div>
@@ -417,6 +503,99 @@ export const WhatsAppPage: React.FC = () => {
           </div>
         )}
       </Card>
+
+      {/* Modal para Editar Plantilla Permanentemente */}
+      {editingTemplate && editFormData && (
+        <Modal
+          isOpen={Boolean(editingTemplate)}
+          onClose={() => {
+            setEditingTemplate(null);
+            setEditFormData(null);
+          }}
+          title={`Editar Plantilla: ${editingTemplate.title}`}
+          description="Los cambios se guardan permanentemente en la aplicación y se aplicarán en todos los envíos futuros."
+          maxWidth="md"
+          footer={
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setEditingTemplate(null);
+                  setEditFormData(null);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button size="sm" variant="primary" onClick={handleSaveTemplate}>
+                Guardar Cambios
+              </Button>
+            </>
+          }
+        >
+          <form onSubmit={handleSaveTemplate} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Nombre de la Plantilla *
+              </label>
+              <input
+                type="text"
+                required
+                value={editFormData.title}
+                onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Descripción / Uso *
+              </label>
+              <input
+                type="text"
+                required
+                value={editFormData.description}
+                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Texto del Mensaje de WhatsApp *
+                </label>
+                <span className="text-[10px] text-slate-400 font-mono">
+                  Haz clic en las variables para insertarlas
+                </span>
+              </div>
+
+              {/* Botones de variables dinámicas */}
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {editingTemplate.variables.map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => insertVariableIntoTemplate(v)}
+                    className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors"
+                  >
+                    + {v}
+                  </button>
+                ))}
+              </div>
+
+              <textarea
+                rows={6}
+                required
+                value={editFormData.template}
+                onChange={(e) => setEditFormData({ ...editFormData, template: e.target.value })}
+                className="w-full text-xs font-mono rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-emerald-500 leading-relaxed"
+                placeholder="Escribe el texto de la plantilla..."
+              />
+            </div>
+          </form>
+        </Modal>
+      )}
 
       {/* Modal de Envío de WhatsApp */}
       <WhatsAppComposeModal

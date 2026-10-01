@@ -427,6 +427,7 @@ export type WhatsAppMessageInsert = Omit<
 
 export type WhatsAppTemplateId =
   | 'ORDEN_RECIBIDA'
+  | 'ENTREGA_FINAL'
   | 'PRESUPUESTO_LISTO'
   | 'ESPERANDO_REPUESTO'
   | 'BICICLETA_LISTA'
@@ -434,7 +435,8 @@ export type WhatsAppTemplateId =
   | 'CONFIRMACION_CITA'
   | 'RECORDATORIO_CITA'
   | 'ALERTA_KILOMETRAJE'
-  | 'PERSONALIZADO';
+  | 'PERSONALIZADO'
+  | string;
 
 export interface WhatsAppTemplate {
   id: WhatsAppTemplateId;

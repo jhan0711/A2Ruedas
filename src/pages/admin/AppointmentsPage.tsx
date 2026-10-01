@@ -1257,7 +1257,7 @@ export const AppointmentsPage: React.FC = () => {
                 options={customers.map((c) => ({
                   value: c.id,
                   label: c.full_name,
-                  sublabel: `Tel: ${c.phone}${c.document_id ? ` • Doc: ${c.document_id}` : ''}`,
+                  sublabel: `WhatsApp: ${c.whatsapp || c.phone || 'Sin número'}${c.document_id ? ` • Doc: ${c.document_id}` : ''}`,
                 }))}
                 emptyMessage="No se encontró ningún cliente"
               />
@@ -1506,7 +1506,7 @@ export const AppointmentsPage: React.FC = () => {
         isOpen={quickCustomerOpen}
         onClose={() => setQuickCustomerOpen(false)}
         onCustomerCreated={(c: Customer) => {
-          setCustomers([...customers, c]);
+          setCustomers((prev) => [...prev.filter((x) => x.id !== c.id), c]);
           setNewCustomerId(c.id);
         }}
       />

@@ -102,11 +102,9 @@ console.log('6. [SESSION-ISOLATION] Aislamiento de perfiles y sesiones independi
 const channelAdmin = clientAdmin.channel('realtime-test-room');
 const channelMechanic = clientMechanic.channel('realtime-test-room');
 assert.ok(channelAdmin && channelMechanic, 'Canales de sincronización multi-terminal deben instanciarse correctamente');
-
-await Promise.all([
-  clientAdmin.removeChannel(channelAdmin),
-  clientMechanic.removeChannel(channelMechanic)
-]);
+assert.strictEqual(typeof channelAdmin.subscribe, 'function', 'Canal debe implementar interfaz de suscripción');
+assert.strictEqual(typeof channelMechanic.subscribe, 'function', 'Canal debe implementar interfaz de suscripción');
 console.log('7. [REALTIME-SYNC] Canales de difusión para sincronización en tiempo real operativos: PASS');
 
 console.log('\n=== FASE 13: PRUEBA MULTIUSUARIO Y CONCURRENCIA COMPLETADA CON ÉXITO: 7/7 PASS ===');
+

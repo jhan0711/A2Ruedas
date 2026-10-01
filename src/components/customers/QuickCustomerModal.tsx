@@ -20,20 +20,21 @@ export const QuickCustomerModal: React.FC<QuickCustomerModalProps> = ({ isOpen, 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !phone.trim()) {
-      setError('El nombre y el teléfono son obligatorios');
+      setError('El nombre y el número de WhatsApp son obligatorios');
       return;
     }
     
     setIsSubmitting(true);
     setError(null);
     try {
+      const cleanPhone = phone.trim();
       const newCustomer = await customerService.createCustomer({
         full_name: fullName.trim(),
-        phone: phone.trim(),
+        phone: cleanPhone,
+        whatsapp: cleanPhone,
         document_id: documentId.trim() || null,
         address: null,
         email: null,
-        
       });
       onCustomerCreated(newCustomer);
       setFullName('');
@@ -62,10 +63,11 @@ export const QuickCustomerModal: React.FC<QuickCustomerModalProps> = ({ isOpen, 
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Teléfono (WhatsApp) *</label>
+          <label className="block text-sm font-medium mb-1">WhatsApp *</label>
           <input
             type="text"
             required
+            placeholder="Ej. 3101234567"
             className="w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}

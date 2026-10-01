@@ -56,8 +56,8 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
 
-    // Número de teléfono inicial
-    const initialPhone = customer?.phone || workOrder?.customer?.phone || '';
+    // Número de WhatsApp inicial
+    const initialPhone = customer?.whatsapp || customer?.phone || workOrder?.customer?.whatsapp || workOrder?.customer?.phone || '';
     setCustomPhone(initialPhone);
 
     // Si viene un mensaje predefinido desde la acción, usarlo
@@ -256,7 +256,7 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             Plantilla Oficial de Taller:
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {templates.map((t) => {
               const isSelected = selectedTemplateId === t.id;
               return (

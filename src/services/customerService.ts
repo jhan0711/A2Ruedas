@@ -23,6 +23,24 @@ function saveLocalCustomers(list: Customer[]) {
   localStorage.setItem(LOCAL_STORAGE_CUSTOMERS, JSON.stringify(list));
 }
 
+function deduplicateCustomers(list: Customer[]): Customer[] {
+  const seenIds = new Set<string>();
+  const seenPhones = new Set<string>();
+  const result: Customer[] = [];
+
+  for (const c of list) {
+    if (!c.id) continue;
+    const normPhone = (c.phone || c.whatsapp || '').replace(/\D/g, '');
+    if (seenIds.has(c.id)) continue;
+    if (normPhone && normPhone.length >= 7 && seenPhones.has(normPhone)) continue;
+
+    seenIds.add(c.id);
+    if (normPhone && normPhone.length >= 7) seenPhones.add(normPhone);
+    result.push(c);
+  }
+  return result;
+}
+
 export const customerService = {
   async getCustomers(searchTerm?: string): Promise<Customer[]> {
     if (isSupabaseConfigured) {
@@ -33,37 +51,9 @@ export const customerService = {
         }
         const { data, error } = await query;
         if (!error && data) {
-          // Auto-sincronizar clientes creados en local que falten en Supabase
-          const localList = getLocalCustomers();
-          const supabasePhoneSet = new Set(data.map((c) => c.phone));
-          const unsynced = localList.filter((c) => !supabasePhoneSet.has(c.phone) && c.full_name && c.phone);
-          if (unsynced.length > 0) {
-            for (const item of unsynced) {
-              try {
-                const { data: syncedCust } = await supabase
-                  .from('customers')
-                  .insert([{
-                    full_name: item.full_name.trim(),
-                    phone: item.phone.trim(),
-                    whatsapp: item.whatsapp?.trim() || null,
-                    email: item.email?.trim() || null,
-                    document_id: item.document_id?.trim() || null,
-                    address: item.address?.trim() || null,
-                    notes: item.notes?.trim() || null,
-                  }])
-                  .select()
-                  .single();
-                if (syncedCust) {
-                  data.push(syncedCust);
-                }
-              } catch (e) {
-                console.warn('Auto-sync cliente pendiente:', e);
-              }
-            }
-          }
-
-          saveLocalCustomers(data);
-          return data;
+          const uniqueData = deduplicateCustomers(data);
+          saveLocalCustomers(uniqueData);
+          return uniqueData;
         }
         if (error) {
           console.warn('Error al consultar clientes en Supabase:', error.message);
@@ -73,11 +63,14 @@ export const customerService = {
       }
     }
 
-    const local = getLocalCustomers();
+    const local = deduplicateCustomers(getLocalCustomers());
     if (!searchTerm) return local;
     const term = searchTerm.toLowerCase();
     return local.filter(
-      (c) => c.full_name.toLowerCase().includes(term) || c.phone.includes(term),
+      (c) =>
+        c.full_name.toLowerCase().includes(term) ||
+        (c.phone && c.phone.includes(term)) ||
+        (c.whatsapp && c.whatsapp.includes(term)),
     );
   },
 
@@ -96,8 +89,11 @@ export const customerService = {
 
   async createCustomer(customer: CustomerInsert): Promise<Customer> {
     const now = new Date().toISOString();
+    const mainPhone = (customer.whatsapp || customer.phone || '').trim();
     const newCustomer: Customer = {
       ...customer,
+      phone: mainPhone,
+      whatsapp: mainPhone || null,
       id: crypto.randomUUID ? crypto.randomUUID() : `cust-${Date.now()}`,
       created_at: now,
       updated_at: now,
@@ -106,8 +102,8 @@ export const customerService = {
     if (isSupabaseConfigured) {
       const dbPayload = {
         full_name: customer.full_name.trim(),
-        phone: customer.phone.trim(),
-        whatsapp: customer.whatsapp?.trim() || null,
+        phone: mainPhone,
+        whatsapp: mainPhone || null,
         email: customer.email?.trim() || null,
         document_id: customer.document_id?.trim() || null,
         address: customer.address?.trim() || null,
@@ -124,25 +120,28 @@ export const customerService = {
         throw new Error(`Error en base de datos: ${error.message}`);
       }
       if (data) {
-        const list = getLocalCustomers();
-        saveLocalCustomers([data, ...list]);
+        const list = deduplicateCustomers([data, ...getLocalCustomers()]);
+        saveLocalCustomers(list);
         return data;
       }
     }
 
-    const list = getLocalCustomers();
-    const updatedList = [newCustomer, ...list];
-    saveLocalCustomers(updatedList);
+    const list = deduplicateCustomers([newCustomer, ...getLocalCustomers()]);
+    saveLocalCustomers(list);
     return newCustomer;
   },
 
   async updateCustomer(id: string, updates: CustomerUpdate): Promise<Customer> {
     const now = new Date().toISOString();
+    const mainPhone = (updates.whatsapp !== undefined ? updates.whatsapp : updates.phone)?.trim();
+
     if (isSupabaseConfigured) {
       const dbUpdates: Record<string, any> = {};
       if (updates.full_name !== undefined) dbUpdates.full_name = updates.full_name.trim();
-      if (updates.phone !== undefined) dbUpdates.phone = updates.phone.trim();
-      if (updates.whatsapp !== undefined) dbUpdates.whatsapp = updates.whatsapp?.trim() || null;
+      if (mainPhone !== undefined) {
+        dbUpdates.phone = mainPhone;
+        dbUpdates.whatsapp = mainPhone || null;
+      }
       if (updates.email !== undefined) dbUpdates.email = updates.email?.trim() || null;
       if (updates.document_id !== undefined) dbUpdates.document_id = updates.document_id?.trim() || null;
       if (updates.address !== undefined) dbUpdates.address = updates.address?.trim() || null;
@@ -160,7 +159,7 @@ export const customerService = {
       }
       if (data) {
         const list = getLocalCustomers().map((c) => (c.id === id ? data : c));
-        saveLocalCustomers(list);
+        saveLocalCustomers(deduplicateCustomers(list));
         return data;
       }
     }
@@ -168,9 +167,15 @@ export const customerService = {
     const list = getLocalCustomers();
     const index = list.findIndex((c) => c.id === id);
     if (index === -1) throw new Error('Cliente no encontrado');
-    const updated: Customer = { ...list[index], ...updates, updated_at: now };
+    const updated: Customer = {
+      ...list[index],
+      ...updates,
+      phone: mainPhone !== undefined ? mainPhone : list[index].phone,
+      whatsapp: mainPhone !== undefined ? mainPhone : list[index].whatsapp,
+      updated_at: now,
+    };
     list[index] = updated;
-    saveLocalCustomers(list);
+    saveLocalCustomers(deduplicateCustomers(list));
     return updated;
   },
 

@@ -107,10 +107,11 @@ export const CustomersPage: React.FC = () => {
 
   const openEditModal = (customer: Customer) => {
     setEditingCustomer(customer);
+    const mainPhone = customer.whatsapp || customer.phone || '';
     setFormData({
       full_name: customer.full_name,
-      phone: customer.phone,
-      whatsapp: customer.whatsapp || '',
+      phone: mainPhone,
+      whatsapp: mainPhone,
       email: customer.email || '',
       document_id: customer.document_id || '',
       address: customer.address || '',
@@ -142,10 +143,11 @@ export const CustomersPage: React.FC = () => {
     if (!formData.full_name.trim()) {
       errors.full_name = 'El nombre completo es obligatorio.';
     }
-    if (!formData.phone.trim()) {
-      errors.phone = 'El teléfono es obligatorio.';
-    } else if (formData.phone.trim().length < 7) {
-      errors.phone = 'Ingresa un número telefónico válido.';
+    const contact = (formData.whatsapp || formData.phone || '').trim();
+    if (!contact) {
+      errors.phone = 'El número de WhatsApp es obligatorio.';
+    } else if (contact.length < 7) {
+      errors.phone = 'Ingresa un número de WhatsApp válido.';
     }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -157,11 +159,17 @@ export const CustomersPage: React.FC = () => {
 
     setIsSaving(true);
     try {
+      const unifiedPhone = (formData.whatsapp || formData.phone || '').trim();
+      const payload = {
+        ...formData,
+        phone: unifiedPhone,
+        whatsapp: unifiedPhone,
+      };
       if (editingCustomer) {
-        await customerService.updateCustomer(editingCustomer.id, formData);
+        await customerService.updateCustomer(editingCustomer.id, payload);
         setAlertMessage({ type: 'success', text: `Cliente "${formData.full_name}" actualizado exitosamente.` });
       } else {
-        await customerService.createCustomer(formData);
+        await customerService.createCustomer(payload);
         setAlertMessage({ type: 'success', text: `Cliente "${formData.full_name}" registrado exitosamente.` });
       }
       setFormModalOpen(false);
@@ -271,7 +279,7 @@ export const CustomersPage: React.FC = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Contacto / WhatsApp</TableHead>
+                <TableHead>WhatsApp</TableHead>
                 <TableHead>Documento</TableHead>
                 <TableHead>Dirección</TableHead>
                 <TableHead>Registrado</TableHead>
@@ -287,7 +295,7 @@ export const CustomersPage: React.FC = () => {
                   .join('')
                   .toUpperCase();
 
-                const whatsappNumber = customer.whatsapp || customer.phone;
+                const whatsappNumber = customer.whatsapp || customer.phone || '';
                 const cleanWhatsApp = whatsappNumber.replace(/\D/g, '');
                 const waFormatted = cleanWhatsApp.startsWith('57') ? cleanWhatsApp : `57${cleanWhatsApp}`;
 
@@ -314,17 +322,16 @@ export const CustomersPage: React.FC = () => {
                     <TableCell>
                       <div className="space-y-0.5">
                         <span className="flex items-center gap-1 font-mono text-[11px] text-slate-700 dark:text-slate-300">
-                          <Phone className="w-3 h-3 text-slate-400" />
-                          {customer.phone}
+                          <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />
+                          {whatsappNumber || 'Sin WhatsApp'}
                         </span>
-                        {whatsappNumber && (
+                        {cleanWhatsApp.length >= 7 && (
                           <a
                             href={`https://wa.me/${waFormatted}?text=Hola%20${encodeURIComponent(customer.full_name)},%20te%20escribimos%20de%20A2Ruedas%20Taller`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
                           >
-                            <MessageCircle className="w-3 h-3 text-emerald-500" />
                             <span>Abrir WhatsApp</span>
                           </a>
                         )}
@@ -408,36 +415,24 @@ export const CustomersPage: React.FC = () => {
             required
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input
-              label="Teléfono Principal *"
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => {
-                const phone = e.target.value;
-                setFormData({
-                  ...formData,
-                  phone,
-                  whatsapp: formData.whatsapp ? formData.whatsapp : phone,
-                });
-              }}
-              placeholder="3101234567"
-              error={formErrors.phone}
-              isMono
-              leftIcon={<Phone className="w-3.5 h-3.5" />}
-              required
-            />
-
-            <Input
-              label="WhatsApp (para notificaciones)"
-              type="tel"
-              value={formData.whatsapp || ''}
-              onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-              placeholder="3101234567"
-              isMono
-              leftIcon={<MessageCircle className="w-3.5 h-3.5 text-emerald-500" />}
-            />
-          </div>
+          <Input
+            label="WhatsApp *"
+            type="tel"
+            value={formData.whatsapp || formData.phone || ''}
+            onChange={(e) => {
+              const val = e.target.value;
+              setFormData({
+                ...formData,
+                phone: val,
+                whatsapp: val,
+              });
+            }}
+            placeholder="Ej. 3101234567"
+            error={formErrors.phone}
+            isMono
+            leftIcon={<MessageCircle className="w-3.5 h-3.5 text-emerald-500" />}
+            required
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
@@ -496,13 +491,15 @@ export const CustomersPage: React.FC = () => {
             {/* Datos de Contacto Rápidos */}
             <div className="p-3.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div>
-                <span className="text-[10px] text-slate-400 font-mono block">TELÉFONO</span>
-                <span className="font-mono font-semibold">{detailCustomer.phone}</span>
-              </div>
-              <div>
                 <span className="text-[10px] text-slate-400 font-mono block">WHATSAPP</span>
                 <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">
-                  {detailCustomer.whatsapp || detailCustomer.phone}
+                  {detailCustomer.whatsapp || detailCustomer.phone || 'Sin número'}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 font-mono block">CORREO ELECTRÓNICO</span>
+                <span className="font-mono font-semibold truncate block">
+                  {detailCustomer.email || 'Sin registrar'}
                 </span>
               </div>
               <div>
