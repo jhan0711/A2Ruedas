@@ -18,7 +18,6 @@ import {
 import { Appointment, Customer } from '../../types/database';
 import {
   appointmentService,
-  COMMON_SERVICES,
   DEFAULT_DAILY_CAPACITY,
 } from '../../services/appointmentService';
 import { customerService } from '../../services/customerService';
@@ -48,7 +47,7 @@ export const AppointmentsPage: React.FC = () => {
   const [newModalOpen, setNewModalOpen] = useState(false);
   const [newCustomerId, setNewCustomerId] = useState('');
   const [newBicycleInfo, setNewBicycleInfo] = useState('');
-  const [newServiceName, setNewServiceName] = useState(COMMON_SERVICES[0].name);
+  const [newServiceName, setNewServiceName] = useState('');
   
   const [newDate, setNewDate] = useState(new Date().toISOString().slice(0, 10));
   
@@ -243,6 +242,9 @@ export const AppointmentsPage: React.FC = () => {
         text: `Cita programada con éxito para el ${newDate}.`,
       });
       setNewModalOpen(false);
+      setNewCustomerId('');
+      setNewBicycleInfo('');
+      setNewServiceName('');
       setNewNotes('');
       loadData();
     } catch (err: any) {
@@ -1275,16 +1277,13 @@ export const AppointmentsPage: React.FC = () => {
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Servicio Técnico Solicitado *
             </label>
-            <SearchableSelect
-              value={newServiceName}
-              onChange={(val) => setNewServiceName(val)}
-              placeholder="Escribe o selecciona servicio..."
-              options={COMMON_SERVICES.map((s) => ({
-                value: s.name,
-                label: s.name,
-              }))}
-              emptyMessage="No se encontró ningún servicio"
+            <input
+              type="text"
               required
+              value={newServiceName}
+              onChange={(e) => setNewServiceName(e.target.value)}
+              placeholder="Ej: Mantenimiento General Completo, Ajuste de frenos..."
+              className="w-full text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-blue-600"
             />
           </div>
 

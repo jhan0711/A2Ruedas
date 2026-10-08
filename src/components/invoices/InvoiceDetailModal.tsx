@@ -8,11 +8,11 @@ import {
 } from 'lucide-react';
 import { Invoice } from '../../types/database';
 import { invoiceService } from '../../services/invoiceService';
-import { whatsappService } from '../../services/whatsappService';
 import { workshopSettingsService } from '../../services/workshopSettingsService';
 import { printInvoiceDocument, generateInvoiceThermalTicketHtml } from '../../utils/printUtils';
 import { UnifiedTicketViewer } from '../print/UnifiedTicketViewer';
 import { Button, Modal } from '../ui';
+import { WhatsAppComposeModal } from '../whatsapp/WhatsAppComposeModal';
 
 
 interface InvoiceDetailModalProps {
@@ -32,6 +32,7 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
+  const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
 
   const workshopSettings = workshopSettingsService.getSettings();
 
@@ -44,27 +45,9 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
     timeStyle: 'short',
   });
 
-  // Envío a WhatsApp con resumen de cobro
+  // Envío a WhatsApp con plantilla editable
   const handleShareWhatsApp = () => {
-    const phone = invoice.customer?.phone || '';
-    const cleanPhone = whatsappService.formatWhatsAppPhone(phone);
-    if (!cleanPhone) {
-      alert(`Esta factura fue registrada para ${invoice.customer?.full_name || 'Consumidor Final'} sin un número celular registrado para WhatsApp.`);
-      return;
-    }
-
-    const itemsSummary = items
-      .map((it) => `• ${it.description} x${it.quantity}: $${it.total_price.toLocaleString('es-CO')}`)
-      .join('\n');
-
-    const workshopName = workshopSettings.name || 'A2Ruedas Taller';
-    const message = `¡Hola ${invoice.customer?.full_name || 'Cliente'}! 👋 Te compartimos tu comprobante de factura de ${workshopName}:\n\n📄 *Factura N°:* ${invoice.invoice_number}${
-      invoice.work_order_id ? `\n🚲 *Orden OT:* ${invoice.work_order_id}` : ''
-    }\n🗓️ *Fecha:* ${dateFormatted}\n\n*Detalle de Servicios & Repuestos:*\n${itemsSummary}\n\n💰 *Total Cancelado:* $${invoice.total.toLocaleString(
-      'es-CO'
-    )} COP\n💳 *Medio de Pago:* ${invoice.payment_method}\n\n¡Gracias por confiar en ${workshopName}! 🚲🔧`;
-
-    whatsappService.openWhatsApp(cleanPhone, message);
+    setWhatsappModalOpen(true);
   };
 
   // Impresión de Tirilla Térmica 58 mm
@@ -413,6 +396,15 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
           />
         </div>
       </Modal>
+
+      {/* Modal de Envío de WhatsApp con Plantilla Oficial de Facturación */}
+      <WhatsAppComposeModal
+        isOpen={whatsappModalOpen}
+        onClose={() => setWhatsappModalOpen(false)}
+        customer={invoice.customer}
+        invoice={invoice}
+        defaultTrigger="FACTURA"
+      />
     </>
   );
 };

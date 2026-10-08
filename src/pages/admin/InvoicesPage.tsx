@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { Invoice } from '../../types/database';
 import { invoiceService } from '../../services/invoiceService';
-import { whatsappService } from '../../services/whatsappService';
 import { printInvoiceDocument } from '../../utils/printUtils';
 import {
   Button,
@@ -34,6 +33,7 @@ import {
 } from '../../components/ui';
 import { InvoiceDetailModal } from '../../components/invoices/InvoiceDetailModal';
 import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
+import { WhatsAppComposeModal } from '../../components/whatsapp/WhatsAppComposeModal';
 
 export const InvoicesPage: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -46,6 +46,8 @@ export const InvoicesPage: React.FC = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
+  const [whatsappInvoice, setWhatsappInvoice] = useState<Invoice | null>(null);
 
   const [alertMessage, setAlertMessage] = useState<{
     type: 'success' | 'error' | 'warning';
@@ -87,29 +89,10 @@ export const InvoicesPage: React.FC = () => {
     setDetailModalOpen(true);
   };
 
-  // Compartir rápidamente por WhatsApp
+  // Compartir rápidamente por WhatsApp con plantilla editable
   const handleQuickWhatsApp = (invoice: Invoice) => {
-    const phone = invoice.customer?.phone || '';
-    const cleanPhone = whatsappService.formatWhatsAppPhone(phone);
-    if (!cleanPhone) {
-      setAlertMessage({
-        type: 'warning',
-        text: `La factura fue emitida para ${invoice.customer?.full_name || 'Consumidor Final'} sin número celular registrado para WhatsApp.`,
-      });
-      return;
-    }
-
-    const itemsSummary = (invoice.items || [])
-      .map((it) => `• ${it.description} x${it.quantity}: $${it.total_price.toLocaleString('es-CO')}`)
-      .join('\n');
-
-    const message = `¡Hola ${invoice.customer?.full_name || 'Cliente'}! 👋 Te compartimos tu comprobante de factura de A2Ruedas Taller:\n\n📄 *Factura N°:* ${invoice.invoice_number}${
-      invoice.work_order_id ? `\n🚲 *Orden OT:* ${invoice.work_order_id}` : ''
-    }\n\n*Detalle de Servicios & Repuestos:*\n${itemsSummary}\n\n💰 *Total Cancelado:* $${invoice.total.toLocaleString(
-      'es-CO'
-    )} COP\n💳 *Medio de Pago:* ${invoice.payment_method}\n\n¡Gracias por rodar con A2Ruedas Taller! 🚲🔧`;
-
-    whatsappService.openWhatsApp(cleanPhone, message);
+    setWhatsappInvoice(invoice);
+    setWhatsappModalOpen(true);
   };
 
   // Filtrado reactivo de facturas
@@ -454,7 +437,22 @@ export const InvoicesPage: React.FC = () => {
             text: `Factura ${newInv.invoice_number} emitida exitosamente por $${newInv.total.toLocaleString('es-CO')} COP.`,
           });
           loadData();
+          // Abrir automáticamente el modal de WhatsApp con los datos interpolados de la factura para enviar/editar
+          setWhatsappInvoice(newInv);
+          setWhatsappModalOpen(true);
         }}
+      />
+
+      {/* Modal de Envío de WhatsApp con Plantilla Oficial de Facturación */}
+      <WhatsAppComposeModal
+        isOpen={whatsappModalOpen}
+        onClose={() => {
+          setWhatsappModalOpen(false);
+          setWhatsappInvoice(null);
+        }}
+        customer={whatsappInvoice?.customer}
+        invoice={whatsappInvoice}
+        defaultTrigger="FACTURA"
       />
     </div>
   );

@@ -35,20 +35,39 @@ export const DEFAULT_WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
     template:
       '¡Hola {CLIENTE}! 🎉 Tu bicicleta {BICICLETA} está 100% lista y ha sido ENTREGADA con éxito (Orden N° {ORDEN}).\n\nTotal del servicio: ${TOTAL}.\nSaldo pendiente: ${SALDO}.\n\nTodas nuestras intervenciones cuentan con garantía técnica de 30 días. ¡Gracias por rodar con A2Ruedas! 🚲',
   },
+  {
+    id: 'FACTURA_EMITIDA',
+    title: 'Comprobante de Factura (Facturación)',
+    description: 'Avisa al cliente que su factura ha sido emitida formalmente, detallando ítems, total y medio de pago.',
+    trigger: 'FACTURA',
+    variables: ['{CLIENTE}', '{FACTURA}', '{TOTAL}', '{MEDIO_PAGO}', '{ITEMS}', '{ORDEN}'],
+    template:
+      '¡Hola {CLIENTE}! 👋 Te compartimos tu comprobante de factura de A2Ruedas Taller:\n\n📄 *Factura N°:* {FACTURA}\n\n*Detalle de Servicios & Repuestos:*\n{ITEMS}\n\n💰 *Total Cancelado:* ${TOTAL} COP\n💳 *Medio de Pago:* {MEDIO_PAGO}\n\n¡Gracias por rodar con A2Ruedas Taller! 🚲🔧',
+  },
 ];
 
 export const WHATSAPP_TEMPLATES = DEFAULT_WHATSAPP_TEMPLATES;
 
-const TEMPLATES_STORAGE_KEY = 'a2ruedas_whatsapp_templates_custom_v3';
+const TEMPLATES_STORAGE_KEY = 'a2ruedas_whatsapp_templates_custom_v4';
 
 function getStoredTemplates(): WhatsAppTemplate[] {
   if (typeof window === 'undefined') return DEFAULT_WHATSAPP_TEMPLATES;
   try {
-    const raw = localStorage.getItem(TEMPLATES_STORAGE_KEY);
+    let raw = localStorage.getItem(TEMPLATES_STORAGE_KEY);
+    if (!raw) {
+      raw = localStorage.getItem('a2ruedas_whatsapp_templates_custom_v3');
+    }
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        // Asegurar que todas las plantillas oficiales predeterminadas existan
+        const merged = [...parsed];
+        for (const def of DEFAULT_WHATSAPP_TEMPLATES) {
+          if (!merged.some((t) => t.id === def.id)) {
+            merged.push(def);
+          }
+        }
+        return merged;
       }
     }
   } catch (e) {
@@ -101,6 +120,9 @@ export const whatsappService = {
     const templates = this.getTemplates();
     const found = templates.find((t) => t.id === id);
     if (found) return found;
+    if (id === 'FACTURA' || id === 'FACTURA_EMITIDA') {
+      return templates.find((t) => t.id === 'FACTURA_EMITIDA') || templates[2] || templates[0];
+    }
     if (id === 'ENTREGA_AGRADECIMIENTO' || id === 'BICICLETA_LISTA' || id === 'ENTREGA_FINAL') {
       return templates.find((t) => t.id === 'ENTREGA_FINAL') || templates[1] || templates[0];
     }
@@ -108,12 +130,16 @@ export const whatsappService = {
   },
 
   /**
-   * Obtiene la plantilla más adecuada según el estado de la orden de trabajo
+   * Obtiene la plantilla más adecuada según el estado o disparador
    */
   getTemplateForStatus(status: string): WhatsAppTemplate {
     const templates = this.getTemplates();
+    const invoice = templates.find((t) => t.id === 'FACTURA_EMITIDA') || templates[2];
     const delivery = templates.find((t) => t.id === 'ENTREGA_FINAL') || templates[1] || templates[0];
     const reception = templates.find((t) => t.id === 'ORDEN_RECIBIDA') || templates[0];
+    if (status === 'FACTURA' || status === 'FACTURA_EMITIDA') {
+      return invoice || delivery;
+    }
     if (status === 'ENTREGADA' || status === 'LISTA') {
       return delivery;
     }
@@ -216,6 +242,10 @@ export const whatsappService = {
       appointmentTime?: string;
       mechanicName?: string;
       mileageKm?: number | string;
+      invoiceNumber?: string;
+      paymentMethod?: string;
+      itemsSummary?: string;
+      workshopName?: string;
     }
   ): string {
     let result = templateText;
@@ -224,6 +254,10 @@ export const whatsappService = {
       '{CLIENTE}': data.customerName || 'Estimado(a) Cliente',
       '{BICICLETA}': data.bikeName || 'su bicicleta',
       '{ORDEN}': data.orderNumber || 'OT-000000',
+      '{FACTURA}': data.invoiceNumber || 'FAC-000000',
+      '{MEDIO_PAGO}': data.paymentMethod || 'Efectivo',
+      '{ITEMS}': data.itemsSummary || 'Servicios y Repuestos',
+      '{TALLER}': data.workshopName || 'A2Ruedas Taller',
       '{TOTAL}':
         typeof data.totalAmount === 'number'
           ? data.totalAmount.toLocaleString('es-CO')
@@ -247,6 +281,40 @@ export const whatsappService = {
     }
 
     return result;
+  },
+
+  /**
+   * Da formato amigable al detalle de ítems de una factura para el mensaje de WhatsApp
+   */
+  formatInvoiceItemsSummary(items?: any[]): string {
+    if (!items || items.length === 0) return '• Consumo general en taller';
+    return items
+      .map(
+        (it) =>
+          `• ${it.description} x${it.quantity}: $${(
+            it.total_price ?? (it.quantity * (it.unit_price || 0))
+          ).toLocaleString('es-CO')}`
+      )
+      .join('\n');
+  },
+
+  /**
+   * Construye el mensaje oficial de la factura interpolando la plantilla configurada
+   */
+  buildInvoiceWhatsAppMessage(invoice: any, customTemplateId: string = 'FACTURA_EMITIDA'): string {
+    const tmpl =
+      this.getTemplateById(customTemplateId) ||
+      this.getTemplates().find((t) => t.id === 'FACTURA_EMITIDA') ||
+      DEFAULT_WHATSAPP_TEMPLATES[2];
+    const itemsSummary = this.formatInvoiceItemsSummary(invoice.items);
+    return this.interpolateTemplate(tmpl.template, {
+      customerName: invoice.customer?.full_name || 'Cliente',
+      invoiceNumber: invoice.invoice_number,
+      orderNumber: invoice.work_order?.order_number || invoice.work_order_id || '',
+      totalAmount: invoice.total,
+      paymentMethod: invoice.payment_method || 'Efectivo',
+      itemsSummary,
+    });
   },
 
   /**

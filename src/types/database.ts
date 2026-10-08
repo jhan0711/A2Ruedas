@@ -405,6 +405,7 @@ export type WhatsAppTrigger =
   | 'CITA_PROGRAMADA'
   | 'RECORDATORIO_CITA'
   | 'ALERTA_KILOMETRAJE'
+  | 'FACTURA'
   | 'MANUAL';
 
 export interface WhatsAppMessage {
@@ -428,6 +429,7 @@ export type WhatsAppMessageInsert = Omit<
 export type WhatsAppTemplateId =
   | 'ORDEN_RECIBIDA'
   | 'ENTREGA_FINAL'
+  | 'FACTURA_EMITIDA'
   | 'PRESUPUESTO_LISTO'
   | 'ESPERANDO_REPUESTO'
   | 'BICICLETA_LISTA'

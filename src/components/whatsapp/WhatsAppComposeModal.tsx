@@ -15,6 +15,7 @@ import {
   Customer,
   WorkOrder,
   Bicycle,
+  Invoice,
   WhatsAppTrigger,
   WhatsAppTemplateId,
   WhatsAppMessage,
@@ -29,6 +30,7 @@ interface WhatsAppComposeModalProps {
   customer?: Customer | null;
   workOrder?: WorkOrder | null;
   bicycle?: Bicycle | null;
+  invoice?: Invoice | null;
   defaultTrigger?: WhatsAppTrigger | string;
   defaultMessage?: string;
   onSent?: (message: WhatsAppMessage) => void;
@@ -40,6 +42,7 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
   customer,
   workOrder,
   bicycle,
+  invoice,
   defaultTrigger,
   defaultMessage,
   onSent,
@@ -57,7 +60,14 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
     if (!isOpen) return;
 
     // Número de WhatsApp inicial
-    const initialPhone = customer?.whatsapp || customer?.phone || workOrder?.customer?.whatsapp || workOrder?.customer?.phone || '';
+    const initialPhone =
+      invoice?.customer?.whatsapp ||
+      invoice?.customer?.phone ||
+      customer?.whatsapp ||
+      customer?.phone ||
+      workOrder?.customer?.whatsapp ||
+      workOrder?.customer?.phone ||
+      '';
     setCustomPhone(initialPhone);
 
     // Si viene un mensaje predefinido desde la acción, usarlo
@@ -67,9 +77,14 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
       return;
     }
 
-    // O seleccionar plantilla según trigger
+    // O seleccionar plantilla según factura o trigger
     let targetTemplate = templates[0];
-    if (defaultTrigger) {
+    if (invoice) {
+      targetTemplate =
+        whatsappService.getTemplateById('FACTURA_EMITIDA') ||
+        templates.find((t) => t.id === 'FACTURA_EMITIDA') ||
+        templates[0];
+    } else if (defaultTrigger) {
       targetTemplate = whatsappService.getTemplateForStatus(defaultTrigger);
     } else if (workOrder?.status) {
       targetTemplate = whatsappService.getTemplateForStatus(workOrder.status);
@@ -77,9 +92,9 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
 
     setSelectedTemplateId(targetTemplate.id);
     applyTemplate(targetTemplate.id);
-  }, [isOpen, customer, workOrder, bicycle, defaultTrigger, defaultMessage]);
+  }, [isOpen, customer, workOrder, bicycle, invoice, defaultTrigger, defaultMessage]);
 
-  const resolvedCustomer = customer || workOrder?.customer || null;
+  const resolvedCustomer = invoice?.customer || customer || workOrder?.customer || null;
   const resolvedBike = bicycle || workOrder?.bicycle || null;
 
   // Aplicar plantilla interpolando los datos vigentes
@@ -92,18 +107,25 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
       ? `${resolvedBike.brand} ${resolvedBike.model}`
       : 'su bicicleta';
 
-    const grandTotal = workOrder?.grand_total || 0;
+    const grandTotal = invoice ? invoice.total : (workOrder?.grand_total || 0);
     const deposit = workOrder?.internal_notes?.match(/\$([0-9.]+)\svía/)?.[1]?.replace(/\./g, '') || 0;
-    const balanceDue = Math.max(0, grandTotal - Number(deposit));
+    const balanceDue = invoice ? 0 : Math.max(0, grandTotal - Number(deposit));
 
     const publicUrl = 'https://a2ruedas.app';
+
+    const itemsSummary = invoice
+      ? whatsappService.formatInvoiceItemsSummary(invoice.items)
+      : 'Servicios y repuestos';
 
     const interpolated = whatsappService.interpolateTemplate(tmpl.template, {
       customerName: resolvedCustomer?.full_name,
       bikeName,
-      orderNumber: workOrder?.order_number,
+      orderNumber: invoice?.work_order?.order_number || invoice?.work_order_id || workOrder?.order_number,
+      invoiceNumber: invoice?.invoice_number,
       totalAmount: grandTotal,
       balanceDue: balanceDue,
+      paymentMethod: invoice?.payment_method || 'Efectivo',
+      itemsSummary,
       reportedIssues: workOrder?.reported_issues,
       publicUrl,
     });
@@ -125,11 +147,11 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
     setIsSubmitting(true);
     try {
       const activeTemplate = whatsappService.getTemplateById(selectedTemplateId);
-      const trigger = defaultTrigger || activeTemplate?.trigger || 'MANUAL';
+      const trigger = invoice ? 'FACTURA' : (defaultTrigger || activeTemplate?.trigger || 'MANUAL');
 
       const logged = await whatsappService.sendAndLogMessage({
         customerId: resolvedCustomer?.id || 'anon',
-        workOrderId: workOrder?.id || null,
+        workOrderId: invoice?.work_order_id || workOrder?.id || null,
         phone: targetPhone,
         message: messageText,
         trigger,
@@ -240,6 +262,18 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
               </div>
             </div>
           )}
+
+          {invoice && (
+            <div className="flex items-center gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-800/60 col-span-full sm:col-span-1">
+              <FileText className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div>
+                <span className="text-slate-500 block text-[10px] uppercase font-mono">Factura Emitida:</span>
+                <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                  {invoice.invoice_number} (${invoice.total.toLocaleString('es-CO')})
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Alerta si falta el teléfono */}
@@ -256,7 +290,7 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             Plantilla Oficial de Taller:
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {templates.map((t) => {
               const isSelected = selectedTemplateId === t.id;
               return (

@@ -270,7 +270,7 @@ export const WhatsAppPage: React.FC = () => {
               Plantillas Oficiales del Taller ({templates.length})
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Plantillas oficiales de comunicación para recepción física y entrega de bicicletas. Puedes editarlas libremente y los cambios quedarán guardados permanentemente.
+              Plantillas oficiales de comunicación para recepción física, entrega de bicicletas y comprobantes de facturación. Puedes editarlas libremente y los cambios quedarán guardados permanentemente.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -287,7 +287,7 @@ export const WhatsAppPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {templates.map((tmpl) => (
             <div
               key={tmpl.id}
@@ -364,10 +364,11 @@ export const WhatsAppPage: React.FC = () => {
             >
               <option value="ALL">Todos los disparadores</option>
               <option value="RECIBIDA">RECIBIDA</option>
+              <option value="ENTREGADA">ENTREGADA</option>
+              <option value="FACTURA">FACTURA</option>
               <option value="PRESUPUESTO">PRESUPUESTO</option>
               <option value="ESPERANDO_REPUESTO">ESPERANDO REPUESTO</option>
               <option value="LISTA">LISTA</option>
-              <option value="ENTREGADA">ENTREGADA</option>
               <option value="CITA_PROGRAMADA">CITA PROGRAMADA</option>
               <option value="MANUAL">MANUAL</option>
             </select>
