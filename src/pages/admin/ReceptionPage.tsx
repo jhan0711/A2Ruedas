@@ -82,17 +82,15 @@ export const ReceptionPage: React.FC = () => {
     loadCustomers();
   }, [location.state]);
 
-  // Cargar bicicletas cuando cambia el cliente seleccionado
+  // Cargar datos previos si se viene de una cita agendada
   useEffect(() => {
-    if (!selectedCustomerId) {
-            setBicycleInfo('');
-      return;
+    if (location.state) {
+      const s = location.state as { customerId?: string; bicycleInfo?: string; reportedIssues?: string };
+      if (s.customerId) setSelectedCustomerId(s.customerId);
+      if (s.bicycleInfo) setBicycleInfo(s.bicycleInfo);
+      if (s.reportedIssues) setReportedIssues(s.reportedIssues);
     }
-
-    
-    // Rellenar automáticamente el nombre del firmante si coincide con el cliente
-    
-  }, [selectedCustomerId, customers, location.state]);
+  }, [location.state]);
 
   // Filtrado reactivo de clientes para selector rápido
   const filteredCustomers = customers.filter(

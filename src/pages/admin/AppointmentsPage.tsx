@@ -297,9 +297,17 @@ export const AppointmentsPage: React.FC = () => {
   };
 
   // Redirigir a Recepción (Fase 10) con datos de la cita
-  const handleStartReception = (_apt?: Appointment) => {
+  const handleStartReception = (apt?: Appointment) => {
     setDetailModalOpen(false);
-    navigate(`/admin/ordenes/nueva`);
+    navigate(`/admin/ordenes/nueva`, {
+      state: apt
+        ? {
+            customerId: apt.customer_id,
+            bicycleInfo: apt.bicycle_info,
+            reportedIssues: apt.service_name,
+          }
+        : undefined,
+    });
   };
 
   // Agrupar citas por fecha (YYYY-MM-DD)
@@ -372,7 +380,9 @@ export const AppointmentsPage: React.FC = () => {
   const filteredListAppointments = useMemo(() => {
     return appointments.filter((apt) => {
       const custName = apt.customer?.full_name?.toLowerCase() || '';
-      const bikeModel = apt.bicycle ? `${apt.bicycle.brand} ${apt.bicycle.model}`.toLowerCase() : '';
+      const bikeModel = apt.bicycle
+        ? `${apt.bicycle.brand} ${apt.bicycle.model}`.toLowerCase()
+        : (apt.bicycle_info?.toLowerCase() || '');
       const serviceName = apt.service_name?.toLowerCase() || '';
       const mechanic = apt.mechanic_name?.toLowerCase() || '';
       const term = searchTerm.toLowerCase().trim();
@@ -812,7 +822,9 @@ export const AppointmentsPage: React.FC = () => {
                           )}
                         </div>
                         <div className="text-[11px] text-slate-600 dark:text-slate-400">
-                          🚲 {apt.bicycle ? `${apt.bicycle.brand} ${apt.bicycle.model}` : 'Bicicleta en espera'}
+                          🚲 {apt.bicycle
+                            ? `${apt.bicycle.brand} ${apt.bicycle.model}`
+                            : (apt.bicycle_info || 'Bicicleta en espera')}
                         </div>
                       </div>
 
@@ -913,7 +925,11 @@ export const AppointmentsPage: React.FC = () => {
                     </div>
 
                     <div className="text-slate-600 dark:text-slate-400 flex items-center gap-3">
-                      <span>🚲 {apt.bicycle ? `${apt.bicycle.brand} ${apt.bicycle.model}` : 'Bicicleta no especificada'}</span>
+                      <span>
+                        🚲 {apt.bicycle
+                          ? `${apt.bicycle.brand} ${apt.bicycle.model}`
+                          : (apt.bicycle_info || 'Bicicleta no especificada')}
+                      </span>
                       <span>🔧 {apt.service_name}</span>
                       <span>👨‍🔧 {apt.mechanic_name || 'Taller General'}</span>
                     </div>
@@ -1040,7 +1056,9 @@ export const AppointmentsPage: React.FC = () => {
                       {apt.customer?.full_name}
                     </div>
                     <div className="text-[11px] text-slate-500">
-                      🚲 {apt.bicycle ? `${apt.bicycle.brand} ${apt.bicycle.model}` : 'Bicicleta no especificada'}
+                      🚲 {apt.bicycle
+                        ? `${apt.bicycle.brand} ${apt.bicycle.model}`
+                        : (apt.bicycle_info || 'Bicicleta no especificada')}
                     </div>
                   </div>
 
@@ -1130,7 +1148,9 @@ export const AppointmentsPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="py-2.5 text-slate-700 dark:text-slate-300">
-                        {apt.bicycle ? `${apt.bicycle.brand} ${apt.bicycle.model}` : 'N/A'}
+                        {apt.bicycle
+                          ? `${apt.bicycle.brand} ${apt.bicycle.model}`
+                          : (apt.bicycle_info || 'N/A')}
                       </td>
                       <td className="py-2.5 text-slate-700 dark:text-slate-300 font-medium">
                         {apt.service_name}
@@ -1415,10 +1435,18 @@ export const AppointmentsPage: React.FC = () => {
                 <div className="font-semibold text-slate-900 dark:text-white">
                   {selectedAppointment.bicycle
                     ? `${selectedAppointment.bicycle.brand} ${selectedAppointment.bicycle.model}`
-                    : 'Bicicleta no especificada'}
+                    : (selectedAppointment.bicycle_info || 'Bicicleta no especificada')}
                 </div>
                 <div className="text-slate-500 text-[11px]">
-                  {selectedAppointment.bicycle?.bike_type} - {selectedAppointment.bicycle?.color}
+                  {selectedAppointment.bicycle ? (
+                    `${selectedAppointment.bicycle.bike_type} - ${selectedAppointment.bicycle.color}`
+                  ) : selectedAppointment.bicycle_info ? (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/40">
+                      En taller
+                    </span>
+                  ) : (
+                    '—'
+                  )}
                 </div>
               </div>
             </div>

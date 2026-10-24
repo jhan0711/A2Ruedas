@@ -285,7 +285,8 @@ export const appointmentService = {
    * Genera enlace de WhatsApp para confirmación de cita agendada
    */
   getWhatsAppConfirmationUrl(appointment: Appointment): string {
-    const phone = appointment.customer?.phone?.replace(/\D/g, '') || '';
+    const rawPhone = appointment.customer?.whatsapp || appointment.customer?.phone || '';
+    const phone = rawPhone.replace(/\D/g, '') || '';
     const waNumber = phone.startsWith('57') ? phone : `57${phone}`;
 
     const date = new Date(appointment.scheduled_at);
@@ -301,7 +302,7 @@ export const appointmentService = {
 
     const bikeInfo = appointment.bicycle
       ? `${appointment.bicycle.brand} ${appointment.bicycle.model}`
-      : 'tu bicicleta';
+      : (appointment.bicycle_info || 'tu bicicleta');
 
     const text = encodeURIComponent(
       `¡Hola ${appointment.customer?.full_name}! 👋 Te confirmamos tu cita de servicio en A2Ruedas Taller:\n\n` +
