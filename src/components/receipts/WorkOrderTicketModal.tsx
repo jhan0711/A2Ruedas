@@ -173,10 +173,10 @@ export const WorkOrderTicketModal: React.FC<WorkOrderTicketModalProps> = ({
                     DATOS DE LA BICICLETA
                   </span>
                   <div>
-                    <strong>Marca / Modelo:</strong> {bike ? `${bike.brand} ${bike.model}` : 'N/A'}
+                    <strong>Marca / Modelo:</strong> {bike ? `${bike.brand} ${bike.model}` : (order.bicycle_info || 'N/A')}
                   </div>
                   <div>
-                    <strong>Tipo y Color:</strong> {bike ? `${bike.bike_type} • ${bike.color}` : 'N/A'}
+                    <strong>Tipo y Color:</strong> {bike ? `${bike.bike_type} • ${bike.color}` : (order.bicycle_info ? 'En taller' : 'N/A')}
                   </div>
                   <div>
                     <strong>Serial del Marco:</strong> {bike?.serial_number || 'Sin serial visible'}

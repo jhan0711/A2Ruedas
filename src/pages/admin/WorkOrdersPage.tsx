@@ -342,7 +342,9 @@ export const WorkOrdersPage: React.FC = () => {
   const filteredOrders = orders.filter((o) => {
     const term = searchTerm.toLowerCase().trim();
     const custName = o.customer?.full_name?.toLowerCase() || '';
-    const bikeModel = o.bicycle ? `${o.bicycle.brand} ${o.bicycle.model}`.toLowerCase() : '';
+    const bikeModel = o.bicycle
+      ? `${o.bicycle.brand} ${o.bicycle.model}`.toLowerCase()
+      : (o.bicycle_info?.toLowerCase() || '');
     const orderNum = o.order_number.toLowerCase();
     const issue = o.reported_issues.toLowerCase();
 
@@ -511,6 +513,15 @@ export const WorkOrdersPage: React.FC = () => {
                           </span>
                           <span className="px-1.5 py-0.2 rounded text-[9px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                             {bike.bike_type}
+                          </span>
+                        </div>
+                      ) : order.bicycle_info ? (
+                        <div className="space-y-0.5">
+                          <span className="font-medium text-slate-900 dark:text-slate-100 text-xs block">
+                            {order.bicycle_info}
+                          </span>
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-medium bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/40">
+                            En taller
                           </span>
                         </div>
                       ) : (
@@ -970,12 +981,22 @@ export const WorkOrdersPage: React.FC = () => {
 
               <div className="p-3 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
                 <span className="font-bold text-slate-500 uppercase text-[10px] block">BICICLETA VINCULADA</span>
-                <span className="font-semibold text-slate-900 dark:text-white block">
-                  {detailOrder.bicycle?.brand} {detailOrder.bicycle?.model}
-                </span>
-                <span className="text-slate-500 block">
-                  Tipo: {detailOrder.bicycle?.bike_type} • Serial: {detailOrder.bicycle?.serial_number || 'N/A'}
-                </span>
+                {detailOrder.bicycle ? (
+                  <>
+                    <span className="font-semibold text-slate-900 dark:text-white block">
+                      {detailOrder.bicycle.brand} {detailOrder.bicycle.model}
+                    </span>
+                    <span className="text-slate-500 block">
+                      Tipo: {detailOrder.bicycle.bike_type} • Serial: {detailOrder.bicycle.serial_number || 'N/A'}
+                    </span>
+                  </>
+                ) : detailOrder.bicycle_info ? (
+                  <span className="font-semibold text-slate-900 dark:text-white block">
+                    {detailOrder.bicycle_info}
+                  </span>
+                ) : (
+                  <span className="text-slate-400 block">Bicicleta no especificada</span>
+                )}
               </div>
             </div>
 

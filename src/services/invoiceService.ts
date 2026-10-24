@@ -525,6 +525,70 @@ export const invoiceService = {
   },
 
   /**
+   * Marca una factura como pagada (asentando el cobro en caja si aplica)
+   */
+  async markAsPaid(
+    invoiceId: string,
+    paymentMethod?: CashPaymentMethod | string,
+    recordInCash: boolean = true
+  ): Promise<Invoice> {
+    const updateData: { payment_status: 'PAID'; payment_method?: string } = {
+      payment_status: 'PAID',
+    };
+    if (paymentMethod) {
+      updateData.payment_method = paymentMethod;
+    }
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase
+          .from('invoices')
+          .update(updateData)
+          .eq('id', invoiceId);
+      } catch (err) {
+        console.warn('Error al marcar factura como pagada en Supabase:', err);
+      }
+    }
+
+    const localInvoices: Invoice[] = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_INVOICES) || '[]'
+    );
+    const target = localInvoices.find((i) => i.id === invoiceId);
+    if (!target) throw new Error('Factura no encontrada.');
+
+    target.payment_status = 'PAID';
+    if (paymentMethod) {
+      target.payment_method = paymentMethod;
+    }
+    localStorage.setItem(LOCAL_STORAGE_INVOICES, JSON.stringify(localInvoices));
+
+    if (recordInCash) {
+      try {
+        const activeReg = await cashService.getActiveRegister();
+        if (activeReg) {
+          await cashService.recordMovement({
+            type: 'INCOME',
+            concept: `Cobro Factura ${target.invoice_number}${
+              target.work_order_id ? ` (OT: ${target.work_order_id})` : ''
+            }`,
+            amount: target.total,
+            paymentMethod: (target.payment_method as CashPaymentMethod) || 'CASH',
+            category: target.work_order_id ? 'ORDER_PAYMENT' : 'COUNTER_SALE',
+            userId: target.issued_by,
+            referenceType: 'INVOICE',
+            referenceId: target.invoice_number,
+            notes: 'Cobro de factura pendiente marcado como pagada.',
+          });
+        }
+      } catch (err) {
+        console.warn('No se pudo asentar el ingreso en caja (caja cerrada o error):', err);
+      }
+    }
+
+    return target;
+  },
+
+  /**
    * Métricas y KPIs consolidados de facturación
    */
   async getInvoiceStats(): Promise<{

@@ -50,7 +50,7 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 pb-8 sm:p-4">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-slate-950/70 backdrop-blur-2xs transition-opacity animate-in fade-in duration-150"
@@ -65,10 +65,10 @@ export const Modal: React.FC<ModalProps> = ({
         aria-labelledby="modal-title"
         aria-describedby={description ? 'modal-description' : undefined}
         tabIndex={-1}
-        className={`relative w-full ${maxWidthStyles[maxWidth]} rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-150 text-left outline-none`}
+        className={`relative w-full ${maxWidthStyles[maxWidth]} max-h-[92vh] flex flex-col rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-150 text-left outline-none`}
       >
         {/* Cabecera */}
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4 shrink-0">
           <div>
             <h2 id="modal-title" className="text-sm font-bold text-slate-900 dark:text-white">
               {title}
@@ -88,13 +88,13 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
 
         {/* Cuerpo */}
-        <div className="p-5 text-xs text-slate-700 dark:text-slate-300 max-h-[75vh] overflow-y-auto">
+        <div className="p-5 text-xs text-slate-700 dark:text-slate-300 flex-1 overflow-y-auto">
           {children}
         </div>
 
         {/* Pie de acción */}
         {footer && (
-          <div className="px-5 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex items-center justify-end gap-2 text-xs">
+          <div className="px-5 py-3.5 pb-5 sm:pb-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex items-center justify-end gap-2 text-xs shrink-0">
             {footer}
           </div>
         )}

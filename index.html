@@ -18,6 +18,31 @@
     <!-- Security Headers -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="netlify-disable-drawer" content="true" />
+    <style>
+      /* Ocultar badge y drawer flotante de Netlify en móviles y escritorio */
+      #netlify-badge,
+      .netlify-badge,
+      netlify-drawer,
+      [data-netlify-drawer],
+      [class*="netlify-feedback"],
+      [class*="netlify-drawer"],
+      div[data-netlify-identity-menu],
+      iframe[src*="netlify"],
+      div[class*="feedback-button"],
+      div[aria-label*="Netlify"] {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+        z-index: -9999 !important;
+      }
+    </style>
     <title>A2Ruedas — Taller de Bicicletas</title>
   </head>
   <body class="h-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased font-sans">

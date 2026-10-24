@@ -5,6 +5,7 @@ import {
   Receipt,
   Share2,
   Ban,
+  CheckCircle2,
 } from 'lucide-react';
 import { Invoice } from '../../types/database';
 import { invoiceService } from '../../services/invoiceService';
@@ -20,6 +21,7 @@ interface InvoiceDetailModalProps {
   onClose: () => void;
   invoice: Invoice | null;
   onInvoiceCancelled?: (updated: Invoice) => void;
+  onInvoicePaid?: (updated: Invoice) => void;
 }
 
 export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
@@ -27,11 +29,13 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
   onClose,
   invoice,
   onInvoiceCancelled,
+  onInvoicePaid,
 }) => {
   const [viewFormat, setViewFormat] = useState<'thermal' | 'commercial'>('thermal');
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isMarkingPaid, setIsMarkingPaid] = useState(false);
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
 
   const workshopSettings = workshopSettingsService.getSettings();
@@ -76,9 +80,32 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
     }
   };
 
+  // Marcar Factura Pendiente como Pagada
+  const handleMarkAsPaid = async () => {
+    if (
+      !window.confirm(
+        `¿Confirmas que deseas registrar el pago de la factura ${invoice.invoice_number} por $${invoice.total.toLocaleString(
+          'es-CO'
+        )}?`
+      )
+    ) {
+      return;
+    }
+    setIsMarkingPaid(true);
+    try {
+      const updated = await invoiceService.markAsPaid(invoice.id, invoice.payment_method as any, true);
+      if (onInvoicePaid) onInvoicePaid(updated);
+      onClose();
+    } catch (err: any) {
+      alert(err.message || 'Error al registrar el pago de la factura.');
+    } finally {
+      setIsMarkingPaid(false);
+    }
+  };
+
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-xs overflow-y-auto">
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/70 p-3 pb-8 sm:p-4 backdrop-blur-xs overflow-y-auto">
         <div className="relative w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[92vh]">
           {/* Cabecera del Modal */}
           <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
@@ -333,6 +360,19 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
+              {invoice.payment_status === 'PENDING' && (
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={handleMarkAsPaid}
+                  isLoading={isMarkingPaid}
+                  leftIcon={<CheckCircle2 className="w-3.5 h-3.5" />}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white border-none shadow-xs text-xs"
+                >
+                  Registrar Pago (Marcar Pagada)
+                </Button>
+              )}
+
               {invoice.payment_status !== 'CANCELLED' && (
                 <Button
                   size="sm"

@@ -14,6 +14,7 @@ import {
   Coins,
   Smartphone,
   CreditCard,
+  CheckCircle2,
 } from 'lucide-react';
 import { Invoice } from '../../types/database';
 import { invoiceService } from '../../services/invoiceService';
@@ -93,6 +94,33 @@ export const InvoicesPage: React.FC = () => {
   const handleQuickWhatsApp = (invoice: Invoice) => {
     setWhatsappInvoice(invoice);
     setWhatsappModalOpen(true);
+  };
+
+  // Marcar factura pendiente como pagada
+  const handleMarkAsPaid = async (inv: Invoice) => {
+    if (
+      !window.confirm(
+        `¿Confirmas que deseas registrar el pago de la factura ${inv.invoice_number} por $${inv.total.toLocaleString(
+          'es-CO'
+        )}?`
+      )
+    ) {
+      return;
+    }
+    try {
+      await invoiceService.markAsPaid(inv.id, inv.payment_method as any, true);
+      setAlertMessage({
+        type: 'success',
+        text: `Factura ${inv.invoice_number} marcada como PAGADA e ingresada a la caja activa.`,
+      });
+      await loadData();
+    } catch (err: any) {
+      console.error('Error al registrar pago de factura:', err);
+      setAlertMessage({
+        type: 'error',
+        text: err.message || 'No se pudo marcar la factura como pagada.',
+      });
+    }
   };
 
   // Filtrado reactivo de facturas
@@ -372,6 +400,18 @@ export const InvoicesPage: React.FC = () => {
                       {/* Acciones */}
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
+                          {inv.payment_status === 'PENDING' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleMarkAsPaid(inv)}
+                              className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                              title="Registrar pago (Marcar como Pagada)"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+
                           <Button
                             size="sm"
                             variant="ghost"
@@ -416,6 +456,14 @@ export const InvoicesPage: React.FC = () => {
         isOpen={detailModalOpen}
         onClose={() => setDetailModalOpen(false)}
         invoice={selectedInvoice}
+        onInvoicePaid={(updated) => {
+          setInvoices((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+          setAlertMessage({
+            type: 'success',
+            text: `Factura ${updated.invoice_number} marcada como PAGADA e ingresada a la caja activa.`,
+          });
+          loadData();
+        }}
         onInvoiceCancelled={(updated) => {
           setInvoices((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
           setAlertMessage({

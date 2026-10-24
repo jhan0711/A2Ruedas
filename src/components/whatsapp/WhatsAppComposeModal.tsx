@@ -105,7 +105,7 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
 
     const bikeName = resolvedBike
       ? `${resolvedBike.brand} ${resolvedBike.model}`
-      : 'su bicicleta';
+      : (workOrder?.bicycle_info || 'su bicicleta');
 
     const grandTotal = invoice ? invoice.total : (workOrder?.grand_total || 0);
     const deposit = workOrder?.internal_notes?.match(/\$([0-9.]+)\svía/)?.[1]?.replace(/\./g, '') || 0;

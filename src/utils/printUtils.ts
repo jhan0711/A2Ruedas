@@ -403,11 +403,11 @@ export function generateFormalInvoiceHtml(order: WorkOrder, signature: Signature
             <div class="card-header">DATOS DE LA BICICLETA</div>
             <div class="card-row">
               <span class="card-label">Marca / Modelo:</span>
-              <span class="card-value">${bike ? `${bike.brand} ${bike.model}` : 'N/A'}</span>
+              <span class="card-value">${bike ? `${bike.brand} ${bike.model}` : (order.bicycle_info || 'N/A')}</span>
             </div>
             <div class="card-row">
               <span class="card-label">Tipo y Color:</span>
-              <span class="card-value">${bike ? `${bike.bike_type} • ${bike.color}` : 'N/A'}</span>
+              <span class="card-value">${bike ? `${bike.bike_type} • ${bike.color}` : (order.bicycle_info ? 'En taller' : 'N/A')}</span>
             </div>
             <div class="card-row">
               <span class="card-label">Serial del Marco:</span>
@@ -632,8 +632,8 @@ export function generateThermalTicketHtml(order: WorkOrder, signature: Signature
 
       <div style="font-size: 8.5px;">
         <div class="bold">BICICLETA:</div>
-        <div>${bike ? `${bike.brand} ${bike.model}` : 'N/A'}</div>
-        <div>${bike ? `${bike.bike_type} - ${bike.color}` : 'N/A'}</div>
+        <div>${bike ? `${bike.brand} ${bike.model}` : (order.bicycle_info || 'N/A')}</div>
+        ${bike ? `<div>${bike.bike_type} - ${bike.color}</div>` : ''}
         ${bike?.serial_number ? `<div>Serial: ${bike.serial_number}</div>` : ''}
       </div>
 
