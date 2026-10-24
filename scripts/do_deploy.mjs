@@ -2,10 +2,10 @@ import { execSync } from 'child_process';
 
 console.log('Iniciando despliegue de dist a Netlify producción...');
 try {
-  const result = execSync('npx --yes netlify deploy --prod --dir=dist', {
+  const result = execSync('npx --yes netlify deploy --prod --dir=dist --no-build', {
     encoding: 'utf-8',
     stdio: ['ignore', 'pipe', 'pipe'],
-    timeout: 120000,
+    timeout: 180000,
   });
   console.log('Resultado del despliegue:');
   console.log(result);
