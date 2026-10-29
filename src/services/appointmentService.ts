@@ -44,6 +44,48 @@ function getLocalAppointments(): Appointment[] {
   }
 }
 
+
+/**
+ * Empaqueta el nombre del servicio dentro del campo notes para persistencia transparente en Supabase
+ */
+export function encodeAppointmentNotes(serviceName?: string | null, rawNotes?: string | null): string | null {
+  const service = serviceName?.trim();
+  const cleanNotes = rawNotes?.trim() || '';
+
+  if (service) {
+    return `[Servicio: ${service}]${cleanNotes ? `\n${cleanNotes}` : ''}`;
+  }
+  return cleanNotes || null;
+}
+
+/**
+ * Desempaqueta el nombre del servicio y las notas de usuario desde el campo notes
+ */
+export function decodeAppointmentNotes(notes?: string | null, fallbackService?: string | null): {
+  serviceName: string;
+  userNotes: string | null;
+} {
+  if (!notes) {
+    return {
+      serviceName: fallbackService?.trim() || 'Mantenimiento General',
+      userNotes: null,
+    };
+  }
+
+  const match = notes.match(/^\[Servicio:\s*(.+?)\](?:\r?\n([\s\S]*))?$/);
+  if (match) {
+    return {
+      serviceName: match[1].trim(),
+      userNotes: match[2]?.trim() || null,
+    };
+  }
+
+  return {
+    serviceName: fallbackService?.trim() || 'Mantenimiento General',
+    userNotes: notes.trim() || null,
+  };
+}
+
 function saveLocalAppointments(list: Appointment[]) {
   localStorage.setItem(LOCAL_STORAGE_APPOINTMENTS, JSON.stringify(list));
 }
@@ -62,8 +104,16 @@ export const appointmentService = {
 
         const { data, error } = await query;
         if (!error && data) {
-          saveLocalAppointments(data);
-          return data;
+          const hydrated: Appointment[] = data.map((apt) => {
+            const decoded = decodeAppointmentNotes(apt.notes, apt.service_name);
+            return {
+              ...apt,
+              service_name: decoded.serviceName,
+              notes: decoded.userNotes,
+            };
+          });
+          saveLocalAppointments(hydrated);
+          return hydrated;
         }
         if (error) {
           console.warn('Error al consultar citas en Supabase:', error.message);
@@ -77,10 +127,15 @@ export const appointmentService = {
     const customers = await customerService.getCustomers();
     const custMap = new Map(customers.map((c) => [c.id, c]));
 
-    const populated = local.map((apt) => ({
-      ...apt,
-      customer: apt.customer || custMap.get(apt.customer_id),
-    }));
+    const populated = local.map((apt) => {
+      const decoded = decodeAppointmentNotes(apt.notes, apt.service_name);
+      return {
+        ...apt,
+        service_name: decoded.serviceName,
+        notes: decoded.userNotes,
+        customer: apt.customer || custMap.get(apt.customer_id),
+      };
+    });
 
     let filtered = populated;
     if (startDate) {
@@ -104,9 +159,13 @@ export const appointmentService = {
     const now = new Date().toISOString();
     const newId = crypto.randomUUID ? crypto.randomUUID() : `apt-${Date.now()}`;
 
+    const serviceName = appointment.service_name?.trim() || 'Mantenimiento General';
+    const encodedNotes = encodeAppointmentNotes(serviceName, appointment.notes);
+
     const newAppointment: Appointment = {
       ...appointment,
       id: newId,
+      service_name: serviceName,
       created_at: now,
     };
 
@@ -118,7 +177,7 @@ export const appointmentService = {
         technician_id: appointment.technician_id || null,
         estimated_duration_min: Number(appointment.estimated_duration_min) || 60,
         status: appointment.status || 'SCHEDULED',
-        notes: appointment.notes?.trim() || null,
+        notes: encodedNotes,
         bicycle_info: appointment.bicycle_info || null,
       };
 
@@ -132,9 +191,15 @@ export const appointmentService = {
         throw new Error(`Error en base de datos: ${error.message}`);
       }
       if (data) {
+        const decoded = decodeAppointmentNotes(data.notes, serviceName);
+        const hydrated: Appointment = {
+          ...data,
+          service_name: decoded.serviceName,
+          notes: decoded.userNotes,
+        };
         const list = getLocalAppointments();
-        saveLocalAppointments([data, ...list]);
-        return data;
+        saveLocalAppointments([hydrated, ...list]);
+        return hydrated;
       }
     }
 
@@ -156,7 +221,12 @@ export const appointmentService = {
       if (updates.technician_id !== undefined) dbUpdates.technician_id = updates.technician_id;
       if (updates.estimated_duration_min !== undefined) dbUpdates.estimated_duration_min = updates.estimated_duration_min;
       if (updates.status !== undefined) dbUpdates.status = updates.status;
-      if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+      if (updates.notes !== undefined || updates.service_name !== undefined) {
+        const current = await this.getAppointmentById(id);
+        const sName = updates.service_name !== undefined ? updates.service_name : current?.service_name;
+        const uNotes = updates.notes !== undefined ? updates.notes : current?.notes;
+        dbUpdates.notes = encodeAppointmentNotes(sName, uNotes);
+      }
       if (updates.bicycle_info !== undefined) dbUpdates.bicycle_info = updates.bicycle_info;
 
       const { data, error } = await supabase
@@ -170,9 +240,15 @@ export const appointmentService = {
         throw new Error(`Error en base de datos: ${error.message}`);
       }
       if (data) {
-        const list = getLocalAppointments().map((a) => (a.id === id ? data : a));
+        const decoded = decodeAppointmentNotes(data.notes, updates.service_name);
+        const hydrated: Appointment = {
+          ...data,
+          service_name: decoded.serviceName,
+          notes: decoded.userNotes,
+        };
+        const list = getLocalAppointments().map((a) => (a.id === id ? hydrated : a));
         saveLocalAppointments(list);
-        return data;
+        return hydrated;
       }
     }
 

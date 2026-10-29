@@ -10,6 +10,8 @@ import {
   CreditCard,
   CheckCircle2,
   Clock,
+  Search,
+  Sparkles,
 } from 'lucide-react';
 import {
   Invoice,
@@ -25,6 +27,7 @@ import { customerService } from '../../services/customerService';
 import { workOrderService } from '../../services/workOrderService';
 import { inventoryService } from '../../services/inventoryService';
 import { Modal, Button, SearchableSelect } from '../ui';
+import { SearchableOption } from '../ui/SearchableSelect';
 
 interface CreateInvoiceModalProps {
   isOpen: boolean;
@@ -35,11 +38,39 @@ interface CreateInvoiceModalProps {
 
 interface InvoiceLineItem {
   id: string;
+  productId?: string | null;
   description: string;
   quantity: number;
   unitPrice: number;
   itemType: 'service' | 'part' | 'product';
 }
+
+export interface CatalogItem {
+  id: string;
+  name: string;
+  price: number;
+  type: 'service' | 'product';
+  badge: string;
+  sku?: string;
+  stock?: number;
+}
+
+const COMMON_WORKSHOP_SERVICES: Array<{ id: string; name: string; price: number }> = [
+  { id: 'srv-1', name: 'Mantenimiento General Completo', price: 80000 },
+  { id: 'srv-2', name: 'Mantenimiento Básico / Alistamiento', price: 45000 },
+  { id: 'srv-3', name: 'Purga de Frenos Hidráulicos (Par)', price: 35000 },
+  { id: 'srv-4', name: 'Purga de Freno Hidráulico Individual', price: 20000 },
+  { id: 'srv-5', name: 'Mantenimiento Suspensión Delantera', price: 50000 },
+  { id: 'srv-6', name: 'Mantenimiento Shock / Suspensión Trasera', price: 60000 },
+  { id: 'srv-7', name: 'Ajuste y Sincronización de Cambios', price: 15000 },
+  { id: 'srv-8', name: 'Ajuste y Graduación de Frenos', price: 15000 },
+  { id: 'srv-9', name: 'Lavado Especializado y Desengrase Pro', price: 25000 },
+  { id: 'srv-10', name: 'Centrado y Nivelado de Rin', price: 18000 },
+  { id: 'srv-11', name: 'Enllantado y Montaje Tubeless', price: 20000 },
+  { id: 'srv-12', name: 'Cambio de Cadena / Instalación', price: 10000 },
+  { id: 'srv-13', name: 'Instalación de Pastillas de Freno', price: 10000 },
+  { id: 'srv-14', name: 'Mano de Obra Reparación Menor', price: 15000 },
+];
 
 export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   isOpen,
@@ -66,6 +97,11 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>([
     { id: '1', description: '', quantity: 1, unitPrice: 0, itemType: 'service' },
   ]);
+
+  // Búsqueda rápida de catálogo
+  const [catalogSearchVal, setCatalogSearchVal] = useState('');
+  const [activeSuggestLineId, setActiveSuggestLineId] = useState<string | null>(null);
+  const [suggestQuery, setSuggestQuery] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -109,6 +145,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       order.items && order.items.length > 0
         ? order.items.map((it, idx) => ({
             id: `line-${idx}`,
+            productId: (it as any).product_id || null,
             description: it.description,
             quantity: it.quantity,
             unitPrice: it.unit_price,
@@ -139,16 +176,124 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     }
   };
 
+  // Catálogo unificado de servicios y repuestos
+  const catalogItems: CatalogItem[] = [
+    ...COMMON_WORKSHOP_SERVICES.map((s) => ({
+      id: s.id,
+      name: s.name,
+      price: s.price,
+      type: 'service' as const,
+      badge: 'Servicio',
+    })),
+    ...products.map((p) => ({
+      id: `prod-${p.id}`,
+      name: `${p.name} ${p.brand ? `(${p.brand})` : ''}`.trim(),
+      price: p.sale_price,
+      type: 'product' as const,
+      sku: p.sku,
+      stock: p.stock,
+      badge: `Stock: ${p.stock}`,
+    })),
+  ];
+
+  // Opciones para SearchableSelect unificado
+  const catalogSelectOptions: SearchableOption[] = catalogItems.map((item) => ({
+    value: item.id,
+    label: item.name,
+    sublabel: item.sku
+      ? `SKU: ${item.sku} • $${item.price.toLocaleString('es-CO')} COP`
+      : `$${item.price.toLocaleString('es-CO')} COP`,
+    badge: item.badge,
+  }));
+
+  // Agregar ítem desde el selector rápido de catálogo
+  const handleAddItemFromCatalog = (catalogId: string) => {
+    const item = catalogItems.find((c) => c.id === catalogId);
+    if (!item) return;
+
+    setLineItems((prev) => {
+      if (prev.length === 1 && !prev[0].description.trim() && prev[0].unitPrice === 0) {
+        return [
+          {
+            id: prev[0].id,
+            productId: item.sku ? item.id.replace('prod-', '') : null,
+            description: item.name,
+            quantity: 1,
+            unitPrice: item.price,
+            itemType: item.type === 'service' ? 'service' : 'product',
+          },
+        ];
+      }
+      return [
+        ...prev,
+        {
+          id: `line-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+          productId: item.sku ? item.id.replace('prod-', '') : null,
+          description: item.name,
+          quantity: 1,
+          unitPrice: item.price,
+          itemType: item.type === 'service' ? 'service' : 'product',
+        },
+      ];
+    });
+  };
+
+  // Agregar servicio rápido con 1 click
+  const handleAddQuickService = (name: string, price: number) => {
+    setLineItems((prev) => {
+      if (prev.length === 1 && !prev[0].description.trim() && prev[0].unitPrice === 0) {
+        return [
+          {
+            id: prev[0].id,
+            productId: null,
+            description: name,
+            quantity: 1,
+            unitPrice: price,
+            itemType: 'service',
+          },
+        ];
+      }
+      return [
+        ...prev,
+        {
+          id: `line-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+          productId: null,
+          description: name,
+          quantity: 1,
+          unitPrice: price,
+          itemType: 'service',
+        },
+      ];
+    });
+  };
+
+  // Aplicar sugerencia a una línea específica
+  const applyCatalogItemToLine = (lineId: string, item: CatalogItem) => {
+    setLineItems((prev) =>
+      prev.map((line) => {
+        if (line.id !== lineId) return line;
+        return {
+          ...line,
+          productId: item.sku ? item.id.replace('prod-', '') : null,
+          description: item.name,
+          unitPrice: item.price,
+          itemType: item.type === 'service' ? 'service' : 'product',
+        };
+      })
+    );
+    setActiveSuggestLineId(null);
+  };
+
   // Manipular líneas de la factura
   const handleAddLine = () => {
     setLineItems((prev) => [
       ...prev,
       {
-        id: `line-${Date.now()}`,
+        id: `line-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
         description: '',
         quantity: 1,
         unitPrice: 0,
-        itemType: 'product',
+        itemType: 'service',
       },
     ]);
   };
@@ -163,24 +308,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       prev.map((item) => {
         if (item.id !== id) return item;
         return { ...item, [field]: value };
-      })
-    );
-  };
-
-  // Autocompletar ítem desde el catálogo de inventario
-  const handleSelectProduct = (id: string, searchVal: string) => {
-    const prod = products.find((p) => p.id === searchVal || p.name === searchVal || `${p.name} - $${p.sale_price}` === searchVal);
-    if (!prod) return;
-
-    setLineItems((prev) =>
-      prev.map((item) => {
-        if (item.id !== id) return item;
-        return {
-          ...item,
-          description: `${prod.name} (${prod.brand})`,
-          unitPrice: prod.sale_price,
-          itemType: 'product',
-        };
       })
     );
   };
@@ -206,6 +333,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       const customerIdToUse = selectedCustomerId.trim() ? selectedCustomerId.trim() : null;
 
       const itemsPayload: InvoiceItemInsert[] = lineItems.map((it) => ({
+        product_id: it.productId || null,
         description: it.description.trim(),
         quantity: it.quantity,
         unit_price: it.unitPrice,
@@ -239,6 +367,18 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       setIsSubmitting(false);
     }
   };
+
+  // Filtrado de sugerencias de autocompletado para la línea activa
+  const lineSuggestions =
+    activeSuggestLineId && suggestQuery.trim().length >= 1
+      ? catalogItems
+          .filter(
+            (c) =>
+              c.name.toLowerCase().includes(suggestQuery.toLowerCase()) ||
+              (c.sku && c.sku.toLowerCase().includes(suggestQuery.toLowerCase()))
+          )
+          .slice(0, 8)
+      : [];
 
   return (
     <Modal
@@ -350,7 +490,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 options={customers.map((c) => ({
                   value: c.id,
                   label: c.full_name,
-                  sublabel: `Tel: ${c.phone}${c.document_id ? ` • Doc: ${c.document_id}` : ''}`,
+                  sublabel: `Tel: ${c.phone || c.whatsapp || 'Sin número'}${c.document_id ? ` • Doc: ${c.document_id}` : ''}`,
                 }))}
                 emptyMessage="No se encontró ningún cliente"
                 clearable={true}
@@ -447,11 +587,63 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
           </div>
         </div>
 
-        {/* Tabla de Líneas de Ítems */}
-        <div className="space-y-2">
+        {/* Sección de Catálogo y Líneas de Factura */}
+        <div className="space-y-3">
+          {/* Barra de Búsqueda Rápida de Catálogo (Repuestos y Servicios) */}
+          <div className="p-3 rounded-xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/60 dark:bg-blue-950/20 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
+                <Search className="w-3.5 h-3.5 text-blue-600" />
+                Buscar y Agregar Repuesto o Servicio del Taller
+              </span>
+              <span className="text-[10px] text-blue-700 dark:text-blue-300 font-medium">
+                {products.length} repuestos • {COMMON_WORKSHOP_SERVICES.length} servicios
+              </span>
+            </div>
+
+            <SearchableSelect
+              value={catalogSearchVal}
+              onChange={(val) => {
+                if (val) {
+                  handleAddItemFromCatalog(val);
+                  setCatalogSearchVal('');
+                }
+              }}
+              placeholder="🔍 Escribe o busca aquí para agregar repuesto o servicio..."
+              options={catalogSelectOptions}
+              emptyMessage="No se encontró ningún repuesto o servicio con ese nombre"
+              clearable={true}
+            />
+
+            {/* Accesos rápidos de Servicios Populares */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-amber-500" />
+                Servicios Rápidos:
+              </span>
+              {[
+                { name: 'Mantenimiento General', price: 80000 },
+                { name: 'Ajuste de Frenos', price: 15000 },
+                { name: 'Purga Hidráulica', price: 35000 },
+                { name: 'Sincronización Cambios', price: 15000 },
+                { name: 'Lavado Pro', price: 25000 },
+              ].map((srv) => (
+                <button
+                  type="button"
+                  key={srv.name}
+                  onClick={() => handleAddQuickService(srv.name, srv.price)}
+                  className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-800 bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/50 hover:border-blue-400 transition-colors"
+                >
+                  + {srv.name} (${(srv.price / 1000).toFixed(0)}k)
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Encabezado de la Tabla de Ítems */}
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-              Líneas de Factura (Servicios & Repuestos)
+              Líneas de Factura ({lineItems.length} {lineItems.length === 1 ? 'ítem' : 'ítems'})
             </h3>
             <Button
               size="sm"
@@ -460,90 +652,174 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               leftIcon={<Plus className="w-3.5 h-3.5" />}
               className="text-xs py-1"
             >
-              Agregar Ítem
+              Agregar Ítem en Blanco
             </Button>
           </div>
 
-          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+          {/* Listado de Líneas */}
+          <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
             {lineItems.map((item) => (
               <div
                 key={item.id}
-                className="grid grid-cols-12 gap-2 items-center p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"
+                className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs shadow-2xs space-y-2"
               >
-                {/* Selector de Producto rápido si es mostrador */}
-                {sourceMode === 'counter' && (
-                  <div className="col-span-12 sm:col-span-4">
-                    <SearchableSelect
-                      value=""
-                      onChange={(val) => {
-                        if (val) handleSelectProduct(item.id, val);
-                      }}
-                      placeholder="Buscar repuesto..."
-                      options={products.map((p) => ({
-                        value: p.id,
-                        label: p.name,
-                        sublabel: `SKU: ${p.sku} • $${p.sale_price.toLocaleString('es-CO')}`,
-                        badge: `Stock: ${p.stock}`,
-                      }))}
-                      emptyMessage="Sin resultados"
-                      clearable={false}
-                    />
+                <div className="grid grid-cols-12 gap-2 items-center">
+                  {/* Tipo de Ítem (Toggle Servicio / Repuesto) */}
+                  <div className="col-span-12 sm:col-span-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleLineChange(item.id, 'itemType', item.itemType === 'service' ? 'product' : 'service')
+                      }
+                      title={
+                        item.itemType === 'service'
+                          ? 'Tipo: Servicio (Click para cambiar a Repuesto)'
+                          : 'Tipo: Repuesto (Click para cambiar a Servicio)'
+                      }
+                      className={`w-full py-1.5 px-2 rounded border text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors ${
+                        item.itemType === 'service'
+                          ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300'
+                          : 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300'
+                      }`}
+                    >
+                      {item.itemType === 'service' ? (
+                        <>
+                          <Wrench className="w-3 h-3 text-blue-600" />
+                          <span>Servicio</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingBag className="w-3 h-3 text-amber-600" />
+                          <span>Repuesto</span>
+                        </>
+                      )}
+                    </button>
                   </div>
-                )}
 
-                {/* Descripción */}
-                <div className={sourceMode === 'counter' ? 'col-span-12 sm:col-span-4' : 'col-span-12 sm:col-span-6'}>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Descripción del servicio o repuesto"
-                    value={item.description}
-                    onChange={(e) => handleLineChange(item.id, 'description', e.target.value)}
-                    className="w-full py-1 px-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
-                  />
-                </div>
+                  {/* Input Descripción con Autocompletado Integrado */}
+                  <div className="col-span-12 sm:col-span-4 relative">
+                    <input
+                      type="text"
+                      required
+                      placeholder="Escribe o busca repuesto o servicio..."
+                      value={item.description}
+                      onFocus={() => {
+                        setActiveSuggestLineId(item.id);
+                        setSuggestQuery(item.description);
+                      }}
+                      onChange={(e) => {
+                        handleLineChange(item.id, 'description', e.target.value);
+                        setActiveSuggestLineId(item.id);
+                        setSuggestQuery(e.target.value);
+                      }}
+                      className="w-full py-1 px-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-2 focus:ring-blue-500"
+                    />
 
-                {/* Cantidad */}
-                <div className="col-span-3 sm:col-span-1">
-                  <input
-                    type="number" onFocus={(e) => e.target.select()}
-                    min="1"
-                    required
-                    value={item.quantity}
-                    onChange={(e) => handleLineChange(item.id, 'quantity', Math.max(1, Number(e.target.value)))}
-                    className="w-full py-1 px-1 text-center font-mono font-bold rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
-                  />
-                </div>
+                    {/* Menú de sugerencias en tiempo real */}
+                    {activeSuggestLineId === item.id && lineSuggestions.length > 0 && (
+                      <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                        {lineSuggestions.map((sug) => (
+                          <button
+                            key={sug.id}
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              applyCatalogItemToLine(item.id, sug);
+                            }}
+                            className="w-full text-left px-2.5 py-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/50 flex items-center justify-between gap-2 transition-colors cursor-pointer"
+                          >
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              {sug.type === 'service' ? (
+                                <Wrench className="w-3 h-3 text-blue-600 shrink-0" />
+                              ) : (
+                                <ShoppingBag className="w-3 h-3 text-amber-600 shrink-0" />
+                              )}
+                              <div className="truncate">
+                                <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs block truncate">
+                                  {sug.name}
+                                </span>
+                                {sug.sku && (
+                                  <span className="text-[10px] text-slate-400 font-mono">
+                                    SKU: {sug.sku}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span
+                                className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                                  sug.type === 'service'
+                                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                                    : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                                }`}
+                              >
+                                {sug.badge}
+                              </span>
+                              <span className="font-mono font-bold text-xs text-slate-900 dark:text-white">
+                                ${sug.price.toLocaleString('es-CO')}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
-                {/* Precio Unitario */}
-                <div className="col-span-4 sm:col-span-2">
-                  <input
-                    type="number" onFocus={(e) => e.target.select()}
-                    min="0"
-                    step="500"
-                    required
-                    placeholder="P. Unit"
-                    value={item.unitPrice}
-                    onChange={(e) => handleLineChange(item.id, 'unitPrice', Math.max(0, Number(e.target.value)))}
-                    className="w-full py-1 px-2 text-right font-mono font-bold rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
-                  />
-                </div>
+                  {/* Cantidad */}
+                  <div className="col-span-3 sm:col-span-2">
+                    <div className="flex items-center">
+                      <span className="text-[10px] text-slate-400 mr-1 sm:hidden">Cant:</span>
+                      <input
+                        type="number"
+                        onFocus={(e) => e.target.select()}
+                        min="1"
+                        required
+                        value={item.quantity}
+                        onChange={(e) =>
+                          handleLineChange(item.id, 'quantity', Math.max(1, Number(e.target.value)))
+                        }
+                        className="w-full py-1 px-1 text-center font-mono font-bold rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                      />
+                    </div>
+                  </div>
 
-                {/* Subtotal Línea */}
-                <div className="col-span-4 sm:col-span-2 text-right font-mono font-bold text-xs text-slate-800 dark:text-slate-200">
-                  ${(item.quantity * item.unitPrice).toLocaleString('es-CO')}
-                </div>
+                  {/* Precio Unitario */}
+                  <div className="col-span-4 sm:col-span-2">
+                    <div className="flex items-center">
+                      <span className="text-[10px] text-slate-400 mr-1 sm:hidden">P.U:</span>
+                      <input
+                        type="number"
+                        onFocus={(e) => e.target.select()}
+                        min="0"
+                        step="500"
+                        required
+                        placeholder="P. Unit"
+                        value={item.unitPrice}
+                        onChange={(e) =>
+                          handleLineChange(item.id, 'unitPrice', Math.max(0, Number(e.target.value)))
+                        }
+                        className="w-full py-1 px-2 text-right font-mono font-bold rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                      />
+                    </div>
+                  </div>
 
-                {/* Botón Borrar */}
-                <div className="col-span-1 text-right">
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveLine(item.id)}
-                    disabled={lineItems.length <= 1}
-                    className="p-1 rounded text-slate-400 hover:text-red-600 disabled:opacity-30"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  {/* Subtotal Línea */}
+                  <div className="col-span-4 sm:col-span-1 text-right font-mono font-bold text-xs text-slate-800 dark:text-slate-200">
+                    ${(item.quantity * item.unitPrice).toLocaleString('es-CO')}
+                  </div>
+
+                  {/* Botón Borrar */}
+                  <div className="col-span-1 text-right">
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveLine(item.id)}
+                      disabled={lineItems.length <= 1}
+                      className="p-1 rounded text-slate-400 hover:text-red-600 disabled:opacity-30"
+                      title="Eliminar ítem"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -554,9 +830,11 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-200 dark:border-slate-800 text-xs">
           {/* Opciones de Cobro e Integración con Caja */}
           <div className="space-y-2">
-            <label className={`flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium ${
-              paymentStatus === 'PENDING' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-            }`}>
+            <label
+              className={`flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium ${
+                paymentStatus === 'PENDING' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+              }`}
+            >
               <input
                 type="checkbox"
                 checked={paymentStatus === 'PAID' && recordInCash}
@@ -596,7 +874,8 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             <div className="flex items-center justify-between gap-2">
               <span className="text-slate-600 dark:text-slate-400">Descuento ($):</span>
               <input
-                type="number" onFocus={(e) => e.target.select()}
+                type="number"
+                onFocus={(e) => e.target.select()}
                 min="0"
                 max={subtotal}
                 step="500"
