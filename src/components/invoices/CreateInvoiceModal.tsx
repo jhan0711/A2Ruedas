@@ -299,8 +299,11 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   };
 
   const handleRemoveLine = (id: string) => {
-    if (lineItems.length <= 1) return;
     setLineItems((prev) => prev.filter((it) => it.id !== id));
+  };
+
+  const handleClearAllLines = () => {
+    setLineItems([]);
   };
 
   const handleLineChange = (id: string, field: keyof InvoiceLineItem, value: any) => {
@@ -321,6 +324,11 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (lineItems.length === 0) {
+      setErrorMessage('Debes agregar al menos un ítem o servicio a la factura.');
+      return;
+    }
 
     if (lineItems.some((it) => !it.description.trim() || it.unitPrice < 0 || it.quantity <= 0)) {
       setErrorMessage('Todos los ítems deben tener descripción, cantidad mayor a cero y precio válido.');
@@ -642,9 +650,20 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
 
           {/* Encabezado de la Tabla de Ítems */}
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-              Líneas de Factura ({lineItems.length} {lineItems.length === 1 ? 'ítem' : 'ítems'})
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Líneas de Factura ({lineItems.length} {lineItems.length === 1 ? 'ítem' : 'ítems'})
+              </h3>
+              {lineItems.length > 1 && (
+                <button
+                  type="button"
+                  onClick={handleClearAllLines}
+                  className="text-[10px] text-red-500 hover:text-red-700 hover:underline transition-colors cursor-pointer"
+                >
+                  Vaciar todas
+                </button>
+              )}
+            </div>
             <Button
               size="sm"
               variant="outline"
@@ -657,8 +676,30 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
           </div>
 
           {/* Listado de Líneas */}
-          <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-            {lineItems.map((item) => (
+          {lineItems.length === 0 ? (
+            <div className="py-6 px-4 text-center rounded-xl border border-dashed border-slate-300 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-2">
+              <ShoppingBag className="w-7 h-7 text-slate-400 mx-auto" />
+              <div>
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  No hay ítems en esta factura
+                </p>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Agrega un repuesto o servicio desde el buscador de arriba o añade una fila en blanco.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleAddLine}
+                leftIcon={<Plus className="w-3.5 h-3.5" />}
+                className="text-xs py-1"
+              >
+                Agregar Ítem en Blanco
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              {lineItems.map((item) => (
               <div
                 key={item.id}
                 className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs shadow-2xs space-y-2"
@@ -813,8 +854,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleRemoveLine(item.id)}
-                      disabled={lineItems.length <= 1}
-                      className="p-1 rounded text-slate-400 hover:text-red-600 disabled:opacity-30"
+                      className="p-1 rounded text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
                       title="Eliminar ítem"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -824,6 +864,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               </div>
             ))}
           </div>
+          )}
         </div>
 
         {/* Desglose de Totales y Opciones de Cobro */}
