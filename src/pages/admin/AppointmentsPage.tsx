@@ -22,6 +22,7 @@ import {
 } from '../../services/appointmentService';
 import { customerService } from '../../services/customerService';
 import { QuickCustomerModal } from '../../components/customers/QuickCustomerModal';
+import { WhatsAppComposeModal } from '../../components/whatsapp/WhatsAppComposeModal';
 import { Button, Card, Modal, ConfirmModal, Alert, LoadingSpinner, SearchableSelect } from '../../components/ui';
 
 type CalendarView = 'month' | 'week' | 'day' | 'list';
@@ -76,6 +77,15 @@ export const AppointmentsPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Feedback y alertas
+  // Modal WhatsApp con Plantilla Oficial Editable
+  const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
+  const [whatsappAppointment, setWhatsappAppointment] = useState<Appointment | null>(null);
+
+  const handleOpenWhatsApp = (apt: Appointment) => {
+    setWhatsappAppointment(apt);
+    setWhatsappModalOpen(true);
+  };
+
   const [alertMessage, setAlertMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(
     null
   );
@@ -226,7 +236,7 @@ export const AppointmentsPage: React.FC = () => {
     try {
       const scheduledDateTime = new Date(`${newDate}T08:00:00`).toISOString();
 
-      await appointmentService.createAppointment({
+      const created = await appointmentService.createAppointment({
         customer_id: newCustomerId,
         bicycle_info: newBicycleInfo || null,
         service_name: newServiceName,
@@ -247,6 +257,9 @@ export const AppointmentsPage: React.FC = () => {
       setNewServiceName('');
       setNewNotes('');
       loadData();
+      if (created) {
+        handleOpenWhatsApp(created);
+      }
     } catch (err: any) {
       console.error('Error al guardar cita:', err);
       setAlertMessage({ type: 'error', text: err.message || 'No se pudo agendar la cita.' });
@@ -811,14 +824,17 @@ export const AppointmentsPage: React.FC = () => {
                         <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center justify-between">
                           <span>{apt.customer?.full_name || 'Cliente sin asignar'}</span>
                           {apt.customer?.phone && (
-                            <a
-                              href={appointmentService.getWhatsAppConfirmationUrl(apt)}
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-emerald-600 p-1 hover:bg-emerald-50 dark:hover:bg-emerald-950 rounded transition-colors"
-                              title="WhatsApp"
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenWhatsApp(apt);
+                              }}
+                              className="text-emerald-600 p-1 hover:bg-emerald-50 dark:hover:bg-emerald-950 rounded transition-colors cursor-pointer"
+                              title="Enviar confirmación a WhatsApp"
                             >
                               <MessageCircle className="w-3.5 h-3.5" />
-                            </a>
+                            </button>
                           )}
                         </div>
                         <div className="text-[11px] text-slate-600 dark:text-slate-400">
@@ -941,13 +957,14 @@ export const AppointmentsPage: React.FC = () => {
 
                   <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 self-stretch sm:self-center justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
                     {apt.customer?.phone && (
-                      <a
-                        href={appointmentService.getWhatsAppConfirmationUrl(apt)}
-                        className="p-1.5 rounded-md bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 hover:bg-emerald-100 transition-colors"
+                      <button
+                        type="button"
+                        onClick={() => handleOpenWhatsApp(apt)}
+                        className="p-1.5 rounded-md bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 hover:bg-emerald-100 transition-colors cursor-pointer"
                         title="Enviar confirmación a WhatsApp"
                       >
                         <MessageCircle className="w-4 h-4" />
-                      </a>
+                      </button>
                     )}
 
                     <Button
@@ -1069,13 +1086,17 @@ export const AppointmentsPage: React.FC = () => {
 
                   <div className="flex items-center justify-end gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
                     {apt.customer?.phone && (
-                      <a
-                        href={appointmentService.getWhatsAppConfirmationUrl(apt)}
-                        className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 hover:bg-emerald-100 transition-colors"
-                        title="WhatsApp"
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenWhatsApp(apt);
+                        }}
+                        className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 hover:bg-emerald-100 transition-colors cursor-pointer"
+                        title="Enviar confirmación por WhatsApp"
                       >
                         <MessageCircle className="w-4 h-4" />
-                      </a>
+                      </button>
                     )}
                     <Button
                       size="sm"
@@ -1176,13 +1197,14 @@ export const AppointmentsPage: React.FC = () => {
                       <td className="py-2.5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           {apt.customer?.phone && (
-                            <a
-                              href={appointmentService.getWhatsAppConfirmationUrl(apt)}
-                              className="p-1 rounded text-slate-400 hover:text-emerald-600 transition-colors"
+                            <button
+                              type="button"
+                              onClick={() => handleOpenWhatsApp(apt)}
+                              className="p-1 rounded text-slate-400 hover:text-emerald-600 transition-colors cursor-pointer"
                               title="Enviar por WhatsApp"
                             >
                               <MessageCircle className="w-3.5 h-3.5" />
-                            </a>
+                            </button>
                           )}
                           <Button
                             size="sm"
@@ -1436,13 +1458,14 @@ export const AppointmentsPage: React.FC = () => {
                   Tel: {selectedAppointment.customer?.phone}
                 </div>
                 {selectedAppointment.customer?.phone && (
-                  <a
-                    href={appointmentService.getWhatsAppConfirmationUrl(selectedAppointment)}
-                    className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-semibold pt-1 hover:underline"
+                  <button
+                    type="button"
+                    onClick={() => handleOpenWhatsApp(selectedAppointment)}
+                    className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-semibold pt-1 hover:underline cursor-pointer"
                   >
                     <MessageCircle className="w-3.5 h-3.5" />
                     Enviar mensaje WhatsApp
-                  </a>
+                  </button>
                 )}
               </div>
 
@@ -1542,6 +1565,18 @@ export const AppointmentsPage: React.FC = () => {
           setCustomers((prev) => [...prev.filter((x) => x.id !== c.id), c]);
           setNewCustomerId(c.id);
         }}
+      />
+
+      {/* Modal de Envío de WhatsApp con Plantilla Oficial de Cita */}
+      <WhatsAppComposeModal
+        isOpen={whatsappModalOpen}
+        onClose={() => {
+          setWhatsappModalOpen(false);
+          setWhatsappAppointment(null);
+        }}
+        customer={whatsappAppointment?.customer}
+        appointment={whatsappAppointment}
+        defaultTrigger="CITA_PROGRAMADA"
       />
     </div>
   );

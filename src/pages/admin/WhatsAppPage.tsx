@@ -270,7 +270,7 @@ export const WhatsAppPage: React.FC = () => {
               Plantillas Oficiales del Taller ({templates.length})
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Plantillas oficiales de comunicación para recepción física, entrega de bicicletas y comprobantes de facturación. Puedes editarlas libremente y los cambios quedarán guardados permanentemente.
+              Plantillas oficiales de comunicación para citas agendadas, recepción física, entrega de bicicletas y comprobantes de facturación. Puedes editarlas libremente y los cambios quedarán guardados permanentemente.
             </p>
           </div>
           <div className="flex items-center gap-2">

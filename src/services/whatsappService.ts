@@ -18,6 +18,15 @@ const LOCAL_STORAGE_KEY = 'a2ruedas_whatsapp_messages_cache';
  */
 export const DEFAULT_WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
   {
+    id: 'CONFIRMACION_CITA',
+    title: 'Confirmación de Cita (Agendamiento)',
+    description: 'Notifica al cliente que su cita de servicio ha sido programada con fecha, hora, bicicleta y servicio solicitado.',
+    trigger: 'CITA_PROGRAMADA',
+    variables: ['{CLIENTE}', '{BICICLETA}', '{SERVICIO}', '{FECHA}', '{HORA}', '{MECANICO}', '{TALLER}'],
+    template:
+      '¡Hola {CLIENTE}! 👋 Te confirmamos tu cita de servicio en A2Ruedas Taller:\n\n🚲 Bicicleta: {BICICLETA}\n🔧 Servicio: {SERVICIO}\n👨‍🔧 Técnico Asignado: {MECANICO}\n📅 Fecha: {FECHA}\n⏰ Hora: {HORA}\n\nTe esperamos en nuestro taller (Cra 15 #85-20). Si necesitas reprogramar, por favor avísanos con anticipación. 🚲',
+  },
+  {
     id: 'ORDEN_RECIBIDA',
     title: 'Recepción de la Bicicleta (Agenda / Ingreso)',
     description: 'Notifica al cliente que su bicicleta ha ingresado al taller con su orden o agendamiento.',
@@ -48,7 +57,7 @@ export const DEFAULT_WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
 
 export const WHATSAPP_TEMPLATES = DEFAULT_WHATSAPP_TEMPLATES;
 
-const TEMPLATES_STORAGE_KEY = 'a2ruedas_whatsapp_templates_custom_v4';
+const TEMPLATES_STORAGE_KEY = 'a2ruedas_whatsapp_templates_custom_v5';
 
 function getStoredTemplates(): WhatsAppTemplate[] {
   if (typeof window === 'undefined') return DEFAULT_WHATSAPP_TEMPLATES;

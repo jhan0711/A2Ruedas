@@ -2,6 +2,7 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Appointment, AppointmentInsert, AppointmentUpdate } from '../types/database';
 import { customerService } from './customerService';
+import { whatsappService } from './whatsappService';
 
 const LOCAL_STORAGE_APPOINTMENTS = 'a2ruedas_appointments_cache';
 export const DEFAULT_DAILY_CAPACITY = 6;
@@ -358,38 +359,11 @@ export const appointmentService = {
   },
 
   /**
-   * Genera enlace de WhatsApp para confirmación de cita agendada
+   * Genera enlace de WhatsApp para confirmación de cita agendada usando la plantilla oficial editable
    */
   getWhatsAppConfirmationUrl(appointment: Appointment): string {
     const rawPhone = appointment.customer?.whatsapp || appointment.customer?.phone || '';
-    const phone = rawPhone.replace(/\D/g, '') || '';
-    const waNumber = phone.startsWith('57') ? phone : `57${phone}`;
-
-    const date = new Date(appointment.scheduled_at);
-    const dateFormatted = date.toLocaleDateString('es-CO', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-    });
-    const timeFormatted = date.toLocaleTimeString('es-CO', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-
-    const bikeInfo = appointment.bicycle
-      ? `${appointment.bicycle.brand} ${appointment.bicycle.model}`
-      : (appointment.bicycle_info || 'tu bicicleta');
-
-    const text = encodeURIComponent(
-      `¡Hola ${appointment.customer?.full_name}! 👋 Te confirmamos tu cita de servicio en A2Ruedas Taller:\n\n` +
-        `🚲 Bicicleta: ${bikeInfo}\n` +
-        `🔧 Servicio: ${appointment.service_name || 'Mantenimiento General'}\n` +
-        `👨‍🔧 Técnico Asignado: ${appointment.mechanic_name || 'Equipo A2Ruedas'}\n` +
-        `📅 Fecha: ${dateFormatted}\n` +
-        `⏰ Hora: ${timeFormatted}\n\n` +
-        `Te esperamos en nuestro taller (Cra 15 #85-20). Si necesitas reprogramar, por favor avísanos con anticipación.`
-    );
-
-    return `whatsapp://send?phone=${waNumber}&text=${text}`;
+    const text = whatsappService.buildAppointmentWhatsAppMessage(appointment);
+    return whatsappService.buildWhatsAppDeepLink(rawPhone, text);
   },
 };

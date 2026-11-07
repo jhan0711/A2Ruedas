@@ -16,6 +16,7 @@ import {
   WorkOrder,
   Bicycle,
   Invoice,
+  Appointment,
   WhatsAppTrigger,
   WhatsAppTemplateId,
   WhatsAppMessage,
@@ -31,6 +32,7 @@ interface WhatsAppComposeModalProps {
   workOrder?: WorkOrder | null;
   bicycle?: Bicycle | null;
   invoice?: Invoice | null;
+  appointment?: Appointment | null;
   defaultTrigger?: WhatsAppTrigger | string;
   defaultMessage?: string;
   onSent?: (message: WhatsAppMessage) => void;
@@ -43,6 +45,7 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
   workOrder,
   bicycle,
   invoice,
+  appointment,
   defaultTrigger,
   defaultMessage,
   onSent,
@@ -92,9 +95,9 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
 
     setSelectedTemplateId(targetTemplate.id);
     applyTemplate(targetTemplate.id);
-  }, [isOpen, customer, workOrder, bicycle, invoice, defaultTrigger, defaultMessage]);
+  }, [isOpen, customer, workOrder, bicycle, invoice, appointment, defaultTrigger, defaultMessage]);
 
-  const resolvedCustomer = invoice?.customer || customer || workOrder?.customer || null;
+  const resolvedCustomer = invoice?.customer || appointment?.customer || customer || workOrder?.customer || null;
   const resolvedBike = bicycle || workOrder?.bicycle || null;
 
   // Aplicar plantilla interpolando los datos vigentes
@@ -290,7 +293,7 @@ export const WhatsAppComposeModal: React.FC<WhatsAppComposeModalProps> = ({
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             Plantilla Oficial de Taller:
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
             {templates.map((t) => {
               const isSelected = selectedTemplateId === t.id;
               return (
