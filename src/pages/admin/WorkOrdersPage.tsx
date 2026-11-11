@@ -14,6 +14,9 @@ import {
   Printer,
   PenTool,
   Receipt,
+  Edit2,
+  Check,
+  AlertCircle,
 } from 'lucide-react';
 import { WorkOrderTicketModal } from '../../components/receipts/WorkOrderTicketModal';
 import { WhatsAppComposeModal } from '../../components/whatsapp/WhatsAppComposeModal';
@@ -107,6 +110,11 @@ export const WorkOrdersPage: React.FC = () => {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailOrder, setDetailOrder] = useState<WorkOrder | null>(null);
   const [orderSignatures, setOrderSignatures] = useState<Signature[]>([]);
+
+  // Edición rápida de la Falla Reportada en el detalle
+  const [isEditingReportedIssues, setIsEditingReportedIssues] = useState(false);
+  const [editedReportedIssues, setEditedReportedIssues] = useState('');
+  const [isSavingIssues, setIsSavingIssues] = useState(false);
 
   // Modal Eliminar Orden
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -299,12 +307,41 @@ export const WorkOrdersPage: React.FC = () => {
   // Abrir detalle / Dossier
   const openDetailModal = async (order: WorkOrder) => {
     setDetailOrder(order);
+    setIsEditingReportedIssues(false);
+    setEditedReportedIssues(order.reported_issues || '');
     setDetailModalOpen(true);
     try {
       const sigs = await workOrderService.getSignatures(order.id);
       setOrderSignatures(sigs);
     } catch (err) {
       console.error('Error al cargar firmas de OT:', err);
+    }
+  };
+
+  const handleSaveReportedIssues = async () => {
+    if (!detailOrder) return;
+    const trimmed = editedReportedIssues.trim();
+    if (!trimmed) {
+      setAlertMessage({ type: 'error', text: 'La falla reportada no puede estar vacía.' });
+      return;
+    }
+    setIsSavingIssues(true);
+    try {
+      const updated = await workOrderService.updateWorkOrder(detailOrder.id, {
+        reported_issues: trimmed,
+      });
+
+      setDetailOrder(updated);
+      setOrders((prev) =>
+        prev.map((o) => (o.id === updated.id ? { ...o, reported_issues: trimmed } : o))
+      );
+      setIsEditingReportedIssues(false);
+      setAlertMessage({ type: 'success', text: 'Falla reportada actualizada exitosamente.' });
+    } catch (err: any) {
+      console.error('Error al actualizar la falla reportada:', err);
+      setAlertMessage({ type: 'error', text: err.message || 'Error al actualizar la falla reportada.' });
+    } finally {
+      setIsSavingIssues(false);
     }
   };
 
@@ -540,8 +577,18 @@ export const WorkOrdersPage: React.FC = () => {
                       </button>
                     </TableCell>
 
-                    <TableCell className="max-w-xs truncate text-xs text-slate-700 dark:text-slate-300">
-                      {order.reported_issues}
+                    <TableCell
+                      onClick={() => {
+                        openDetailModal(order);
+                        setIsEditingReportedIssues(true);
+                      }}
+                      className="max-w-xs truncate text-xs text-slate-700 dark:text-slate-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 group"
+                      title="Clic para ver o editar la falla reportada"
+                    >
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="truncate">{order.reported_issues}</span>
+                        <Edit2 className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                      </div>
                     </TableCell>
 
                     <TableCell isMono className="font-bold text-slate-900 dark:text-white text-xs">
@@ -1001,11 +1048,69 @@ export const WorkOrdersPage: React.FC = () => {
             </div>
 
             {/* Falla Reportada */}
-            <div className="p-3 rounded-md bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 space-y-1 text-xs">
-              <span className="font-bold text-amber-900 dark:text-amber-300 uppercase text-[10px] block">
-                FALLA REPORTADA POR EL CLIENTE:
-              </span>
-              <p className="text-slate-800 dark:text-slate-200">{detailOrder.reported_issues}</p>
+            <div className="p-3.5 rounded-lg bg-amber-50/50 dark:bg-amber-950/25 border border-amber-200/80 dark:border-amber-900/50 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-amber-900 dark:text-amber-300 uppercase text-[10px] flex items-center gap-1.5 tracking-wider">
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                  FALLA REPORTADA POR EL CLIENTE:
+                </span>
+                {!isEditingReportedIssues && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditedReportedIssues(detailOrder.reported_issues || '');
+                      setIsEditingReportedIssues(true);
+                    }}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 dark:text-amber-300 hover:text-amber-950 dark:hover:text-amber-100 hover:underline cursor-pointer px-2 py-0.5 rounded-md hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
+                    title="Editar problema reportado"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                    <span>Editar Falla</span>
+                  </button>
+                )}
+              </div>
+
+              {!isEditingReportedIssues ? (
+                <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium whitespace-pre-wrap">
+                  {detailOrder.reported_issues}
+                </p>
+              ) : (
+                <div className="space-y-2 pt-1">
+                  <textarea
+                    rows={3}
+                    value={editedReportedIssues}
+                    onChange={(e) => setEditedReportedIssues(e.target.value)}
+                    placeholder="Describe detalladamente la falla reportada por el cliente..."
+                    className="w-full text-xs rounded-md border border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none leading-relaxed"
+                    autoFocus
+                  />
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setIsEditingReportedIssues(false)}
+                      disabled={isSavingIssues}
+                      className="text-xs h-7 px-2.5"
+                    >
+                      <X className="w-3 h-3 mr-1" />
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="primary"
+                      onClick={handleSaveReportedIssues}
+                      isLoading={isSavingIssues}
+                      disabled={!editedReportedIssues.trim()}
+                      className="text-xs h-7 px-3 bg-amber-600 hover:bg-amber-700 text-white border-none shadow-xs"
+                    >
+                      <Check className="w-3 h-3 mr-1" />
+                      Guardar Cambios
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Accesorios y Custodia */}
